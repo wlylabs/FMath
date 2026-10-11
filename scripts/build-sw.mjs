@@ -87,7 +87,7 @@ self.addEventListener('fetch', (event) => {
         .catch(
           async () =>
             (await fromCache(new Request(PAGES.has(page) ? page : url.pathname))) ||
-            (await fromCache(new Request('/'))) ||
+            (await fromCache(new Request('/home/'))) ||
             Response.error(),
         ),
     );

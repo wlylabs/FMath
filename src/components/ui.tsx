@@ -268,7 +268,12 @@ export function Switch(props: { checked: boolean; onChange: (v: boolean) => void
 
 export function QuickPicks(props: { values: { label: string; value: string }[]; onPick: (v: string) => void; label: string; current?: string }) {
   return (
-    <div className="mt-2 flex flex-wrap gap-1.5" role="group" aria-label={props.label}>
+    // one swipeable row on phones, so a last chip never sits alone on a second line; wraps from sm up
+    <div
+      className="-mx-4 mt-2 flex gap-1.5 overflow-x-auto overscroll-x-contain px-4 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 [&::-webkit-scrollbar]:hidden"
+      role="group"
+      aria-label={props.label}
+    >
       {props.values.map((v) => (
         <button
           key={v.value}
@@ -276,7 +281,7 @@ export function QuickPicks(props: { values: { label: string; value: string }[]; 
           onClick={() => props.onPick(v.value)}
           aria-pressed={props.current === v.value}
           className={cx(
-            'press num h-8 rounded-lg border px-2.5 text-xs',
+            'press num h-8 shrink-0 rounded-lg border px-2.5 text-xs',
             props.current === v.value
               ? 'border-accent-strong bg-accent-wash text-ink'
               : 'border-line text-ink-2 hover:border-line-strong hover:text-ink',
@@ -347,10 +352,7 @@ export function CardTitle(props: { children: ReactNode; aside?: ReactNode; id?: 
 export function LiveBadge(props: { label: string }) {
   return (
     <span className="inline-flex items-center gap-1.5 rounded-full bg-pos-wash px-2 py-0.5 text-[11px] font-medium text-pos">
-      <span aria-hidden className="relative flex size-1.5">
-        <span className="absolute inline-flex size-full animate-ping rounded-full bg-pos opacity-60 motion-reduce:hidden" />
-        <span className="relative inline-flex size-1.5 rounded-full bg-pos" />
-      </span>
+      <span aria-hidden className="size-1.5 rounded-full bg-pos" />
       {props.label}
     </span>
   );

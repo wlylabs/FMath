@@ -1,5 +1,3 @@
-import { id } from './copy.id';
-
 /** English interface copy; the Indonesian ("wkwk") copy in copy.id.ts has the same shape. */
 const en = {
   meta: {
@@ -503,7 +501,14 @@ export const LANGS: readonly Lang[] = ['en', 'id'];
 /** Toggle labels: Indonesian is shown as "wkwk". */
 export const LANG_LABELS: Record<Lang, string> = { en: 'EN', id: 'wkwk' };
 
-const COPY: Record<Lang, Copy> = { en, id };
+/** Copy per language. Indonesian ships as its own chunk and loads only when someone picks it. */
+const COPY: Partial<Record<Lang, Copy>> = { en };
+
+/** Fetches a language's copy if this page has not loaded it yet. */
+export async function loadLang(lang: Lang): Promise<void> {
+  if (COPY[lang]) return;
+  if (lang === 'id') COPY.id = (await import('./copy.id')).id;
+}
 
 let current: Lang = 'en';
 
@@ -513,7 +518,8 @@ export function getLang(): Lang {
 
 /**
  * Switches the language `t` reads from. Only LangProvider calls this, during
- * render and before its subtree renders; the static export always renders English.
+ * render and before its subtree renders, once loadLang has finished; the
+ * static export always renders English.
  */
 export function setLang(lang: Lang) {
   current = lang;
@@ -525,5 +531,5 @@ export function setLang(lang: Lang) {
  * page is showing; LangProvider remounts the app when it changes.
  */
 export const t: Copy = new Proxy(en, {
-  get: (_, key) => COPY[current][key as keyof Copy],
+  get: (_, key) => (COPY[current] ?? en)[key as keyof Copy],
 });
