@@ -18,7 +18,7 @@ export default function NotFound() {
       <p className="mt-3 text-sm leading-relaxed text-ink-2">{t.notFound.body}</p>
       <Link
         href={ROUTES.fee}
-        className="mt-8 inline-flex h-12 items-center justify-center rounded-xl bg-accent px-6 text-sm font-semibold text-accent-ink transition-colors hover:bg-accent-hover"
+        className="press mt-8 inline-flex h-12 items-center justify-center rounded-xl bg-accent px-6 text-sm font-semibold text-accent-ink hover:bg-accent-hover"
       >
         {t.notFound.cta}
       </Link>

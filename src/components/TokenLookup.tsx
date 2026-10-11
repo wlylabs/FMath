@@ -6,7 +6,7 @@ import { getToken, searchTokens, dexscreenerChainId, type TokenMarket } from '..
 import { getChain } from '../lib/fees';
 import { compactUsd, pct, price, shortAddress, time } from '../lib/format';
 import { t } from '../lib/copy';
-import { LiveBadge } from './ui';
+import { LiveBadge, SwapValue } from './ui';
 import { cx } from '../lib/cx';
 
 function TokenIcon({ token, size = 36 }: { token: Pick<TokenMarket, 'imageUrl' | 'symbol'>; size?: number }) {
@@ -47,6 +47,8 @@ export function TokenLookup(props: { token: TokenMarket | null; onChange: (t: To
   const [active, setActive] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const [refreshError, setRefreshError] = useState(false);
+  // a pick or a clear by the user settles the new view in; a token restored on load just appears
+  const [swapped, setSwapped] = useState(false);
   const listId = useId();
   const inputId = useId();
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -124,6 +126,7 @@ export function TokenLookup(props: { token: TokenMarket | null; onChange: (t: To
   }, [tokenKey]);
 
   const pick = (m: TokenMarket) => {
+    setSwapped(true);
     onChange(m);
     setQuery('');
     setOpen(false);
@@ -132,7 +135,7 @@ export function TokenLookup(props: { token: TokenMarket | null; onChange: (t: To
   if (token) {
     const change = token.change24h;
     return (
-      <div className="rounded-xl border border-line bg-surface-2 p-3.5">
+      <div className={cx('rounded-xl border border-line bg-surface-2 p-3.5', swapped && 'enter')}>
         <div className="flex items-start gap-3">
           <TokenIcon token={token} />
           <div className="min-w-0 flex-1">
@@ -149,8 +152,11 @@ export function TokenLookup(props: { token: TokenMarket | null; onChange: (t: To
           </div>
           <button
             type="button"
-            onClick={() => onChange(null)}
-            className="-mr-1 -mt-1 inline-flex size-9 shrink-0 items-center justify-center rounded-lg text-muted hover:bg-surface hover:text-ink"
+            onClick={() => {
+              setSwapped(true);
+              onChange(null);
+            }}
+            className="press -mr-1 -mt-1 inline-flex size-9 shrink-0 items-center justify-center rounded-lg text-muted hover:bg-surface hover:text-ink"
             aria-label={t.profit.change}
             title={t.profit.change}
           >
@@ -160,11 +166,15 @@ export function TokenLookup(props: { token: TokenMarket | null; onChange: (t: To
         <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2.5 sm:grid-cols-4">
           <div>
             <dt className="text-[11px] text-muted">{t.profit.price}</dt>
-            <dd className="num text-sm text-ink">{price(token.priceUsd)}</dd>
+            <dd className="num text-sm text-ink">
+              <SwapValue value={price(token.priceUsd)} />
+            </dd>
           </div>
           <div>
             <dt className="text-[11px] text-muted">{token.marketCap !== null ? t.profit.mcap : t.profit.fdv}</dt>
-            <dd className="num text-sm text-ink">{compactUsd(token.marketCap ?? token.fdv)}</dd>
+            <dd className="num text-sm text-ink">
+              <SwapValue value={compactUsd(token.marketCap ?? token.fdv)} />
+            </dd>
           </div>
           <div>
             <dt className="text-[11px] text-muted">{t.profit.liquidity}</dt>
@@ -186,7 +196,7 @@ export function TokenLookup(props: { token: TokenMarket | null; onChange: (t: To
               type="button"
               onClick={() => void refresh()}
               disabled={refreshing}
-              className="inline-flex h-8 items-center gap-1.5 rounded-lg px-2 font-medium text-ink-2 hover:bg-surface hover:text-ink disabled:opacity-60"
+              className="press inline-flex h-8 items-center gap-1.5 rounded-lg px-2 font-medium text-ink-2 hover:bg-surface hover:text-ink disabled:opacity-60"
             >
               <RefreshCw aria-hidden className={cx('size-3.5', refreshing && 'animate-spin')} />
               {t.common.refresh}
@@ -195,7 +205,7 @@ export function TokenLookup(props: { token: TokenMarket | null; onChange: (t: To
               href={token.pairUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex h-8 items-center gap-1.5 rounded-lg px-2 font-medium text-ink-2 hover:bg-surface hover:text-ink"
+              className="press inline-flex h-8 items-center gap-1.5 rounded-lg px-2 font-medium text-ink-2 hover:bg-surface hover:text-ink"
             >
               DexScreener
               <ExternalLink aria-hidden className="size-3.5" />
@@ -208,7 +218,7 @@ export function TokenLookup(props: { token: TokenMarket | null; onChange: (t: To
 
   const showList = open && query.trim().length >= 2;
   return (
-    <div ref={wrapRef} className="relative">
+    <div ref={wrapRef} className={cx('relative', swapped && 'enter')}>
       <label htmlFor={inputId} className="sr-only">
         {t.profit.searchLabel}
       </label>
@@ -253,7 +263,7 @@ export function TokenLookup(props: { token: TokenMarket | null; onChange: (t: To
         {status === 'loading' && <Loader2 aria-hidden className="mr-3.5 size-4 shrink-0 animate-spin text-muted" />}
       </div>
       {showList && (
-        <div className="absolute inset-x-0 top-full z-20 mt-2 overflow-hidden rounded-xl border border-line bg-surface shadow-xl">
+        <div className="pop-in absolute inset-x-0 top-full z-20 mt-2 overflow-hidden rounded-xl border border-line bg-surface shadow-xl">
           {status === 'error' ? (
             <p className="px-4 py-3 text-sm text-ink-2">{t.common.loadError}</p>
           ) : status === 'loading' && results.length === 0 ? (

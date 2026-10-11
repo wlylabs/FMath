@@ -44,7 +44,11 @@ export function BandTable(props: {
           {bands.map((b, i) => {
             const active = i === props.activeIndex;
             return (
-              <tr key={i} className={cx('border-t border-line', active && 'bg-accent-wash')} aria-current={active || undefined}>
+              <tr
+                key={i}
+                className={cx('border-t border-line transition-colors duration-[var(--dur-fast)] ease-[var(--ease-standard)]', active && 'bg-accent-wash')}
+                aria-current={active || undefined}
+              >
                 <td className="num px-3.5 py-2.5 text-ink-2">
                   <span className="inline-flex items-center gap-2">
                     {active && <span aria-hidden className="size-1.5 rounded-full bg-accent-strong" />}

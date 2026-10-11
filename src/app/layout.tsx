@@ -9,6 +9,7 @@ import { Toaster } from '../components/Toaster';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Sections';
 import { BottomNav } from '../components/BottomNav';
+import { NavMarker } from '../components/NavMarker';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -63,6 +64,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <Footer />
           <BottomNav />
           <Toaster />
+          <NavMarker />
         </PwaProvider>
       </body>
     </html>

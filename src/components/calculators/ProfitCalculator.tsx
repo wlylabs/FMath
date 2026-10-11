@@ -291,7 +291,7 @@ export function ProfitCalculator() {
         <details className="group rounded-xl border border-line">
           <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-3.5 text-sm font-medium text-ink [&::-webkit-details-marker]:hidden">
             {t.common.advanced}
-            <ChevronDown aria-hidden className="size-4 text-muted transition-transform group-open:rotate-180" />
+            <ChevronDown aria-hidden className="size-4 text-muted transition-transform duration-[var(--dur-base)] ease-[var(--ease-standard)] group-open:rotate-180" />
           </summary>
           <div className="space-y-6 border-t border-line p-3.5">
             <Field label={t.common.tokenClass} labelId={ids.cls} hint={s.tokenClass === 'major' ? t.common.majorHint : undefined}>

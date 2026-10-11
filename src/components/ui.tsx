@@ -1,6 +1,6 @@
 'use client';
 
-import { useId, useRef, type KeyboardEvent, type ReactNode } from 'react';
+import { useCallback, useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { AlertTriangle, Info } from 'lucide-react';
 import { t } from '../lib/copy';
 import { cx } from '../lib/cx';
@@ -115,14 +115,30 @@ export function Segmented<T extends string>(props: {
   labelledBy?: string;
   tone?: (v: T) => 'pos' | 'neg' | undefined;
 }) {
-  const { refs, onKeyDown, selectedIndex } = useRovingKeys(props.options, props.value, props.onChange);
+  const thumb = useRef<HTMLSpanElement>(null);
+  // only user-initiated changes slide; restoring saved inputs after load just places the thumb
+  const change = (v: T) => {
+    if (thumb.current) thumb.current.style.transition = 'transform var(--dur-base) var(--ease-drawer)';
+    props.onChange(v);
+  };
+  const { refs, onKeyDown, selectedIndex } = useRovingKeys(props.options, props.value, change);
+  const count = props.options.length;
   return (
     <div
       role="radiogroup"
       aria-label={props.labelledBy ? undefined : props.label}
       aria-labelledby={props.labelledBy}
-      className="grid auto-cols-fr grid-flow-col gap-1 rounded-xl border border-line bg-surface-2 p-1"
+      className="relative isolate grid auto-cols-fr grid-flow-col gap-1 rounded-xl border border-line bg-surface-2 p-1"
     >
+      <span
+        ref={thumb}
+        aria-hidden
+        className="absolute inset-y-1 left-1 -z-10 rounded-lg bg-raised shadow-sm ring-1 ring-line-strong/60"
+        style={{
+          width: `calc((100% - 0.5rem - ${count - 1} * 0.25rem) / ${count})`,
+          transform: `translateX(calc(${selectedIndex} * (100% + 0.25rem)))`,
+        }}
+      />
       {props.options.map((o, i) => {
         const selected = i === selectedIndex;
         const tone = props.tone?.(o.value);
@@ -137,15 +153,11 @@ export function Segmented<T extends string>(props: {
             aria-checked={selected}
             tabIndex={selected ? 0 : -1}
             onKeyDown={(e) => onKeyDown(e, i)}
-            onClick={() => props.onChange(o.value)}
+            onClick={() => change(o.value)}
+            // no press scale: text shrinking inside a thumb that stays still reads as a glitch
             className={cx(
-              'flex min-h-10 min-w-0 flex-col items-center justify-center rounded-lg px-2 py-1.5 text-sm font-medium transition-colors',
-              selected
-                ? cx(
-                    'bg-raised shadow-sm ring-1 ring-line-strong/60',
-                    tone === 'pos' ? 'text-pos' : tone === 'neg' ? 'text-neg' : 'text-ink',
-                  )
-                : 'text-muted hover:text-ink',
+              'flex min-h-10 min-w-0 flex-col items-center justify-center rounded-lg px-2 py-1.5 text-sm font-medium transition-colors duration-[var(--dur-base)] ease-[var(--ease-standard)]',
+              selected ? (tone === 'pos' ? 'text-pos' : tone === 'neg' ? 'text-neg' : 'text-ink') : 'text-muted hover:text-ink',
             )}
           >
             <span className="truncate">{o.label}</span>
@@ -174,7 +186,7 @@ export function Pills<T extends string>(props: {
       aria-labelledby={props.labelledBy}
       aria-disabled={props.disabled || undefined}
       // one swipeable row on phones, wrapping rows from sm up
-      className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0 [&::-webkit-scrollbar]:hidden"
+      className="-mx-4 flex snap-x snap-proximity scroll-px-4 gap-2 overflow-x-auto overscroll-x-contain px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0 [&::-webkit-scrollbar]:hidden"
     >
       {props.options.map((o, i) => {
         const selected = i === selectedIndex;
@@ -190,9 +202,13 @@ export function Pills<T extends string>(props: {
             disabled={props.disabled && !selected}
             tabIndex={selected ? 0 : -1}
             onKeyDown={(e) => onKeyDown(e, i)}
-            onClick={() => props.onChange(o.value)}
+            onClick={(e) => {
+              props.onChange(o.value);
+              // in the one-row layout on phones, keep the picked chip fully in view
+              e.currentTarget.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', inline: 'nearest', block: 'nearest' });
+            }}
             className={cx(
-              'h-10 shrink-0 rounded-full border px-4 text-sm font-medium whitespace-nowrap transition-colors disabled:opacity-40',
+              'press h-10 shrink-0 snap-start rounded-full border px-4 text-sm font-medium whitespace-nowrap disabled:opacity-40',
               selected
                 ? 'border-accent-strong bg-accent-wash text-ink'
                 : 'border-line bg-surface-2 text-ink-2 hover:border-line-strong hover:text-ink',
@@ -208,14 +224,19 @@ export function Pills<T extends string>(props: {
 
 export function Switch(props: { checked: boolean; onChange: (v: boolean) => void; label: ReactNode; hint?: ReactNode }) {
   const id = useId();
+  // like Segmented: only a user toggle slides; restoring a saved "on" after load just places the knob
+  const [touched, setTouched] = useState(false);
   return (
     <button
       type="button"
       role="switch"
       aria-checked={props.checked}
       aria-describedby={props.hint ? id : undefined}
-      onClick={() => props.onChange(!props.checked)}
-      className="flex w-full items-center justify-between gap-4 rounded-xl border border-line bg-surface-2 px-3.5 py-3 text-left transition-colors hover:border-line-strong"
+      onClick={() => {
+        setTouched(true);
+        props.onChange(!props.checked);
+      }}
+      className="press-soft flex w-full items-center justify-between gap-4 rounded-xl border border-line bg-surface-2 px-3.5 py-3 text-left hover:border-line-strong"
     >
       <span className="min-w-0">
         <span className="block text-sm font-medium text-ink">{props.label}</span>
@@ -228,13 +249,15 @@ export function Switch(props: { checked: boolean; onChange: (v: boolean) => void
       <span
         aria-hidden
         className={cx(
-          'relative h-6 w-10 shrink-0 rounded-full transition-colors',
+          'relative h-6 w-10 shrink-0 rounded-full',
+          touched && 'transition-colors duration-[var(--dur-base)] ease-[var(--ease-standard)]',
           props.checked ? 'bg-accent' : 'bg-line-strong',
         )}
       >
         <span
           className={cx(
-            'absolute top-0.5 size-5 rounded-full bg-surface shadow transition-transform',
+            'absolute top-0.5 size-5 rounded-full bg-surface shadow',
+            touched && 'transition-transform duration-[var(--dur-base)] ease-[var(--ease-drawer)]',
             props.checked ? 'translate-x-[18px]' : 'translate-x-0.5',
           )}
         />
@@ -253,7 +276,7 @@ export function QuickPicks(props: { values: { label: string; value: string }[]; 
           onClick={() => props.onPick(v.value)}
           aria-pressed={props.current === v.value}
           className={cx(
-            'num h-8 rounded-lg border px-2.5 text-xs transition-colors',
+            'press num h-8 rounded-lg border px-2.5 text-xs',
             props.current === v.value
               ? 'border-accent-strong bg-accent-wash text-ink'
               : 'border-line text-ink-2 hover:border-line-strong hover:text-ink',
@@ -266,9 +289,16 @@ export function QuickPicks(props: { values: { label: string; value: string }[]; 
   );
 }
 
-export function Row(props: { label: ReactNode; value: ReactNode; sub?: ReactNode; strong?: boolean; tone?: 'pos' | 'neg' | 'muted' }) {
+export function Row(props: {
+  label: ReactNode;
+  value: ReactNode;
+  sub?: ReactNode;
+  strong?: boolean;
+  tone?: 'pos' | 'neg' | 'muted';
+  className?: string;
+}) {
   return (
-    <div className="flex items-baseline justify-between gap-4 py-2.5">
+    <div className={cx('flex items-baseline justify-between gap-4 py-2.5', props.className)}>
       <dt className={cx('shrink-0 text-sm', props.strong ? 'font-medium text-ink' : 'text-ink-2')}>{props.label}</dt>
       <dd className="min-w-0 text-right">
         <span
@@ -318,7 +348,7 @@ export function LiveBadge(props: { label: string }) {
   return (
     <span className="inline-flex items-center gap-1.5 rounded-full bg-pos-wash px-2 py-0.5 text-[11px] font-medium text-pos">
       <span aria-hidden className="relative flex size-1.5">
-        <span className="absolute inline-flex size-full animate-ping rounded-full bg-pos opacity-60" />
+        <span className="absolute inline-flex size-full animate-ping rounded-full bg-pos opacity-60 motion-reduce:hidden" />
         <span className="relative inline-flex size-1.5 rounded-full bg-pos" />
       </span>
       {props.label}
@@ -326,7 +356,55 @@ export function LiveBadge(props: { label: string }) {
   );
 }
 
+export function prefersReducedMotion(): boolean {
+  return typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+/** A flag that turns itself off again, for "copied" style confirmations. */
+export function useFlash(ms = 1600): [boolean, () => void] {
+  const [on, setOn] = useState(false);
+  const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  useEffect(() => () => clearTimeout(timer.current), []);
+  const flash = useCallback(() => {
+    clearTimeout(timer.current);
+    setOn(true);
+    timer.current = setTimeout(() => setOn(false), ms);
+  }, [ms]);
+  return [on, flash];
+}
+
+// emphasized decelerate; the Web Animations API cannot read the CSS token
+const SETTLE = { duration: 220, easing: 'cubic-bezier(0.05, 0.7, 0.1, 1)' };
+
+/**
+ * A number that settles in when it changes because of a tap (a quick pick, a
+ * segment, a switch, a token). Typing bursts and the restore of saved inputs
+ * right after load stay still, or every keystroke would flicker.
+ */
+export function SwapValue({ value, className }: { value: string; className?: string }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const last = useRef<{ mounted: number; changed: number } | null>(null);
+  useEffect(() => {
+    const now = performance.now();
+    const seen = last.current;
+    if (!seen) {
+      last.current = { mounted: now, changed: now };
+      return;
+    }
+    const settled = now - seen.changed > 250 && now - seen.mounted > 400;
+    seen.changed = now;
+    if (!settled || prefersReducedMotion()) return;
+    ref.current?.animate([{ opacity: 0.35, transform: 'translateY(0.12em)' }, { opacity: 1, transform: 'none' }], SETTLE);
+  }, [value]);
+  return (
+    <span ref={ref} className={cx('inline-block', className)}>
+      {value}
+    </span>
+  );
+}
+
 /** Large signed figure used as the one headline number in a result card. */
+
 export function Headline(props: { label: ReactNode; value: ReactNode; tone?: 'pos' | 'neg'; sub?: ReactNode }) {
   return (
     <div>
@@ -338,7 +416,7 @@ export function Headline(props: { label: ReactNode; value: ReactNode; tone?: 'po
         )}
         aria-live="polite"
       >
-        {props.value}
+        {typeof props.value === 'string' ? <SwapValue value={props.value} /> : props.value}
       </p>
       {props.sub && <div className="mt-1.5 text-sm text-ink-2">{props.sub}</div>}
     </div>

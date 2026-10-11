@@ -8,7 +8,7 @@ import { num, parseAmount, pct, price, time, usd } from '../../lib/format';
 import { t } from '../../lib/copy';
 import { ROUTES } from '../../lib/routes';
 import { usePersistentState } from '../../hooks/usePersistentState';
-import { CardTitle, Field, Headline, LiveBadge, Notice, NumberInput, QuickPicks, Row, Segmented, Switch } from '../ui';
+import { CardTitle, Field, Headline, LiveBadge, Notice, NumberInput, QuickPicks, Row, Segmented, SwapValue, Switch } from '../ui';
 import { cx } from '../../lib/cx';
 import { MobileSummary } from '../MobileSummary';
 import { ShareButton } from '../ShareButton';
@@ -246,7 +246,10 @@ export function PerpsCalculator() {
             <dl className="mt-2.5 grid grid-cols-3 gap-2 rounded-xl bg-surface-2 px-3.5 py-2.5">
               <div>
                 <dt className="text-[11px] text-muted">{t.perps.mark}</dt>
-                <dd className="num text-sm text-ink">{price(market.markPx)}</dd>
+                {/* settles in when the 20s refresh or a market change moves it, so "live" is visible */}
+                <dd className="num text-sm text-ink">
+                  <SwapValue value={price(market.markPx)} />
+                </dd>
               </div>
               <div>
                 <dt className="text-[11px] text-muted">{t.profit.change24h}</dt>
@@ -261,7 +264,9 @@ export function PerpsCalculator() {
               </div>
               <div>
                 <dt className="text-[11px] text-muted">{t.perps.fundingLive}</dt>
-                <dd className="num text-sm text-ink">{pct(market.fundingHourly, { digits: 4, signed: true })}</dd>
+                <dd className="num text-sm text-ink">
+                  <SwapValue value={pct(market.fundingHourly, { digits: 4, signed: true })} />
+                </dd>
               </div>
             </dl>
           )}
@@ -394,7 +399,7 @@ export function PerpsCalculator() {
                 {s.funding || '0'}%/h · {s.hold || '0'}h
               </span>
             </span>
-            <ChevronDown aria-hidden className="size-4 shrink-0 text-muted transition-transform group-open:rotate-180" />
+            <ChevronDown aria-hidden className="size-4 shrink-0 text-muted transition-transform duration-[var(--dur-base)] ease-[var(--ease-standard)] group-open:rotate-180" />
           </summary>
         <div className="grid gap-6 border-t border-line p-3.5 sm:grid-cols-2">
           <Field label={t.perps.funding} htmlFor={ids.funding} hint={t.perps.fundingHint}>

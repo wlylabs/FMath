@@ -4,6 +4,7 @@ import { useEffect, useState, type ReactNode, type RefObject } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { t } from '../lib/copy';
 import { cx } from '../lib/cx';
+import { prefersReducedMotion, SwapValue } from './ui';
 
 /**
  * Bottom bar on small screens that keeps the headline result in view while
@@ -52,15 +53,18 @@ export function MobileSummary(props: {
       inert={!show}
       aria-hidden={!show}
       className={cx(
-        // sits just above the bottom nav, which is also hidden from lg up
-        'fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-30 px-3 pb-2 transition-transform duration-200 lg:hidden',
-        show ? 'translate-y-0' : 'pointer-events-none translate-y-[calc(100%+6rem)]',
+        // sits just above the bottom nav, which is also hidden from lg up; rises
+        // in with the drawer curve, drops away faster than it came
+        'fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-30 px-3 pb-2 transition-transform lg:hidden',
+        show
+          ? 'translate-y-0 duration-[var(--dur-slow)] ease-[var(--ease-drawer)]'
+          : 'pointer-events-none translate-y-[calc(100%+6rem)] duration-200 ease-[var(--ease-exit)]',
       )}
     >
       <button
         type="button"
-        onClick={() => props.resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-        className="flex w-full items-center justify-between gap-3 rounded-2xl border border-line bg-surface/95 px-4 py-3 text-left shadow-xl backdrop-blur"
+        onClick={() => props.resultsRef.current?.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'start' })}
+        className="press-soft flex w-full items-center justify-between gap-3 rounded-2xl border border-line bg-surface px-4 py-3 text-left shadow-xl"
       >
         <span className="min-w-0 flex-1">
           <span className="block truncate text-[11px] text-muted">{props.label}</span>
@@ -72,7 +76,7 @@ export function MobileSummary(props: {
                   props.tone === 'pos' ? 'text-pos' : props.tone === 'neg' ? 'text-neg' : 'text-ink',
                 )}
               >
-                {props.value}
+                {typeof props.value === 'string' ? <SwapValue value={props.value} /> : props.value}
               </span>
               {props.detail && <span className="num truncate text-xs text-ink-2">{props.detail}</span>}
             </span>
