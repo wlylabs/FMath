@@ -8,8 +8,25 @@ import { compactUsd, pct, price, shortAddress, time } from '../lib/format';
 import { t } from '../lib/copy';
 import { LiveBadge, SwapValue } from './ui';
 import { cx } from '../lib/cx';
+import { ChainIcon } from './ChainIcon';
 
-function TokenIcon({ token, size = 36 }: { token: Pick<TokenMarket, 'imageUrl' | 'symbol'>; size?: number }) {
+/** Token logo with its chain's logo as a small badge on the lower right. */
+function TokenIcon({ token, size = 36 }: { token: Pick<TokenMarket, 'imageUrl' | 'symbol' | 'chain'>; size?: number }) {
+  const badge = Math.round(size * 0.44);
+  return (
+    <span className="relative shrink-0" style={{ width: size, height: size }}>
+      <TokenLogo token={token} size={size} />
+      <span
+        className="absolute -right-0.5 -bottom-0.5 overflow-hidden rounded-full ring-2 ring-surface"
+        style={{ width: badge, height: badge }}
+      >
+        <ChainIcon chain={token.chain} className="size-full" />
+      </span>
+    </span>
+  );
+}
+
+function TokenLogo({ token, size }: { token: Pick<TokenMarket, 'imageUrl' | 'symbol'>; size: number }) {
   const [failed, setFailed] = useState(false);
   if (token.imageUrl && !failed) {
     return (
@@ -147,7 +164,8 @@ export function TokenLookup(props: { token: TokenMarket | null; onChange: (t: To
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
               <span className="truncate font-semibold text-ink">{token.symbol}</span>
-              <span className="rounded-md bg-surface px-1.5 py-0.5 text-[11px] text-ink-2 ring-1 ring-line">
+              <span className="inline-flex items-center gap-1 rounded-md bg-surface py-0.5 pr-1.5 pl-1 text-[11px] text-ink-2 ring-1 ring-line">
+                <ChainIcon chain={token.chain} className="size-3.5 rounded-full" />
                 {getChain(token.chain).name}
               </span>
               <LiveBadge label={t.common.live} />
