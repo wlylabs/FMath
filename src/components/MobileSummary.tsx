@@ -89,7 +89,8 @@ export function MobileSummary(props: {
           )}
         </span>
         <span className="flex shrink-0 items-center gap-1 text-xs font-medium text-ink-2">
-          {t.common.seeResults}
+          {/* on the narrowest phones the chevron alone leaves room for the numbers */}
+          <span className="max-[359px]:sr-only">{t.common.seeResults}</span>
           <ChevronDown aria-hidden className="size-4" />
         </span>
       </button>

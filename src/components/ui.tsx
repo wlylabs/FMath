@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
+import { useCallback, useEffect, useId, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode } from 'react';
 import { AlertTriangle, Info } from 'lucide-react';
 import { t } from '../lib/copy';
 import { cx } from '../lib/cx';
@@ -160,8 +160,9 @@ export function Segmented<T extends string>(props: {
               selected ? (tone === 'pos' ? 'text-pos' : tone === 'neg' ? 'text-neg' : 'text-ink') : 'text-muted hover:text-ink',
             )}
           >
-            <span className="truncate">{o.label}</span>
-            {o.sub && <span className="truncate text-[11px] font-normal text-muted">{o.sub}</span>}
+            {/* long labels wrap onto a second line inside the thumb instead of spilling past it */}
+            <span className="max-w-full text-center leading-tight text-balance">{o.label}</span>
+            {o.sub && <span className="max-w-full truncate text-[11px] font-normal text-muted">{o.sub}</span>}
           </button>
         );
       })}
@@ -263,10 +264,19 @@ export function Switch(props: { checked: boolean; onChange: (v: boolean) => void
 }
 
 export function QuickPicks(props: { values: { label: string; value: string }[]; onPick: (v: string) => void; label: string; current?: string }) {
+  // on phones short chips (amounts, multiples) share an even grid that shows them all without
+  // scrolling: up to five in one row, more split into two rows that differ by at most one, so a
+  // last chip never sits alone. Wordy chips, and every chip from sm up, wrap at their own width.
+  const n = props.values.length;
+  const cols = n <= 5 ? n : Math.ceil(n / 2);
+  const wordy = props.values.some((v) => v.label.length > 8);
   return (
-    // one swipeable row on phones, so a last chip never sits alone on a second line; wraps from sm up
     <div
-      className="-mx-4 mt-2 flex gap-1.5 overflow-x-auto overscroll-x-contain px-4 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 [&::-webkit-scrollbar]:hidden"
+      className={cx(
+        'mt-2 gap-1.5 sm:flex sm:flex-wrap',
+        wordy ? 'flex flex-wrap' : 'grid grid-cols-[repeat(var(--cols),minmax(0,1fr))]',
+      )}
+      style={wordy ? undefined : ({ '--cols': cols } as CSSProperties)}
       role="group"
       aria-label={props.label}
     >
@@ -277,7 +287,7 @@ export function QuickPicks(props: { values: { label: string; value: string }[]; 
           onClick={() => props.onPick(v.value)}
           aria-pressed={props.current === v.value}
           className={cx(
-            'press num h-8 shrink-0 rounded-lg border px-2.5 text-xs',
+            'press num h-8 min-w-0 shrink-0 truncate rounded-lg border px-1 text-xs sm:px-2.5',
             props.current === v.value
               ? 'border-accent-strong bg-accent-wash text-ink'
               : 'border-line text-ink-2 hover:border-line-strong hover:text-ink',

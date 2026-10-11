@@ -289,11 +289,11 @@ export function PerpsCalculator() {
             </div>
           )}
           {market && (
-            <dl className="mt-2.5 grid grid-cols-3 gap-2 rounded-xl bg-surface-2 px-3.5 py-2.5">
+            <dl className="mt-2.5 grid grid-cols-[auto_auto_auto] justify-between gap-x-3 rounded-xl bg-surface-2 px-3.5 py-2.5">
               <div>
                 <dt className="text-[11px] text-muted">{t.perps.mark}</dt>
                 {/* settles in when the live feed or a market change moves it, so "live" is visible */}
-                <dd className="num text-sm text-ink">
+                <dd className="num text-xs text-ink min-[360px]:text-sm">
                   <SwapValue value={price(market.markPx)} />
                 </dd>
               </div>
@@ -301,7 +301,7 @@ export function PerpsCalculator() {
                 <dt className="text-[11px] text-muted">{t.profit.change24h}</dt>
                 <dd
                   className={cx(
-                    'num text-sm',
+                    'num text-xs min-[360px]:text-sm',
                     market.change24h === null ? 'text-ink' : market.change24h >= 0 ? 'text-pos' : 'text-neg',
                   )}
                 >
@@ -310,7 +310,7 @@ export function PerpsCalculator() {
               </div>
               <div>
                 <dt className="text-[11px] text-muted">{t.perps.fundingLive}</dt>
-                <dd className="num text-sm text-ink">
+                <dd className="num text-xs text-ink min-[360px]:text-sm">
                   <SwapValue value={pct(market.fundingHourly, { digits: 4, signed: true })} />
                 </dd>
               </div>
