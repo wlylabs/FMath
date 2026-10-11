@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 
 /**
  * Sets <html data-nav> on the first client-side navigation. First-load
- * entrances (.rise in globals.css) check for it, so they play when the site
+ * entrances (.grow-x in globals.css) check for it, so they play when the site
  * opens but not again under a page transition.
  */
 export function NavMarker() {

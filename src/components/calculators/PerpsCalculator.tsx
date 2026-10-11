@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from 'react';
 import { ChevronDown, RefreshCw } from 'lucide-react';
-import { fetchPerpMarkets, type PerpMarket } from '../../api/hyperliquid';
+import { fetchPerpMarkets, watchMarket, type PerpMarket } from '../../api/hyperliquid';
 import { marginForRisk, PERPS_FEES, perpTrade, stopLoss, venueFeeRate, type OrderKind, type PerpSide, type PerpVenue } from '../../lib/perps';
 import { num, parseAmount, pct, price, time, usd } from '../../lib/format';
 import { t } from '../../lib/copy';
@@ -108,15 +108,19 @@ export function PerpsCalculator() {
     side: useId(),
     kind: useId(),
   };
+  const liveAt = useRef(0);
   const resultsRef = useRef<HTMLElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Load the venue's markets, then refresh prices every 20s while the tab is visible.
+  // Load the venue's markets, then refresh them every 20s while the tab is visible, at once
+  // when the tab comes back, and only every 60s while the socket below keeps the selected one live.
   // A fresh list also picks a market when none is selected, or fills an empty entry.
   useEffect(() => {
     const venue = s.venue;
     const ctrl = new AbortController();
+    let ranAt = 0;
     const run = () => {
+      ranAt = Date.now();
       fetchPerpMarkets(venue, ctrl.signal)
         .then((markets) => {
           setLoads((l) => ({ ...l, [venue]: { venue, ok: true, markets, at: Date.now() } }));
@@ -133,15 +137,36 @@ export function PerpsCalculator() {
           setLoads((l) => (l[venue]?.ok ? l : { ...l, [venue]: { venue, ok: false, markets: [], at: 0 } }));
         });
     };
+    const due = () => {
+      if (document.visibilityState !== 'visible') return;
+      const age = Date.now() - ranAt;
+      if (age >= 60_000 || (age >= 20_000 && Date.now() - liveAt.current >= 20_000)) run();
+    };
     run();
-    const id = setInterval(() => {
-      if (document.visibilityState === 'visible') run();
-    }, 20_000);
+    const id = setInterval(due, 20_000);
+    document.addEventListener('visibilitychange', due);
     return () => {
       ctrl.abort();
       clearInterval(id);
+      document.removeEventListener('visibilitychange', due);
     };
   }, [s.venue, reloadKey, setS]);
+
+  // Stream the selected market's mark and funding over the websocket; the list above is the fallback.
+  const liveCoin = loads[s.venue]?.ok ? s.coin[s.venue] : '';
+  useEffect(() => {
+    const venue = s.venue;
+    if (!liveCoin) return;
+    return watchMarket(liveCoin, (live) => {
+      liveAt.current = Date.now();
+      setLoads((l) => {
+        const cur = l[venue];
+        if (!cur?.ok) return l;
+        const markets = cur.markets.map((m) => (m.coin === liveCoin ? { ...m, ...live } : m));
+        return { ...l, [venue]: { ...cur, markets, at: liveAt.current } };
+      });
+    });
+  }, [s.venue, liveCoin]);
 
   const load = loads[s.venue];
   const status: 'loading' | 'ready' | 'error' = !load ? 'loading' : load.ok ? 'ready' : 'error';
@@ -267,7 +292,7 @@ export function PerpsCalculator() {
             <dl className="mt-2.5 grid grid-cols-3 gap-2 rounded-xl bg-surface-2 px-3.5 py-2.5">
               <div>
                 <dt className="text-[11px] text-muted">{t.perps.mark}</dt>
-                {/* settles in when the 20s refresh or a market change moves it, so "live" is visible */}
+                {/* settles in when the live feed or a market change moves it, so "live" is visible */}
                 <dd className="num text-sm text-ink">
                   <SwapValue value={price(market.markPx)} />
                 </dd>
