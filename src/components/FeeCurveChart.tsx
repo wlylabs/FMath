@@ -98,8 +98,12 @@ export function FeeCurveChart(props: Props) {
   const invX = (px: number) =>
     Math.exp(Math.log(X_MIN) + ((px - PAD.left) / innerW) * (Math.log(X_MAX) - Math.log(X_MIN)));
 
-  const path = points.map((p, i) => `${i ? 'L' : 'M'}${sx(p.x).toFixed(2)},${sy(p.y).toFixed(2)}`).join('');
-  const area = `${path}L${sx(X_MAX).toFixed(2)},${sy(0)}L${sx(X_MIN).toFixed(2)},${sy(0)}Z`;
+  // the curve only changes with the schedule or the width, not with the crosshair or the order size
+  const { path, area } = useMemo(() => {
+    const line = points.map((p, i) => `${i ? 'L' : 'M'}${sx(p.x).toFixed(2)},${sy(p.y).toFixed(2)}`).join('');
+    return { path: line, area: `${line}L${sx(X_MAX).toFixed(2)},${sy(0)}L${sx(X_MIN).toFixed(2)},${sy(0)}Z` };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- sx and sy derive from width and yMax
+  }, [points, width, yMax]);
   const yTicks = yTicksFor(yMax);
   const xTicks = ticksFor(props.chain, props.tokenClass);
 

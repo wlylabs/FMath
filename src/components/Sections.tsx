@@ -8,7 +8,7 @@ import { date } from '../lib/format';
 import { BandTable } from './BandTable';
 import { Logo } from './Logo';
 import { CreatorAvatar, CreatorLink, XIcon } from './Creator';
-import { CREATOR } from '../lib/site';
+import { CREATOR, LEGAL_UPDATED } from '../lib/site';
 import { ReferralLink } from './Referral';
 import { InstallButton } from './pwa/PwaProvider';
 import { NavLink } from './NavLink';
@@ -110,6 +110,20 @@ export function Methodology() {
   );
 }
 
+/** FAQPage structured data, in the language the page is in. */
+export function FaqJsonLd() {
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: t.faq.items.map((item) => ({
+      '@type': 'Question',
+      name: item.q,
+      acceptedAnswer: { '@type': 'Answer', text: item.a },
+    })),
+  };
+  return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }} />;
+}
+
 export function Faq() {
   return (
     <section className="mx-auto max-w-3xl px-4 pb-12 pt-8 sm:px-6 lg:pb-16 lg:pt-12" aria-labelledby="faq-title">
@@ -131,6 +145,38 @@ export function Faq() {
   );
 }
 
+/** Privacy policy or disclaimer: a title, a lead and numbered sections. */
+export function Legal({ page }: { page: 'privacy' | 'disclaimer' }) {
+  const copy = t.legal[page];
+  return (
+    <section className="mx-auto max-w-3xl px-4 pb-12 pt-8 sm:px-6 lg:pb-16 lg:pt-12" aria-labelledby="legal-title">
+      <h1 id="legal-title" className="text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
+        {copy.title}
+      </h1>
+      <p className="mt-3 text-sm leading-relaxed text-ink-2 sm:text-base">{copy.lead}</p>
+      <p className="mt-2 text-xs text-muted">{t.legal.updated(date(LEGAL_UPDATED))}</p>
+      <div className="mt-6 divide-y divide-line border-y border-line">
+        {copy.sections.map((section) => (
+          <div key={section.title} className="py-5">
+            <h2 className="text-base font-semibold text-ink">{section.title}</h2>
+            {section.body.map((para) => (
+              <p key={para} className="mt-2 text-sm leading-relaxed text-ink-2">
+                {para}
+              </p>
+            ))}
+          </div>
+        ))}
+      </div>
+      {page === 'privacy' && (
+        <CreatorLink className="mt-5 inline-flex items-center gap-1.5 text-sm font-medium text-ink hover:text-accent-strong">
+          <XIcon className="size-3.5" />
+          {CREATOR.handle}
+        </CreatorLink>
+      )}
+    </section>
+  );
+}
+
 export function Footer() {
   const links = [
     { href: ROUTES.fee, label: t.calc.tabs.fee },
@@ -141,11 +187,12 @@ export function Footer() {
     { href: ROUTES.methodology, label: t.nav.method },
     { href: ROUTES.faq, label: t.nav.faq },
     { href: `${ROUTES.methodology}#sources`, label: t.nav.sources },
+    { href: ROUTES.privacy, label: t.nav.privacy },
+    { href: ROUTES.disclaimer, label: t.nav.disclaimer },
   ];
   return (
     <footer
-      style={{ viewTransitionName: 'site-footer' }}
-      className="border-t border-line pb-[calc(5rem+env(safe-area-inset-bottom))] pt-10 lg:pb-10"
+      className="site-footer border-t border-line pb-[calc(5rem+env(safe-area-inset-bottom))] pt-10 lg:pb-10"
     >
       <div className="mx-auto grid max-w-6xl gap-8 px-4 sm:px-6 md:grid-cols-[minmax(0,1fr)_auto] md:gap-16">
         <div>

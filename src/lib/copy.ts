@@ -1,9 +1,9 @@
-import { id } from './copy.id';
-
 /** English interface copy; the Indonesian ("wkwk") copy in copy.id.ts has the same shape. */
-const en = {
+export const en = {
   meta: {
     title: 'FMath: Fee and profit calculator for fomo traders',
+    description:
+      'Independent calculator for fomo traders: per-chain trade fees, break-even, net profit, and perps fees with liquidation price. Live market data from DexScreener and Hyperliquid.',
   },
   nav: {
     home: 'Home',
@@ -16,6 +16,8 @@ const en = {
     calculators: 'Calculators',
     method: 'Methodology',
     faq: 'FAQ',
+    privacy: 'Privacy',
+    disclaimer: 'Disclaimer',
     sources: 'Sources',
     skip: 'Skip to content',
     primary: 'Primary',
@@ -449,6 +451,7 @@ const en = {
   },
   faq: {
     title: 'Questions',
+    description: 'Answers on accuracy, live data sources, the fomo fee schedule and the referral discount.',
     items: [
       {
         q: 'Is FMath part of fomo?',
@@ -482,7 +485,116 @@ const en = {
         q: 'Does the referral discount apply to flat fees?',
         a: 'fomo describes it as 10% off trading fees. The calculator applies it to every band, flat ones included. Check the quote screen to be sure.',
       },
+      {
+        q: 'Why does my Android phone warn "Risks May Exist" when I install FMath?',
+        a: 'Installing FMath from the browser makes Chrome build a small Android package (a WebAPK) for it. Some phones, such as Infinix, Tecno and itel, flag every app that was not installed from their own store or Google Play, and their virus scan can time out on it. FMath asks for no permissions; Notifications is listed because Chrome adds it to every installed web app, and FMath never sends any. Tap Ignore to finish, or install FMath from Google Play once it is listed there.',
+      },
     ],
+  },
+  legal: {
+    updated: (d: string) => `Last updated ${d}`,
+    privacy: {
+      title: 'Privacy policy',
+      lead: 'FMath has no accounts, no analytics, no ads and no cookies. Everything it calculates stays on your device.',
+      sections: [
+        {
+          title: 'What FMath collects',
+          body: [
+            'Nothing that identifies you. FMath never asks for your name, email, wallet, private keys or funds, and it does not run analytics, tracking pixels or ads.',
+          ],
+        },
+        {
+          title: 'What stays on your device',
+          body: [
+            'Your theme, language and calculator inputs are saved in your browser\'s local storage so they are still there next time. A service worker keeps a copy of the app so it opens offline.',
+            'None of this leaves your device. Clear the site data in your browser, or uninstall the app, to remove it.',
+          ],
+        },
+        {
+          title: 'Live market data',
+          body: [
+            'When you look up a token, the address or name you type is sent to the public DexScreener API. Perps prices, funding and leverage limits come from the public Hyperliquid API. These requests go straight from your device to those services, which see your IP address like any website does and handle it under their own privacy policies.',
+          ],
+        },
+        {
+          title: 'Hosting',
+          body: [
+            'The host that serves FMath\'s files may keep standard access logs, such as IP address, browser and time of request, to keep the site running and secure. FMath does not use them to profile anyone.',
+          ],
+        },
+        {
+          title: 'Links to other sites',
+          body: [
+            'Links to fomo, X, DexScreener, Hyperliquid and the fee sources open those sites, which have their own privacy policies. Signing up to fomo through the referral link tells fomo which referral you used.',
+          ],
+        },
+        {
+          title: 'Android app',
+          body: [
+            'The Android app is this website running in Chrome. It has the same privacy terms and requests no extra permissions. Android may list Notifications for any installed web app; FMath never sends notifications.',
+          ],
+        },
+        {
+          title: 'Children',
+          body: ['FMath is a trading tool for adults and is not directed at anyone under 18.'],
+        },
+        {
+          title: 'Changes and contact',
+          body: [
+            'If this policy changes, the date at the top changes with it. Questions go to the creator on X.',
+          ],
+        },
+      ],
+    },
+    disclaimer: {
+      title: 'Disclaimer',
+      lead: 'FMath is an independent estimation tool. It is not financial advice and it is not part of fomo.',
+      sections: [
+        {
+          title: 'Not financial advice',
+          body: [
+            'Everything FMath shows is general information to help you check costs. It is not a recommendation to buy, sell or hold anything. Make your own decisions and, if you need advice, ask a licensed professional.',
+          ],
+        },
+        {
+          title: 'Not affiliated',
+          body: [
+            'FMath is not affiliated with, endorsed by or operated by fomo, DexScreener or Hyperliquid. Their names are used only to describe what FMath calculates and where its data comes from.',
+          ],
+        },
+        {
+          title: 'Estimates, not quotes',
+          body: [
+            'Fees follow the published fomo schedule as of the date shown on the Methodology page, and schedules change. Price impact, network fees, funding and liquidation depend on the market when an order fills. The number on the fomo quote screen is always the final one.',
+            'Live data comes from third-party APIs and can be delayed, missing or wrong.',
+          ],
+        },
+        {
+          title: 'High risk',
+          body: [
+            'Memecoins and leveraged perps are highly volatile. You can lose all of your money, and a leveraged position can be liquidated before your stop-loss is reached.',
+          ],
+        },
+        {
+          title: 'No custody, no trading',
+          body: [
+            'FMath never holds funds, connects to wallets or places orders. It only calculates.',
+          ],
+        },
+        {
+          title: 'Referral',
+          body: [
+            'FMath links to the creator\'s fomo referral. Signing up through it gives you 10% off fomo trading fees and gives the creator referral rewards from fomo. The calculator works the same whether you use it or not.',
+          ],
+        },
+        {
+          title: 'No warranty',
+          body: [
+            'FMath is provided as is, without warranty of any kind. To the extent the law allows, its creator is not liable for losses from using it or relying on its numbers.',
+          ],
+        },
+      ],
+    },
   },
   footer: {
     disclaimer: 'FMath is an independent tool and is not affiliated with fomo. Not financial advice. Memecoin and perps trading is high risk. Fee schedules change; the final number is always the one on the fomo quote screen.',
@@ -503,7 +615,34 @@ export const LANGS: readonly Lang[] = ['en', 'id'];
 /** Toggle labels: Indonesian is shown as "wkwk". */
 export const LANG_LABELS: Record<Lang, string> = { en: 'EN', id: 'wkwk' };
 
-const COPY: Record<Lang, Copy> = { en, id };
+/** Copy per language. Indonesian ships as its own chunk and loads only on /id/ pages. */
+const COPY: Partial<Record<Lang, Copy>> = { en };
+
+const loading: Partial<Record<Lang, Promise<void>>> = {};
+
+/** Whether a language's copy is loaded, so `t` can read it without waiting. */
+export function hasLang(lang: Lang): boolean {
+  return COPY[lang] !== undefined;
+}
+
+/**
+ * Fetches a language's copy if this page has not loaded it yet. The same
+ * promise comes back every time, so LangProvider can suspend on it with use().
+ */
+export function loadLang(lang: Lang): Promise<void> {
+  if (COPY[lang]) return Promise.resolve();
+  loading[lang] ??= import('./copy.id').then(
+    (m) => {
+      COPY.id = m.id;
+    },
+    (err: unknown) => {
+      // let the next attempt try again, e.g. once back online
+      delete loading[lang];
+      throw err;
+    },
+  );
+  return loading[lang];
+}
 
 let current: Lang = 'en';
 
@@ -513,7 +652,8 @@ export function getLang(): Lang {
 
 /**
  * Switches the language `t` reads from. Only LangProvider calls this, during
- * render and before its subtree renders; the static export always renders English.
+ * render and before its subtree renders, once loadLang has finished. The
+ * language comes from the URL: /id/ pages are Indonesian, the rest English.
  */
 export function setLang(lang: Lang) {
   current = lang;
@@ -525,5 +665,5 @@ export function setLang(lang: Lang) {
  * page is showing; LangProvider remounts the app when it changes.
  */
 export const t: Copy = new Proxy(en, {
-  get: (_, key) => COPY[current][key as keyof Copy],
+  get: (_, key) => (COPY[current] ?? en)[key as keyof Copy],
 });

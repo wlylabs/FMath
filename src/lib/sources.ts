@@ -109,7 +109,7 @@ export const SOURCES: Source[] = [
   {
     label: 'vercel/geist-font',
     url: 'https://github.com/vercel/geist-font',
-    use: 'Geist and Geist Mono typefaces, self-hosted through the geist package.',
+    use: 'Geist and Geist Mono typefaces, from the geist package, subset to Latin and self-hosted.',
     kind: 'opensource',
   },
 ];

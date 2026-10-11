@@ -9,6 +9,8 @@ import type { Copy } from './copy';
 export const id: Copy = {
   meta: {
     title: 'FMath: Kalkulator fee dan profit untuk trader fomo',
+    description:
+      'Kalkulator independen untuk trader fomo: fee trading per chain, break-even, profit bersih, dan fee perps dengan harga likuidasi. Data pasar live dari DexScreener dan Hyperliquid.',
   },
   nav: {
     home: 'Beranda',
@@ -21,6 +23,8 @@ export const id: Copy = {
     calculators: 'Kalkulator',
     method: 'Metodologi',
     faq: 'FAQ',
+    privacy: 'Privasi',
+    disclaimer: 'Disclaimer',
     sources: 'Sumber',
     skip: 'Langsung ke konten',
     primary: 'Utama',
@@ -454,6 +458,7 @@ export const id: Copy = {
   },
   faq: {
     title: 'Pertanyaan',
+    description: 'Jawaban soal akurasi, sumber data live, jadwal fee fomo, dan diskon referral.',
     items: [
       {
         q: 'Apakah FMath bagian dari fomo?',
@@ -487,7 +492,116 @@ export const id: Copy = {
         q: 'Apakah diskon referral berlaku untuk fee flat?',
         a: 'fomo menyebutnya diskon 10% fee trading. Kalkulator menerapkannya ke semua band, termasuk yang flat. Cek layar quote untuk memastikan.',
       },
+      {
+        q: 'Kenapa HP Android menampilkan "Risks May Exist" saat pasang FMath?',
+        a: 'Saat FMath dipasang dari browser, Chrome membuat paket Android kecil (WebAPK) untuknya. Beberapa HP, seperti Infinix, Tecno, dan itel, menandai semua aplikasi yang tidak dipasang dari toko mereka atau Google Play, dan scan virusnya bisa timeout. FMath tidak meminta izin apa pun; Notifications muncul karena Chrome menambahkannya ke setiap aplikasi web yang dipasang, dan FMath tidak pernah mengirim notifikasi. Tekan Ignore untuk lanjut, atau pasang FMath dari Google Play setelah tersedia di sana.',
+      },
     ],
+  },
+  legal: {
+    updated: (d: string) => `Terakhir diperbarui ${d}`,
+    privacy: {
+      title: 'Kebijakan privasi',
+      lead: 'FMath tidak punya akun, analytics, iklan, atau cookie. Semua hitungan tetap di perangkat kamu.',
+      sections: [
+        {
+          title: 'Apa yang dikumpulkan FMath',
+          body: [
+            'Tidak ada yang bisa mengenali kamu. FMath tidak pernah meminta nama, email, wallet, private key, atau dana, dan tidak memakai analytics, piksel pelacak, atau iklan.',
+          ],
+        },
+        {
+          title: 'Yang tersimpan di perangkat kamu',
+          body: [
+            'Tema, bahasa, dan isian kalkulator disimpan di local storage browser supaya masih ada saat kamu kembali. Service worker menyimpan salinan aplikasi supaya bisa dibuka offline.',
+            'Semua ini tidak keluar dari perangkat kamu. Hapus data situs di browser, atau uninstall aplikasinya, untuk menghapusnya.',
+          ],
+        },
+        {
+          title: 'Data pasar live',
+          body: [
+            'Saat kamu mencari token, alamat atau nama yang kamu ketik dikirim ke API publik DexScreener. Harga perps, funding, dan batas leverage diambil dari API publik Hyperliquid. Permintaan ini langsung dari perangkat kamu ke layanan tersebut, yang melihat alamat IP kamu seperti situs mana pun dan mengelolanya sesuai kebijakan privasi mereka.',
+          ],
+        },
+        {
+          title: 'Hosting',
+          body: [
+            'Host yang menyajikan file FMath bisa menyimpan log akses standar, seperti alamat IP, browser, dan waktu permintaan, untuk menjaga situs tetap jalan dan aman. FMath tidak memakainya untuk memprofilkan siapa pun.',
+          ],
+        },
+        {
+          title: 'Tautan ke situs lain',
+          body: [
+            'Tautan ke fomo, X, DexScreener, Hyperliquid, dan sumber fee membuka situs tersebut, yang punya kebijakan privasi sendiri. Daftar fomo lewat link referral memberi tahu fomo referral mana yang kamu pakai.',
+          ],
+        },
+        {
+          title: 'Aplikasi Android',
+          body: [
+            'Aplikasi Android adalah situs ini yang berjalan di Chrome. Ketentuan privasinya sama dan tidak meminta izin tambahan. Android bisa mencantumkan Notifications untuk aplikasi web yang dipasang; FMath tidak pernah mengirim notifikasi.',
+          ],
+        },
+        {
+          title: 'Anak-anak',
+          body: ['FMath adalah alat trading untuk orang dewasa dan tidak ditujukan untuk siapa pun di bawah 18 tahun.'],
+        },
+        {
+          title: 'Perubahan dan kontak',
+          body: [
+            'Kalau kebijakan ini berubah, tanggal di atas ikut berubah. Pertanyaan bisa dikirim ke pembuatnya di X.',
+          ],
+        },
+      ],
+    },
+    disclaimer: {
+      title: 'Disclaimer',
+      lead: 'FMath adalah alat estimasi independen. Bukan nasihat keuangan dan bukan bagian dari fomo.',
+      sections: [
+        {
+          title: 'Bukan nasihat keuangan',
+          body: [
+            'Semua yang ditampilkan FMath adalah informasi umum untuk membantu kamu mengecek biaya. Bukan rekomendasi untuk membeli, menjual, atau menahan apa pun. Ambil keputusan sendiri dan, kalau butuh saran, tanyakan ke profesional berlisensi.',
+          ],
+        },
+        {
+          title: 'Tidak berafiliasi',
+          body: [
+            'FMath tidak berafiliasi dengan, tidak didukung oleh, dan tidak dijalankan oleh fomo, DexScreener, atau Hyperliquid. Nama mereka dipakai hanya untuk menjelaskan apa yang dihitung FMath dan dari mana datanya.',
+          ],
+        },
+        {
+          title: 'Estimasi, bukan quote',
+          body: [
+            'Fee mengikuti jadwal fomo yang dipublikasikan per tanggal di halaman Metodologi, dan jadwal bisa berubah. Price impact, fee jaringan, funding, dan likuidasi bergantung pada pasar saat order terisi. Angka di layar quote fomo selalu yang final.',
+            'Data live berasal dari API pihak ketiga dan bisa terlambat, kosong, atau salah.',
+          ],
+        },
+        {
+          title: 'Risiko tinggi',
+          body: [
+            'Memecoin dan perps dengan leverage sangat volatil. Kamu bisa kehilangan seluruh uang kamu, dan posisi leverage bisa terlikuidasi sebelum stop-loss tercapai.',
+          ],
+        },
+        {
+          title: 'Tidak menyimpan dana, tidak trading',
+          body: [
+            'FMath tidak pernah menyimpan dana, terhubung ke wallet, atau menempatkan order. FMath hanya menghitung.',
+          ],
+        },
+        {
+          title: 'Referral',
+          body: [
+            'FMath menautkan referral fomo milik pembuatnya. Daftar lewat link itu memberi kamu diskon 10% fee trading fomo dan memberi pembuatnya reward referral dari fomo. Kalkulator bekerja sama saja, dipakai atau tidak.',
+          ],
+        },
+        {
+          title: 'Tanpa jaminan',
+          body: [
+            'FMath disediakan apa adanya, tanpa jaminan apa pun. Sejauh diizinkan hukum, pembuatnya tidak bertanggung jawab atas kerugian dari pemakaian FMath atau dari mengandalkan angkanya.',
+          ],
+        },
+      ],
+    },
   },
   footer: {
     disclaimer: 'FMath adalah alat independen dan tidak berafiliasi dengan fomo. Bukan nasihat keuangan. Trading memecoin dan perps berisiko tinggi. Jadwal fee bisa berubah; angka akhirnya selalu yang ada di layar quote fomo.',

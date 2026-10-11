@@ -1,58 +1,79 @@
 'use client';
 
-import { createContext, Fragment, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
-import { LANG_LABELS, LANGS, setLang, type Lang } from '../lib/copy';
+import { createContext, use, useCallback, useContext, useEffect, type ReactNode } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { hasLang, LANG_LABELS, LANGS, loadLang, setLang, type Lang } from '../lib/copy';
+import { langOfPath, localize } from '../lib/routes';
 import { cx } from '../lib/cx';
 
 const KEY = 'fmath:lang';
 
-function stored(): Lang {
+function save(lang: Lang) {
   try {
-    return localStorage.getItem(KEY) === 'id' ? 'id' : 'en';
+    localStorage.setItem(KEY, lang);
   } catch {
-    return 'en';
+    /* ignore */
   }
 }
 
 const LangContext = createContext<{ lang: Lang; change: (l: Lang) => void }>({ lang: 'en', change: () => {} });
 
 /**
- * Holds the interface language. The static export is English; a saved choice
- * applies right after hydration, while the inline script in the layout keeps
- * the page hidden (html.lang-pending) so English does not flash first.
- * Changing the language remounts the app so every `t` read sees it; inputs
- * survive because they are saved on the device.
+ * Holds the interface language, which the URL decides: /id/ pages are
+ * Indonesian and are exported in Indonesian, so search engines index both.
+ * Indonesian copy is its own chunk; on an /id/ page this suspends until it has
+ * loaded, which during hydration keeps the server HTML on screen. A language
+ * change remounts the app so every `t` read sees it; inputs survive because
+ * they are saved on the device.
  */
 export function LangProvider({ children }: { children: ReactNode }) {
-  const [lang, setLangState] = useState<Lang>('en');
-  // set before the subtree renders, so every `t` read in this render pass gets this language
-  setLang(lang);
-
-  useEffect(() => {
-    // the saved choice can only be read after hydration, which renders the exported English first
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (stored() !== 'en') setLangState(stored());
-  }, []);
+  const pathname = usePathname();
+  const router = useRouter();
+  const lang = langOfPath(pathname);
 
   useEffect(() => {
     document.documentElement.lang = lang;
-    if (lang === stored()) document.documentElement.classList.remove('lang-pending');
   }, [lang]);
 
-  const change = useCallback((next: Lang) => {
-    try {
-      localStorage.setItem(KEY, next);
-    } catch {
-      /* ignore */
-    }
-    setLangState(next);
-  }, []);
+  const change = useCallback(
+    (next: Lang) => {
+      if (next === lang) return;
+      // fetch the copy first: offline before it was cached, stay in the current language
+      loadLang(next).then(
+        () => {
+          save(next);
+          const { search, hash } = window.location;
+          router.push(localize(window.location.pathname, next) + search + hash);
+        },
+        () => {},
+      );
+    },
+    [lang, router],
+  );
 
   return (
     <LangContext value={{ lang, change }}>
-      <Fragment key={lang}>{children}</Fragment>
+      <LangGate key={lang} lang={lang}>
+        {children}
+      </LangGate>
     </LangContext>
   );
+}
+
+/**
+ * Waits for a language's copy, then makes it the one `t` reads. No other hooks
+ * here, so suspending on use() cannot shift any hook order.
+ */
+function LangGate({ lang, children }: { lang: Lang; children: ReactNode }) {
+  if (!hasLang(lang)) use(loadLang(lang));
+  // set before the subtree renders, so every `t` read in this render pass gets this language
+  setLang(lang);
+  return children;
+}
+
+/** The current interface language, for code that builds links. */
+export function useLang(): Lang {
+  return useContext(LangContext).lang;
 }
 
 /** EN / wkwk switch for the header. */
@@ -68,6 +89,9 @@ export function LangToggle() {
           aria-checked={lang === l}
           lang={l}
           onClick={() => change(l)}
+          // start fetching the other language as soon as a tap or click looks likely
+          onPointerEnter={() => void loadLang(l).catch(() => {})}
+          onFocus={() => void loadLang(l).catch(() => {})}
           className={cx(
             'h-full rounded-md px-2 text-xs font-semibold',
             lang === l ? 'bg-surface-2 text-ink' : 'text-muted hover:text-ink',

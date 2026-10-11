@@ -1,16 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import type { ComponentProps } from 'react';
-import { navDirection } from '../lib/routes';
+import { localize } from '../lib/routes';
+import { useLang } from './LangProvider';
 
-/**
- * next/link that tells the page transition which way to slide: further along
- * the app slides left, back towards Home slides right.
- */
-export function NavLink(props: ComponentProps<typeof Link> & { href: string }) {
-  const pathname = usePathname();
-  const direction = navDirection(pathname, props.href);
-  return <Link {...props} transitionTypes={direction ? [direction] : undefined} />;
+/** next/link for in-app pages. Takes the English path and links to the page in the current language. */
+export function NavLink({ href, ...props }: ComponentProps<typeof Link> & { href: string }) {
+  return <Link href={localize(href, useLang())} {...props} />;
 }

@@ -7,7 +7,8 @@
  * opened on; navigating to another calculator never inherits the query.
  */
 
-import { samePage } from './routes';
+import { getLang } from './copy';
+import { localize, samePage } from './routes';
 
 const snapshot: { path: string; params: URLSearchParams } | null =
   typeof window === 'undefined'
@@ -62,7 +63,7 @@ export function primitivesFrom<T extends object>(
 
 /** Absolute link that reopens `page` with these inputs. */
 export function buildShareUrl(page: string, fields: Record<string, Primitive | null | undefined>): string {
-  const url = new URL(page, window.location.origin);
+  const url = new URL(localize(page, getLang()), window.location.origin);
   for (const [k, v] of Object.entries(fields)) {
     if (v === null || v === undefined || v === '') continue;
     url.searchParams.set(k, typeof v === 'boolean' ? (v ? '1' : '0') : String(v));

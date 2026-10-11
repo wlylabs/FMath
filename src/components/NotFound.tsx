@@ -1,9 +1,9 @@
 'use client';
 
-import Link from 'next/link';
 import { Logo } from './Logo';
 import { t } from '../lib/copy';
 import { ROUTES } from '../lib/routes';
+import { NavLink } from './NavLink';
 
 export function NotFoundBody() {
   return (
@@ -12,12 +12,12 @@ export function NotFoundBody() {
       <p className="num mt-8 text-sm text-muted">404</p>
       <h1 className="mt-2 text-3xl font-semibold tracking-tight text-ink">{t.notFound.title}</h1>
       <p className="mt-3 text-sm leading-relaxed text-ink-2">{t.notFound.body}</p>
-      <Link
+      <NavLink
         href={ROUTES.fee}
         className="press mt-8 inline-flex h-12 items-center justify-center rounded-xl bg-accent px-6 text-sm font-semibold text-accent-ink hover:bg-accent-hover"
       >
         {t.notFound.cta}
-      </Link>
+      </NavLink>
     </div>
   );
 }
