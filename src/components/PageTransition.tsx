@@ -1,16 +1,10 @@
-import { ViewTransition, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 
 /**
- * Slides page content in the direction of travel during client-side
- * navigation. Lives in each page, not the layout: layouts persist, so their
- * enter and exit never fire. Navigations without a direction (browser back,
- * refresh) swap instantly.
+ * Fades page content in after a client-side navigation. Plain CSS on the new
+ * page only (.page-in in globals.css): no snapshot of the old page, so a tap
+ * on a tab never waits on the animation and slow phones stay smooth.
  */
 export function PageTransition({ children }: { children: ReactNode }) {
-  const types = { 'nav-forward': 'nav-forward', 'nav-back': 'nav-back', default: 'none' };
-  return (
-    <ViewTransition enter={types} exit={types} default="none">
-      <div>{children}</div>
-    </ViewTransition>
-  );
+  return <div className="page-in">{children}</div>;
 }
