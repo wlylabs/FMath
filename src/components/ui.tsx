@@ -185,8 +185,8 @@ export function Pills<T extends string>(props: {
       aria-label={props.labelledBy ? undefined : props.label}
       aria-labelledby={props.labelledBy}
       aria-disabled={props.disabled || undefined}
-      // one swipeable row on phones, wrapping rows from sm up
-      className="-mx-4 flex snap-x snap-proximity scroll-px-4 gap-2 overflow-x-auto overscroll-x-contain px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0 [&::-webkit-scrollbar]:hidden"
+      // wraps onto more rows, so every option is visible without scrolling
+      className="flex flex-wrap gap-2"
     >
       {props.options.map((o, i) => {
         const selected = i === selectedIndex;
@@ -202,13 +202,9 @@ export function Pills<T extends string>(props: {
             disabled={props.disabled && !selected}
             tabIndex={selected ? 0 : -1}
             onKeyDown={(e) => onKeyDown(e, i)}
-            onClick={(e) => {
-              props.onChange(o.value);
-              // in the one-row layout on phones, keep the picked chip fully in view
-              e.currentTarget.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', inline: 'nearest', block: 'nearest' });
-            }}
+            onClick={() => props.onChange(o.value)}
             className={cx(
-              'press h-10 shrink-0 snap-start rounded-full border px-4 text-sm font-medium whitespace-nowrap disabled:opacity-40',
+              'press h-10 shrink-0 rounded-full border px-4 text-sm font-medium whitespace-nowrap disabled:opacity-40',
               selected
                 ? 'border-accent-strong bg-accent-wash text-ink'
                 : 'border-line bg-surface-2 text-ink-2 hover:border-line-strong hover:text-ink',

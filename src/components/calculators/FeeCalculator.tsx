@@ -1,7 +1,7 @@
 'use client';
 
 import { useId, useRef, useState } from 'react';
-import { BarChart3, Table2 } from 'lucide-react';
+import { BarChart3, ChevronDown, Table2 } from 'lucide-react';
 import { bandsFor, CHAINS, fomoFee, getChain, solanaOtherRouteFee, tradeCost, type ChainId, type TokenClass } from '../../lib/fees';
 import { parseAmount, pct, usd } from '../../lib/format';
 import { t } from '../../lib/copy';
@@ -74,6 +74,9 @@ export function FeeCalculator() {
     : null;
 
   const bands = bandsFor(s.chain, s.tokenClass);
+  // opens once a value arrives (saved or shared link) and never snaps shut while the field is cleared
+  const [impactOpen, setImpactOpen] = useState(false);
+  if (s.impact !== '' && !impactOpen) setImpactOpen(true);
   const otherRouteFee = amountValid ? solanaOtherRouteFee(amount, s.chain, s.tokenClass, s.referral) : null;
 
   return (
@@ -134,33 +137,41 @@ export function FeeCalculator() {
           />
         </Field>
 
-        <div className="grid gap-6 sm:grid-cols-2">
-          <Field
-            label={t.common.networkFee}
-            htmlFor={ids.network}
-            hint={chain.gasCovered ? t.common.gasCovered(chain.name) : t.common.networkFeeHint}
-          >
-            <NumberInput
-              id={ids.network}
-              value={chain.gasCovered ? '' : s.networkFee}
-              onChange={(v) => set('networkFee', v)}
-              prefix="$"
-              placeholder="0"
-              disabled={chain.gasCovered}
-              invalid={!chain.gasCovered && s.networkFee !== '' && !networkValid}
-            />
-          </Field>
-          <Field label={t.common.priceImpact} htmlFor={ids.impact} optional>
-            <NumberInput
-              id={ids.impact}
-              value={s.impact}
-              onChange={(v) => set('impact', v)}
-              suffix="%"
-              placeholder="0"
-              invalid={s.impact !== '' && !impactValid}
-            />
-          </Field>
-        </div>
+        <Field
+          label={t.common.networkFee}
+          htmlFor={ids.network}
+          hint={chain.gasCovered ? t.common.gasCovered(chain.name) : t.common.networkFeeHint}
+        >
+          <NumberInput
+            id={ids.network}
+            value={chain.gasCovered ? '' : s.networkFee}
+            onChange={(v) => set('networkFee', v)}
+            prefix="$"
+            placeholder="0"
+            disabled={chain.gasCovered}
+            invalid={!chain.gasCovered && s.networkFee !== '' && !networkValid}
+          />
+        </Field>
+
+        {/* fomo applies slippage itself and shows it in the quote, so most people never set it */}
+        <details className="group rounded-xl border border-line" open={impactOpen || undefined}>
+          <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-3.5 text-sm font-medium text-ink [&::-webkit-details-marker]:hidden">
+            {t.common.advanced}
+            <ChevronDown aria-hidden className="size-4 text-muted transition-transform duration-[var(--dur-base)] ease-[var(--ease-standard)] group-open:rotate-180" />
+          </summary>
+          <div className="border-t border-line p-3.5">
+            <Field label={t.common.priceImpact} htmlFor={ids.impact} hint={t.common.priceImpactHint} optional>
+              <NumberInput
+                id={ids.impact}
+                value={s.impact}
+                onChange={(v) => set('impact', v)}
+                suffix="%"
+                placeholder="0"
+                invalid={s.impact !== '' && !impactValid}
+              />
+            </Field>
+          </div>
+        </details>
 
         <Switch
           checked={s.referral}

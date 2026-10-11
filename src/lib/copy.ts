@@ -115,6 +115,7 @@ export const en = {
     networkFeeHint: 'Copy it from the fomo quote screen.',
     gasCovered: (chain: string) => `fomo covers gas, priority fees and token rent on ${chain}.`,
     priceImpact: 'Price impact / slippage',
+    priceImpactHint: 'Leave empty if unsure. fomo sets slippage for you and shows the price impact in its quote.',
     optional: 'optional',
     advanced: 'Advanced settings',
     live: 'Live',

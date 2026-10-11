@@ -122,6 +122,7 @@ export const id: Copy = {
     networkFeeHint: 'Salin dari layar quote fomo.',
     gasCovered: (chain: string) => `fomo menanggung gas, priority fee, dan token rent di ${chain}.`,
     priceImpact: 'Price impact / slippage',
+    priceImpactHint: 'Kosongkan kalau ragu. fomo mengatur slippage otomatis dan menampilkan price impact di quote-nya.',
     optional: 'opsional',
     advanced: 'Pengaturan lanjutan',
     live: 'Live',
