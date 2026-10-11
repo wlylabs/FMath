@@ -1,0 +1,179 @@
+@import 'tailwindcss';
+
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+:root,
+[data-theme='light'] {
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --surface-2: #f0f2f5;
+  --raised: #ffffff;
+  --line: #e2e5ea;
+  --line-strong: #cdd2d9;
+  --ink: #0d1014;
+  --ink-2: #3b424c;
+  --muted: #646d79;
+  --accent: #b8f03c;
+  --accent-hover: #a6dd2a;
+  --accent-ink: #0b0c0e;
+  --accent-strong: #4a7300;
+  --accent-wash: #eef9d6;
+  --chart: #4a7300;
+  --pos: #0d8a4a;
+  --pos-wash: #e3f6ea;
+  --neg: #d42a3c;
+  --neg-wash: #fde8ea;
+  --warn: #9a5b00;
+  --warn-wash: #fff3dc;
+  --ring: #4a7300;
+  color-scheme: light;
+}
+
+[data-theme='dark'] {
+  --bg: #0b0c0e;
+  --surface: #121418;
+  --surface-2: #191c21;
+  --raised: #272b33;
+  --line: #24282f;
+  --line-strong: #343a43;
+  --ink: #eceef1;
+  --ink-2: #b6bcc5;
+  --muted: #8a929d;
+  --accent: #b8f03c;
+  --accent-hover: #c9f765;
+  --accent-ink: #0b0c0e;
+  --accent-strong: #b8f03c;
+  --accent-wash: #1d2611;
+  --chart: #6fa514;
+  --pos: #3ddc84;
+  --pos-wash: #10251a;
+  --neg: #ff6b78;
+  --neg-wash: #2a1417;
+  --warn: #f5b841;
+  --warn-wash: #2a2010;
+  --ring: #b8f03c;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --font-sans: 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-raised: var(--raised);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-wash: var(--accent-wash);
+  --color-chart: var(--chart);
+  --color-pos: var(--pos);
+  --color-pos-wash: var(--pos-wash);
+  --color-neg: var(--neg);
+  --color-neg-wash: var(--neg-wash);
+  --color-warn: var(--warn);
+  --color-warn-wash: var(--warn-wash);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+    scroll-padding-top: 4.5rem;
+  }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-feature-settings: 'ss01', 'cv11';
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+  ::selection {
+    background: var(--accent);
+    color: var(--accent-ink);
+  }
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+  input[type='number']::-webkit-inner-spin-button,
+  input[type='number']::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  .num {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 1rem;
+  }
+  .range {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 28px;
+    background: transparent;
+    cursor: pointer;
+  }
+  .range::-webkit-slider-runnable-track {
+    height: 4px;
+    border-radius: 999px;
+    background: linear-gradient(to right, var(--accent-strong) var(--fill, 0%), var(--line-strong) var(--fill, 0%));
+  }
+  .range::-moz-range-track {
+    height: 4px;
+    border-radius: 999px;
+    background: var(--line-strong);
+  }
+  .range::-moz-range-progress {
+    height: 4px;
+    border-radius: 999px;
+    background: var(--accent-strong);
+  }
+  .range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 22px;
+    height: 22px;
+    margin-top: -9px;
+    border-radius: 999px;
+    background: var(--accent);
+    border: 3px solid var(--surface);
+    box-shadow: 0 0 0 1px var(--line-strong);
+  }
+  .range::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border-radius: 999px;
+    background: var(--accent);
+    border: 3px solid var(--surface);
+    box-shadow: 0 0 0 1px var(--line-strong);
+  }
+}
