@@ -1,6 +1,7 @@
 import { Header } from '../components/Header';
 import { Features, Hero } from '../components/Hero';
 import { CalculatorSection } from '../components/CalculatorSection';
+import { ReferralSection } from '../components/Referral';
 import { Faq, Footer, Methodology } from '../components/Sections';
 import { t } from '../lib/copy';
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from '../lib/site';
@@ -37,6 +38,7 @@ export default function Page() {
       <main>
         <Hero />
         <CalculatorSection />
+        <ReferralSection />
         <Features />
         <Methodology />
         <Faq />

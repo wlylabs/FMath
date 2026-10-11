@@ -2,7 +2,7 @@
 
 import { useId, useRef, useState } from 'react';
 import { BarChart3, Table2 } from 'lucide-react';
-import { bandsFor, CHAINS, getChain, tradeCost, type ChainId, type TokenClass } from '../../lib/fees';
+import { bandsFor, CHAINS, fomoFee, getChain, tradeCost, type ChainId, type TokenClass } from '../../lib/fees';
 import { parseAmount, pct, usd } from '../../lib/format';
 import { t } from '../../lib/copy';
 import { usePersistentState } from '../../hooks/usePersistentState';
@@ -10,6 +10,9 @@ import { CardTitle, Field, Headline, Notice, NumberInput, Pills, QuickPicks, Row
 import { BandTable, bandFee, bandRange } from '../BandTable';
 import { FeeCurveChart } from '../FeeCurveChart';
 import { MobileSummary } from '../MobileSummary';
+import { ShareButton } from '../ShareButton';
+import { ReferralNudge } from '../Referral';
+import { buildShareUrl, primitivesFrom } from '../../lib/urlState';
 
 interface State {
   chain: ChainId;
@@ -31,10 +34,16 @@ const INITIAL: State = {
   impact: '',
 };
 
+const CHAIN_IDS = CHAINS.map((c) => c.id);
+
+function fromUrl(params: URLSearchParams): Partial<State> {
+  return primitivesFrom(INITIAL, params, { chain: CHAIN_IDS, side: ['buy', 'sell'], tokenClass: ['standard', 'major'] });
+}
+
 export const AMOUNT_PICKS = ['10', '50', '100', '190', '500', '1000'];
 
 export function FeeCalculator() {
-  const [s, setS] = usePersistentState<State>('fee', INITIAL);
+  const [s, setS] = usePersistentState<State>('fee', INITIAL, { tab: 'fee', fromUrl });
   const [view, setView] = useState<'chart' | 'table'>('chart');
   const set = <K extends keyof State>(k: K, v: State[K]) => setS((p) => ({ ...p, [k]: v }));
   const ids = { amount: useId(), network: useId(), impact: useId(), chain: useId(), side: useId(), cls: useId() };
@@ -153,7 +162,25 @@ export function FeeCalculator() {
       </section>
 
       <aside ref={resultsRef} className="card self-start p-4 sm:p-6 lg:sticky lg:top-20" aria-label={t.fee.results}>
-        <CardTitle>{t.fee.results}</CardTitle>
+        <CardTitle
+          aside={
+            <ShareButton
+              getUrl={() =>
+                buildShareUrl('fee', {
+                  chain: s.chain,
+                  side: s.side,
+                  amount: s.amount,
+                  tokenClass: s.tokenClass,
+                  referral: s.referral,
+                  networkFee: chain.gasCovered ? '' : s.networkFee,
+                  impact: s.impact,
+                })
+              }
+            />
+          }
+        >
+          {t.fee.results}
+        </CardTitle>
         {result ? (
           <>
             <div className="mt-4">
@@ -190,7 +217,14 @@ export function FeeCalculator() {
                 <Row label={t.fee.saved} value={usd(result.savedByReferral)} tone="pos" />
               )}
             </dl>
-            <div className="mt-4 space-y-2">
+            {!s.referral && (
+              <ReferralNudge
+                title={t.referral.nudgeTitle(usd(result.quote.fee - fomoFee(amount, s.chain, s.tokenClass, true).fee))}
+                now={result.quote.fee}
+                then={fomoFee(amount, s.chain, s.tokenClass, true).fee}
+              />
+            )}
+            <div className="mt-4 space-y-2 empty:hidden">
               {result.belowMinSell && (
                 <Notice tone="warn">{t.fee.minSell(usd(chain.minSellUsd), chain.name)}</Notice>
               )}

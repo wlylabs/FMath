@@ -1,9 +1,10 @@
-import { ArrowDown, ArrowRight, CalendarCheck, Gauge, Receipt, Target } from 'lucide-react';
+import { ArrowDown, ArrowRight, ArrowUpRight, CalendarCheck, Gauge, Receipt, Target } from 'lucide-react';
 import { FEE_SCHEDULE, fomoFee } from '../lib/fees';
 import { PERPS_FEES } from '../lib/perps';
 import { date, pct, usd } from '../lib/format';
 import { t } from '../lib/copy';
 import { cx } from '../lib/cx';
+import { ReferralLink } from './Referral';
 
 const EXAMPLE_SIZES = [10, 50, 190, 1000];
 
@@ -49,6 +50,17 @@ export function Hero() {
               <ArrowRight aria-hidden className="size-4" />
             </a>
           </div>
+          <ReferralLink className="group mt-4 inline-flex max-w-full items-center gap-2.5 rounded-2xl border border-accent-strong/30 bg-accent-wash py-1.5 pl-1.5 pr-3.5 text-left text-sm transition-colors hover:border-accent-strong">
+            <span className="shrink-0 rounded-xl bg-accent px-2 py-1 text-xs font-bold text-accent-ink">10% OFF</span>
+            <span className="min-w-0">
+              <span className="text-ink-2">{t.hero.referralLead}</span>{' '}
+              <span className="font-semibold text-ink">{t.hero.referralLink}</span>
+            </span>
+            <ArrowUpRight
+              aria-hidden
+              className="size-4 shrink-0 text-accent-strong transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+            />
+          </ReferralLink>
           <p className="mt-5 flex items-center gap-2 text-xs text-muted">
             <CalendarCheck aria-hidden className="size-3.5" />
             {t.hero.schedule(date(FEE_SCHEDULE.version))}

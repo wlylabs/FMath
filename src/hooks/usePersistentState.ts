@@ -1,49 +1,111 @@
-import { useCallback, useEffect, useState, type SetStateAction } from 'react';
+import { useCallback, useSyncExternalStore, type SetStateAction } from 'react';
+import { takeUrlState } from '../lib/urlState';
 
 const PREFIX = 'fmath:';
 
-function read<T>(key: string, initial: T): T {
+/** Raw JSON per key. Mirrors localStorage and keeps working when storage is blocked. */
+const memory = new Map<string, string>();
+/** Parsed value per key, reused while the raw JSON is unchanged so snapshots stay stable. */
+const parsed = new Map<string, { raw: string | null; value: unknown }>();
+const listeners = new Map<string, Set<() => void>>();
+
+function isRecord(v: unknown): v is Record<string, unknown> {
+  return !!v && typeof v === 'object' && !Array.isArray(v);
+}
+
+function rawFor(key: string): string | null {
+  if (memory.has(key)) return memory.get(key)!;
   try {
-    const raw = localStorage.getItem(PREFIX + key);
-    if (raw === null) return initial;
-    const parsed = JSON.parse(raw) as unknown;
-    if (initial && typeof initial === 'object' && !Array.isArray(initial)) {
-      return parsed && typeof parsed === 'object' ? { ...initial, ...(parsed as object) } : initial;
-    }
-    return typeof parsed === typeof initial ? (parsed as T) : initial;
+    return localStorage.getItem(PREFIX + key);
+  } catch {
+    return null;
+  }
+}
+
+function decode<T>(raw: string | null, initial: T): T {
+  if (raw === null) return initial;
+  try {
+    const value = JSON.parse(raw) as unknown;
+    if (isRecord(initial)) return (isRecord(value) ? { ...initial, ...value } : initial) as T;
+    return typeof value === typeof initial ? (value as T) : initial;
   } catch {
     return initial;
   }
 }
 
+function snapshot<T>(key: string, initial: T): T {
+  const raw = rawFor(key);
+  const hit = parsed.get(key);
+  if (hit && hit.raw === raw) return hit.value as T;
+  const value = decode(raw, initial);
+  parsed.set(key, { raw, value });
+  return value;
+}
+
+function store(key: string, value: unknown) {
+  const raw = JSON.stringify(value);
+  memory.set(key, raw);
+  parsed.set(key, { raw, value });
+  try {
+    localStorage.setItem(PREFIX + key, raw);
+  } catch {
+    /* private mode or storage full: the in-memory copy keeps the app working */
+  }
+  listeners.get(key)?.forEach((l) => l());
+}
+
+function subscribe(key: string, listener: () => void): () => void {
+  let set = listeners.get(key);
+  if (!set) listeners.set(key, (set = new Set()));
+  set.add(listener);
+  // another tab changed the same input
+  const onStorage = (e: StorageEvent) => {
+    if (e.key !== PREFIX + key) return;
+    memory.delete(key);
+    listener();
+  };
+  window.addEventListener('storage', onStorage);
+  return () => {
+    set.delete(listener);
+    window.removeEventListener('storage', onStorage);
+  };
+}
+
+interface UrlBinding<T> {
+  /** Query `tab` this state answers to, or null for the tab switcher itself. */
+  tab: string | null;
+  fromUrl: (params: URLSearchParams) => Partial<T> | T | undefined;
+}
+
+/** A shared link overrides the saved value once, before the first client read. */
+function applyUrl<T>(key: string, initial: T, url: UrlBinding<T> | undefined) {
+  if (!url || typeof window === 'undefined') return;
+  const params = takeUrlState(url.tab, key);
+  if (!params) return;
+  const patch = url.fromUrl(params);
+  if (patch === undefined) return;
+  const current = snapshot(key, initial);
+  store(key, isRecord(current) && isRecord(patch) ? { ...current, ...patch } : patch);
+}
+
 /**
- * useState that survives reloads on this device. The first render uses the
- * initial value so it matches the prerendered HTML; the saved value loads
- * right after mount. Storage failures are ignored.
+ * useState that survives reloads and stays in sync across tabs. The server and
+ * the hydrating client render `initial`, so the prerendered HTML matches; the
+ * saved value takes over right after hydration.
  */
-export function usePersistentState<T>(key: string, initial: T) {
-  const [state, setState] = useState<{ value: T; ready: boolean }>({ value: initial, ready: false });
-
-  useEffect(() => {
-    setState({ value: read(key, initial), ready: true });
-    // initial is a constant default; only the key decides what to load
-  }, [key]);
-
-  useEffect(() => {
-    if (!state.ready) return;
-    try {
-      localStorage.setItem(PREFIX + key, JSON.stringify(state.value));
-    } catch {
-      /* private mode or storage full: keep working in memory */
-    }
-  }, [key, state]);
-
-  const setValue = useCallback((action: SetStateAction<T>) => {
-    setState((s) => ({
-      ready: s.ready,
-      value: typeof action === 'function' ? (action as (prev: T) => T)(s.value) : action,
-    }));
-  }, []);
-
-  return [state.value, setValue] as const;
+export function usePersistentState<T>(key: string, initial: T, url?: UrlBinding<T>) {
+  applyUrl(key, initial, url);
+  const value = useSyncExternalStore(
+    useCallback((l: () => void) => subscribe(key, l), [key]),
+    () => snapshot(key, initial),
+    () => initial,
+  );
+  const setValue = useCallback(
+    (action: SetStateAction<T>) => {
+      const prev = snapshot(key, initial);
+      store(key, typeof action === 'function' ? (action as (p: T) => T)(prev) : action);
+    },
+    [key, initial],
+  );
+  return [value, setValue] as const;
 }

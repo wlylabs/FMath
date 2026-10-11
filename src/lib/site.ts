@@ -1,4 +1,5 @@
 import { t } from './copy';
+import { FEE_SCHEDULE } from './fees';
 
 /**
  * Absolute origin for canonical, Open Graph and sitemap URLs. Set SITE_URL when
@@ -14,3 +15,10 @@ export const SITE_NAME = 'FMath';
 export const SITE_TITLE = t.meta.title;
 export const SITE_DESCRIPTION =
   'Independent calculator for fomo traders: per-chain trade fees, break-even, net profit, and perps fees with liquidation price. Live market data from DexScreener and Hyperliquid.';
+
+/** The FMath author's fomo referral. New sign-ups through it get 10% off trading fees. */
+export const REFERRAL = {
+  url: 'https://fomo.family/r/willydetrade',
+  code: 'willydetrade',
+  discount: FEE_SCHEDULE.referralDiscount,
+} as const;

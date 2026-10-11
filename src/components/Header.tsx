@@ -1,9 +1,11 @@
 'use client';
 
-import { Moon, Sun } from 'lucide-react';
+import { ArrowUpRight, Moon, Sun } from 'lucide-react';
 import { t } from '../lib/copy';
 import { useTheme } from '../hooks/useTheme';
 import { Logo } from './Logo';
+import { ReferralLink } from './Referral';
+import { InstallButton } from './pwa/PwaProvider';
 
 export function Header() {
   const { toggle } = useTheme();
@@ -14,7 +16,7 @@ export function Header() {
     { href: '#sources', label: t.nav.sources },
   ];
   return (
-    <header className="sticky top-0 z-40 border-b border-line bg-bg/85 backdrop-blur-md">
+    <header className="sticky top-0 z-40 border-b border-line bg-bg/85 pt-[env(safe-area-inset-top)] backdrop-blur-md">
       <a
         href="#calculator"
         className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-3 focus:z-50 focus:rounded-lg focus:bg-surface focus:px-3 focus:py-2 focus:text-sm"
@@ -38,12 +40,11 @@ export function Header() {
           ))}
         </nav>
         <div className="flex items-center gap-2">
-          <a
-            href="#calculator"
-            className="inline-flex h-9 items-center rounded-lg bg-accent px-3.5 text-sm font-semibold text-accent-ink transition-colors hover:bg-accent-hover md:hidden"
-          >
-            {t.nav.calculator}
-          </a>
+          <ReferralLink className="inline-flex h-9 items-center gap-1 rounded-lg bg-accent px-3 text-sm font-semibold text-accent-ink transition-colors hover:bg-accent-hover">
+            {t.header.referralCta}
+            <ArrowUpRight aria-hidden className="size-4" />
+          </ReferralLink>
+          <InstallButton />
           <button
             type="button"
             onClick={toggle}

@@ -1,9 +1,11 @@
-import { ChevronDown, ExternalLink } from 'lucide-react';
+import { ArrowUpRight, ChevronDown, ExternalLink } from 'lucide-react';
 import { t } from '../lib/copy';
 import { LAST_CHECKED, SOURCES } from '../lib/sources';
 import { date } from '../lib/format';
 import { BandTable } from './BandTable';
 import { Logo } from './Logo';
+import { ReferralLink } from './Referral';
+import { InstallButton } from './pwa/PwaProvider';
 
 export function Methodology() {
   return (
@@ -108,17 +110,42 @@ export function Faq() {
 }
 
 export function Footer() {
+  const links = [
+    { href: '#calculator', label: t.nav.calculator },
+    { href: '#referral', label: t.referral.eyebrow },
+    { href: '#methodology', label: t.nav.method },
+    { href: '#faq', label: t.nav.faq },
+    { href: '#sources', label: t.nav.sources },
+  ];
   return (
-    <footer className="border-t border-line pb-24 pt-10 lg:pb-10">
-      <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 sm:px-6 md:flex-row md:items-start md:justify-between">
-        <div className="flex items-center gap-2.5">
-          <Logo className="size-7" />
-          <span className="font-semibold tracking-tight text-ink">FMath</span>
+    <footer className="border-t border-line pb-28 pt-10 lg:pb-10">
+      <div className="mx-auto grid max-w-6xl gap-8 px-4 sm:px-6 md:grid-cols-[minmax(0,1fr)_auto] md:gap-16">
+        <div>
+          <div className="flex items-center gap-2.5">
+            <Logo className="size-7" />
+            <span className="font-semibold tracking-tight text-ink">FMath</span>
+          </div>
+          <div className="mt-4 max-w-2xl space-y-2 text-xs leading-relaxed text-muted">
+            <p>{t.footer.disclaimer}</p>
+            <p>{t.referral.disclosure}</p>
+          </div>
         </div>
-        <div className="max-w-2xl space-y-2 text-xs leading-relaxed text-muted">
-          <p>{t.footer.disclaimer}</p>
-          <p>{t.footer.built}</p>
-        </div>
+        <nav aria-label="Footer" className="flex flex-col gap-2.5 text-sm">
+          <ReferralLink className="inline-flex items-center gap-1.5 font-semibold text-accent-strong hover:underline">
+            {t.footer.referral}
+            <ArrowUpRight aria-hidden className="size-3.5" />
+          </ReferralLink>
+          {links.map((l) => (
+            <a key={l.href} href={l.href} className="text-ink-2 hover:text-ink">
+              {l.label}
+            </a>
+          ))}
+          <InstallButton variant="text" />
+        </nav>
+      </div>
+      <div className="mx-auto mt-8 flex max-w-6xl flex-col gap-1 border-t border-line px-4 pt-6 text-xs text-muted sm:flex-row sm:justify-between sm:px-6">
+        <span>© {new Date().getUTCFullYear()} FMath. Not affiliated with fomo.</span>
+        <span>{t.footer.built}</span>
       </div>
     </footer>
   );

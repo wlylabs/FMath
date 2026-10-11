@@ -1,11 +1,11 @@
 'use client';
 
-import { useCallback, useId, useRef } from 'react';
+import { useCallback, useEffect, useId, useRef } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { CHAINS, getChain, type ChainId, type TokenClass } from '../../lib/fees';
 import { roundTrip, type RoundTripInput } from '../../lib/roundtrip';
 import { compactUsd, multiple, num, parseAmount, pct, price, usd } from '../../lib/format';
-import type { TokenMarket } from '../../api/dexscreener';
+import { dexscreenerChainId, getToken, type TokenMarket } from '../../api/dexscreener';
 import { t } from '../../lib/copy';
 import { usePersistentState } from '../../hooks/usePersistentState';
 import { CardTitle, Field, Headline, Notice, NumberInput, Pills, QuickPicks, Row, Segmented, Switch } from '../ui';
@@ -13,6 +13,9 @@ import { cx } from '../../lib/cx';
 import { TokenLookup } from '../TokenLookup';
 import { MobileSummary } from '../MobileSummary';
 import { AMOUNT_PICKS } from './FeeCalculator';
+import { ShareButton } from '../ShareButton';
+import { ReferralNudge } from '../Referral';
+import { buildShareUrl, primitivesFrom, takeUrlState } from '../../lib/urlState';
 
 interface State {
   chain: ChainId;
@@ -44,6 +47,18 @@ const INITIAL: State = {
   token: null,
 };
 
+function fromUrl(params: URLSearchParams): Partial<State> {
+  return {
+    ...primitivesFrom(INITIAL, params, {
+      chain: CHAINS.map((c) => c.id),
+      tokenClass: ['standard', 'major'],
+      targetBy: ['mcap', 'multiple'],
+    }),
+    // a shared link describes the whole calculation; its token (if any) loads separately
+    token: null,
+  };
+}
+
 const SCENARIOS = [0.5, 1, 2, 5, 10, 100];
 const MULTIPLE_PICKS = ['1.5', '2', '3', '5', '10', '100'];
 
@@ -54,7 +69,7 @@ function optionalPct(raw: string): { value: number; valid: boolean } {
 }
 
 export function ProfitCalculator() {
-  const [s, setS] = usePersistentState<State>('profit', INITIAL);
+  const [s, setS] = usePersistentState<State>('profit', INITIAL, { tab: 'profit', fromUrl });
   const set = <K extends keyof State>(k: K, v: State[K]) => setS((p) => ({ ...p, [k]: v }));
   const ids = {
     buy: useId(),
@@ -89,6 +104,18 @@ export function ProfitCalculator() {
     },
     [setS],
   );
+
+  // A shared link can name a token as <dexscreener chain>:<address>; fetch it live.
+  useEffect(() => {
+    const ref = takeUrlState('profit', 'profit-token')?.get('token');
+    const [chainId, address] = ref?.split(':') ?? [];
+    if (!chainId || !address) return;
+    getToken(chainId, address)
+      .then((tok) => {
+        if (tok) setS((p) => ({ ...p, token: tok, chain: tok.chain }));
+      })
+      .catch(() => {});
+  }, [setS]);
 
   const chain = getChain(s.chain);
   const buy = parseAmount(s.buy);
@@ -125,6 +152,7 @@ export function ProfitCalculator() {
     : null;
 
   const result = base && Number.isFinite(m) ? roundTrip(base) : null;
+  const withReferral = result && base && !s.referral ? roundTrip({ ...base, referral: true }) : null;
   const scenarios = base ? SCENARIOS.map((k) => ({ k, r: roundTrip({ ...base, multiple: k }) })) : [];
 
   // price that corresponds to the target, when a live token anchors the market cap
@@ -319,7 +347,30 @@ export function ProfitCalculator() {
       </section>
 
       <aside ref={resultsRef} className="card self-start p-4 sm:p-6 lg:sticky lg:top-20" aria-label={t.calc.tabs.profit}>
-        <CardTitle>{t.calc.tabs.profit}</CardTitle>
+        <CardTitle
+          aside={
+            <ShareButton
+              getUrl={() =>
+                buildShareUrl('profit', {
+                  chain: s.chain,
+                  tokenClass: s.tokenClass,
+                  referral: s.referral,
+                  buy: s.buy,
+                  entryMcap: s.entryMcap,
+                  targetBy: s.targetBy,
+                  targetMcap: s.targetBy === 'mcap' ? s.targetMcap : '',
+                  targetMultiple: s.targetBy === 'multiple' ? s.targetMultiple : '',
+                  networkFee: chain.gasCovered ? '' : s.networkFee,
+                  buyImpact: s.buyImpact,
+                  sellImpact: s.sellImpact,
+                  token: s.token ? `${dexscreenerChainId(s.token.chain)}:${s.token.address}` : '',
+                })
+              }
+            />
+          }
+        >
+          {t.calc.tabs.profit}
+        </CardTitle>
         {result ? (
           <>
             <div className="mt-4">
@@ -371,6 +422,14 @@ export function ProfitCalculator() {
                 footer={[t.profit.positionExit, usd(result.positionAtExit)]}
               />
             </div>
+
+            {withReferral && (
+              <ReferralNudge
+                title={t.referral.nudgeTitleRoundTrip(usd(withReferral.proceeds - result.proceeds))}
+                now={result.totalCosts}
+                then={withReferral.totalCosts}
+              />
+            )}
 
             {Number.isFinite(result.breakEvenMultiple) && result.breakEvenMultiple > 1 && (
               <div className="mt-4">

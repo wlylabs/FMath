@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useId, useRef, useState } from 'react';
+import { useCallback, useEffect, useEffectEvent, useId, useRef, useState } from 'react';
 import { ExternalLink, Loader2, RefreshCw, Search, X } from 'lucide-react';
 import { getToken, searchTokens, dexscreenerChainId, type TokenMarket } from '../api/dexscreener';
 import { getChain } from '../lib/fees';
@@ -13,6 +13,8 @@ function TokenIcon({ token, size = 36 }: { token: Pick<TokenMarket, 'imageUrl' |
   const [failed, setFailed] = useState(false);
   if (token.imageUrl && !failed) {
     return (
+      // token logos come from many outside CDNs, and image optimization is off in the static export
+      // eslint-disable-next-line @next/next/no-img-element
       <img
         src={token.imageUrl}
         alt=""
@@ -39,8 +41,8 @@ function TokenIcon({ token, size = 36 }: { token: Pick<TokenMarket, 'imageUrl' |
 
 export function TokenLookup(props: { token: TokenMarket | null; onChange: (t: TokenMarket | null) => void }) {
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState<TokenMarket[]>([]);
-  const [status, setStatus] = useState<'idle' | 'loading' | 'error' | 'done'>('idle');
+  // the last finished search; anything else for the current query is still loading
+  const [search, setSearch] = useState<{ q: string; ok: boolean; results: TokenMarket[] } | null>(null);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
@@ -50,31 +52,29 @@ export function TokenLookup(props: { token: TokenMarket | null; onChange: (t: To
   const wrapRef = useRef<HTMLDivElement>(null);
   const { token, onChange } = props;
 
+  const q = query.trim();
+  const settled = search?.q === q ? search : null;
+  const status: 'idle' | 'loading' | 'error' | 'done' = q.length < 2 ? 'idle' : !settled ? 'loading' : settled.ok ? 'done' : 'error';
+  const results = settled?.results ?? [];
+
   useEffect(() => {
-    const q = query.trim();
-    if (q.length < 2) {
-      setResults([]);
-      setStatus('idle');
-      return;
-    }
+    if (q.length < 2) return;
     const ctrl = new AbortController();
-    setStatus('loading');
     const timer = setTimeout(() => {
       searchTokens(q, ctrl.signal)
         .then((r) => {
-          setResults(r.slice(0, 8));
+          setSearch({ q, ok: true, results: r.slice(0, 8) });
           setActive(0);
-          setStatus('done');
         })
         .catch((e: unknown) => {
-          if ((e as Error).name !== 'AbortError') setStatus('error');
+          if ((e as Error).name !== 'AbortError') setSearch({ q, ok: false, results: [] });
         });
     }, 350);
     return () => {
       clearTimeout(timer);
       ctrl.abort();
     };
-  }, [query]);
+  }, [q]);
 
   useEffect(() => {
     const onDoc = (e: PointerEvent) => {
@@ -104,21 +104,21 @@ export function TokenLookup(props: { token: TokenMarket | null; onChange: (t: To
   );
 
   // Pull fresh numbers when a saved token is restored, then every 60s while the tab is visible.
-  const refreshRef = useRef(refresh);
-  refreshRef.current = refresh;
+  const refreshFromEffect = useEffectEvent((signal: AbortSignal, onlyIfStale: boolean) => {
+    if (onlyIfStale && Date.now() - (token?.fetchedAt ?? 0) <= 15_000) return;
+    void refresh(signal);
+  });
   const tokenKey = token?.key;
-  const stale = Date.now() - (token?.fetchedAt ?? 0) > 15_000;
-  const staleRef = useRef(stale);
-  staleRef.current = stale;
   useEffect(() => {
     if (!tokenKey) return;
     const ctrl = new AbortController();
-    if (staleRef.current) void refreshRef.current(ctrl.signal);
+    const first = setTimeout(() => refreshFromEffect(ctrl.signal, true), 0);
     const id = setInterval(() => {
-      if (document.visibilityState === 'visible') void refreshRef.current(ctrl.signal);
+      if (document.visibilityState === 'visible') refreshFromEffect(ctrl.signal, false);
     }, 60_000);
     return () => {
       ctrl.abort();
+      clearTimeout(first);
       clearInterval(id);
     };
   }, [tokenKey]);
@@ -126,7 +126,6 @@ export function TokenLookup(props: { token: TokenMarket | null; onChange: (t: To
   const pick = (m: TokenMarket) => {
     onChange(m);
     setQuery('');
-    setResults([]);
     setOpen(false);
   };
 

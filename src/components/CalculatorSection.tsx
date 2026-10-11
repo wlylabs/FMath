@@ -1,9 +1,10 @@
 'use client';
 
-import { useId, useRef, type KeyboardEvent } from 'react';
+import { useEffect, useId, useRef, type KeyboardEvent } from 'react';
 import { t } from '../lib/copy';
 import { cx } from '../lib/cx';
 import { usePersistentState } from '../hooks/usePersistentState';
+import { cleanUrl } from '../lib/urlState';
 import { FeeCalculator } from './calculators/FeeCalculator';
 import { ProfitCalculator } from './calculators/ProfitCalculator';
 import { PerpsCalculator } from './calculators/PerpsCalculator';
@@ -12,7 +13,12 @@ type Tab = 'fee' | 'profit' | 'perps';
 const TABS: Tab[] = ['fee', 'profit', 'perps'];
 
 export function CalculatorSection() {
-  const [tab, setTab] = usePersistentState<Tab>('tab', 'fee');
+  const [tab, setTab] = usePersistentState<Tab>('tab', 'fee', {
+    tab: null,
+    fromUrl: (params) => TABS.find((x) => x === params.get('tab')),
+  });
+  // every calculator has its own copy of the shared link by now; tidy the address bar
+  useEffect(() => cleanUrl(), []);
   const current: Tab = TABS.includes(tab) ? tab : 'fee';
   const base = useId();
   const refs = useRef<(HTMLButtonElement | null)[]>([]);

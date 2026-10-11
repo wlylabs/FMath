@@ -3,6 +3,8 @@ import type { ReactNode } from 'react';
 import { GeistSans } from 'geist/font/sans';
 import { GeistMono } from 'geist/font/mono';
 import { SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, SITE_URL } from '../lib/site';
+import { PwaProvider } from '../components/pwa/PwaProvider';
+import { Toaster } from '../components/Toaster';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -10,6 +12,11 @@ export const metadata: Metadata = {
   title: SITE_TITLE,
   description: SITE_DESCRIPTION,
   applicationName: SITE_NAME,
+  category: 'finance',
+  keywords: ['fomo', 'fomo app', 'fomo.family', 'fee calculator', 'memecoin', 'Solana', 'perps', 'Hyperliquid', 'break-even'],
+  appleWebApp: { capable: true, title: SITE_NAME, statusBarStyle: 'black' },
+  // long numbers are amounts, not phone numbers
+  formatDetection: { telephone: false, email: false, address: false },
   alternates: { canonical: '/' },
   openGraph: {
     type: 'website',
@@ -30,8 +37,9 @@ export const viewport: Viewport = {
   themeColor: '#0b0c0e',
 };
 
-// Runs before first paint so the saved or system theme applies without a flash.
-const themeScript = `(function(){var t;try{t=localStorage.getItem('fmath:theme')}catch(e){}if(t!=='light'&&t!=='dark'){t=window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'}document.documentElement.dataset.theme=t;var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',t==='dark'?'#0b0c0e':'#f6f7f9')})();`;
+// Runs before first paint so the saved or system theme applies without a flash, and
+// keeps the install prompt if the browser offers it before React has loaded.
+const themeScript = `(function(){window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();window.__fmathInstall=e});var t;try{t=localStorage.getItem('fmath:theme')}catch(e){}if(t!=='light'&&t!=='dark'){t=window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'}document.documentElement.dataset.theme=t;var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',t==='dark'?'#0b0c0e':'#f6f7f9')})();`;
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
@@ -41,7 +49,12 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <link rel="preconnect" href="https://api.dexscreener.com" crossOrigin="" />
         <link rel="preconnect" href="https://api.hyperliquid.xyz" crossOrigin="" />
       </head>
-      <body>{children}</body>
+      <body>
+        <PwaProvider>
+          {children}
+          <Toaster />
+        </PwaProvider>
+      </body>
     </html>
   );
 }

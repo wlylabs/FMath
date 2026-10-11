@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { fetchPerpMarkets, type PerpMarket } from '../../api/hyperliquid';
 import { PERPS_FEES, perpTrade, venueFeeRate, type OrderKind, type PerpSide, type PerpVenue } from '../../lib/perps';
@@ -10,6 +10,10 @@ import { usePersistentState } from '../../hooks/usePersistentState';
 import { CardTitle, Field, Headline, LiveBadge, Notice, NumberInput, QuickPicks, Row, Segmented, Switch } from '../ui';
 import { cx } from '../../lib/cx';
 import { MobileSummary } from '../MobileSummary';
+import { ShareButton } from '../ShareButton';
+import { ReferralNudge } from '../Referral';
+import { buildShareUrl, primitivesFrom } from '../../lib/urlState';
+import type { PerpInput } from '../../lib/perps';
 
 interface State {
   venue: PerpVenue;
@@ -41,10 +45,34 @@ const INITIAL: State = {
   hold: '24',
 };
 
+function fromUrl(params: URLSearchParams): Partial<State> {
+  const base = primitivesFrom(INITIAL, params, {
+    venue: ['hyperliquid', 'xyz'],
+    side: ['long', 'short'],
+    orderKind: ['taker', 'maker'],
+  });
+  const coin = params.get('coin')?.slice(0, 40);
+  return coin ? { ...base, coin: { ...INITIAL.coin, [base.venue ?? INITIAL.venue]: coin } } : base;
+}
+
 const MARGIN_PICKS = ['25', '50', '100', '250', '500', '1000'];
 const MOVES = [-0.1, -0.05, -0.01, 0.01, 0.05, 0.1, 0.25];
 
-type Load = { status: 'loading' | 'ready' | 'error'; markets: PerpMarket[]; at: number };
+/** Last result per venue; a venue with no entry yet is loading. */
+/** State after choosing a market: live mark as entry, live funding, leverage within its cap. */
+function withMarket(p: State, m: PerpMarket): State {
+  return {
+    ...p,
+    coin: { ...p.coin, [m.venue]: m.coin },
+    leverage: Math.min(p.leverage, m.maxLeverage),
+    entry: toInput(m.markPx),
+    exit: '',
+    funding: toInput(m.fundingHourly * 100),
+    growth: m.growthMode ?? p.growth,
+  };
+}
+
+type Load = { venue: PerpVenue; ok: boolean; markets: PerpMarket[]; at: number };
 
 /** Strip float noise and trailing zeros so prices go back into inputs cleanly. */
 function toInput(n: number): string {
@@ -54,9 +82,9 @@ function toInput(n: number): string {
 }
 
 export function PerpsCalculator() {
-  const [s, setS] = usePersistentState<State>('perps', INITIAL);
+  const [s, setS] = usePersistentState<State>('perps', INITIAL, { tab: 'perps', fromUrl });
   const set = <K extends keyof State>(k: K, v: State[K]) => setS((p) => ({ ...p, [k]: v }));
-  const [load, setLoad] = useState<Load>({ status: 'loading', markets: [], at: 0 });
+  const [loads, setLoads] = useState<Partial<Record<PerpVenue, Load>>>({});
   const [reloadKey, setReloadKey] = useState(0);
   const ids = {
     market: useId(),
@@ -74,21 +102,27 @@ export function PerpsCalculator() {
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Load the venue's markets, then refresh prices every 20s while the tab is visible.
+  // A fresh list also picks a market when none is selected, or fills an empty entry.
   useEffect(() => {
+    const venue = s.venue;
     const ctrl = new AbortController();
-    let first = true;
     const run = () => {
-      fetchPerpMarkets(s.venue, ctrl.signal)
-        .then((markets) => setLoad({ status: 'ready', markets, at: Date.now() }))
+      fetchPerpMarkets(venue, ctrl.signal)
+        .then((markets) => {
+          setLoads((l) => ({ ...l, [venue]: { venue, ok: true, markets, at: Date.now() } }));
+          setS((p) => {
+            if (p.venue !== venue || markets.length === 0) return p;
+            const current = markets.find((m) => m.coin === p.coin[venue]);
+            if (!current) return withMarket(p, markets[0]!);
+            return p.entry ? p : withMarket(p, current);
+          });
+        })
         .catch((e: unknown) => {
           if ((e as Error).name === 'AbortError') return;
-          setLoad((l) => (first || l.markets.length === 0 ? { status: 'error', markets: [], at: 0 } : l));
-        })
-        .finally(() => {
-          first = false;
+          // keep the last good list; only report when there is nothing to show
+          setLoads((l) => (l[venue]?.ok ? l : { ...l, [venue]: { venue, ok: false, markets: [], at: 0 } }));
         });
     };
-    setLoad((l) => ({ ...l, status: 'loading', markets: l.markets.filter((m) => m.venue === s.venue) }));
     run();
     const id = setInterval(() => {
       if (document.visibilityState === 'visible') run();
@@ -97,32 +131,13 @@ export function PerpsCalculator() {
       ctrl.abort();
       clearInterval(id);
     };
-  }, [s.venue, reloadKey]);
+  }, [s.venue, reloadKey, setS]);
 
-  const markets = load.markets.filter((m) => m.venue === s.venue);
+  const load = loads[s.venue];
+  const status: 'loading' | 'ready' | 'error' = !load ? 'loading' : load.ok ? 'ready' : 'error';
+  const markets = load?.markets ?? [];
   const market = markets.find((m) => m.coin === s.coin[s.venue]) ?? null;
-
-  // Pick a default market and fill live numbers the first time a market is selected.
-  const selectMarket = useCallback(
-    (m: PerpMarket) => {
-      setS((p) => ({
-        ...p,
-        coin: { ...p.coin, [m.venue]: m.coin },
-        leverage: Math.min(p.leverage, m.maxLeverage),
-        entry: toInput(m.markPx),
-        exit: '',
-        funding: toInput(m.fundingHourly * 100),
-        growth: m.growthMode ?? p.growth,
-      }));
-    },
-    [setS],
-  );
-
-  useEffect(() => {
-    if (load.status !== 'ready' || markets.length === 0) return;
-    if (!market) selectMarket(markets[0]!);
-    else if (!s.entry) selectMarket(market);
-  }, [load.at, s.venue]); // only react to a new market list
+  const selectMarket = (m: PerpMarket) => setS((p) => withMarket(p, m));
 
   const margin = parseAmount(s.margin);
   const entry = parseAmount(s.entry);
@@ -138,9 +153,9 @@ export function PerpsCalculator() {
   const builderRate = s.referral ? PERPS_FEES.builderReferral : PERPS_FEES.builder;
   const venueRate = venueFeeRate(s.venue, s.orderKind, s.growth);
 
-  const result =
+  const input: PerpInput | null =
     marginValid && entryValid && exitValid
-      ? perpTrade({
+      ? {
           side: s.side,
           margin,
           leverage,
@@ -151,8 +166,10 @@ export function PerpsCalculator() {
           fundingHourly: Number.isFinite(fundingPct) ? fundingPct / 100 : 0,
           holdHours: Number.isFinite(hold) ? hold : 0,
           tiers: market?.tiers ?? [{ lowerBound: 0, maxLeverage: maxLev }],
-        })
+        }
       : null;
+  const result = input ? perpTrade(input) : null;
+  const withReferral = input && !s.referral ? perpTrade({ ...input, builderRate: PERPS_FEES.builderReferral }) : null;
   const tone = result ? (result.netPnl >= 0 ? 'pos' : 'neg') : undefined;
   const levFill = maxLev > 1 ? ((leverage - 1) / (maxLev - 1)) * 100 : 100;
   const fundingSigned = (v: string) => v.replace(/[^\d.,-]/g, '').replace(/(?!^)-/g, '');
@@ -177,7 +194,7 @@ export function PerpsCalculator() {
           label={t.perps.market}
           htmlFor={ids.market}
           aside={
-            load.status === 'ready' ? (
+            status === 'ready' && load ? (
               <span className="flex items-center gap-2">
                 <LiveBadge label={t.common.live} />
                 <span className="num text-[11px] text-muted">{time(load.at)}</span>
@@ -185,12 +202,15 @@ export function PerpsCalculator() {
             ) : null
           }
         >
-          {load.status === 'error' && markets.length === 0 ? (
+          {status === 'error' ? (
             <div className="flex items-center justify-between gap-3 rounded-xl border border-line bg-surface-2 px-3.5 py-3">
               <p className="text-sm text-ink-2">{t.common.loadError}</p>
               <button
                 type="button"
-                onClick={() => setReloadKey((k) => k + 1)}
+                onClick={() => {
+                  setLoads((l) => ({ ...l, [s.venue]: undefined }));
+                  setReloadKey((k) => k + 1);
+                }}
                 className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg border border-line px-3 text-xs font-medium text-ink hover:border-line-strong"
               >
                 <RefreshCw aria-hidden className="size-3.5" />
@@ -416,7 +436,28 @@ export function PerpsCalculator() {
       </section>
 
       <aside ref={resultsRef} className="card self-start p-4 sm:p-6 lg:sticky lg:top-20" aria-label={t.calc.tabs.perps}>
-        <CardTitle>
+        <CardTitle
+          aside={
+            <ShareButton
+              getUrl={() =>
+                buildShareUrl('perps', {
+                  venue: s.venue,
+                  coin: s.coin[s.venue],
+                  side: s.side,
+                  margin: s.margin,
+                  leverage,
+                  entry: s.entry,
+                  exit: s.exit,
+                  orderKind: s.orderKind,
+                  referral: s.referral,
+                  growth: s.venue === 'xyz' ? s.growth : null,
+                  funding: s.funding,
+                  hold: s.hold,
+                })
+              }
+            />
+          }
+        >
           {market ? `${market.label}-USD ${s.side === 'long' ? t.perps.long : t.perps.short} ${leverage}x` : t.calc.tabs.perps}
         </CardTitle>
         {result ? (
@@ -464,6 +505,13 @@ export function PerpsCalculator() {
                 tone={result.funding < 0 ? 'pos' : undefined}
               />
             </dl>
+            {withReferral && (
+              <ReferralNudge
+                title={t.referral.nudgeTitlePerps(usd(result.openFee + result.closeFee - withReferral.openFee - withReferral.closeFee))}
+                now={result.openFee + result.closeFee}
+                then={withReferral.openFee + withReferral.closeFee}
+              />
+            )}
             <div className="mt-4 space-y-2">
               {result.tierMaxLeverage !== null && leverage > result.tierMaxLeverage && (
                 <Notice tone="warn">{t.perps.tierWarn(result.tierMaxLeverage)}</Notice>
@@ -474,7 +522,7 @@ export function PerpsCalculator() {
             </div>
           </>
         ) : (
-          <p className="mt-4 text-sm text-muted">{load.status === 'loading' && !market ? t.common.loading : t.perps.noMarket}</p>
+          <p className="mt-4 text-sm text-muted">{status === 'loading' && !market ? t.common.loading : t.perps.noMarket}</p>
         )}
       </aside>
 
