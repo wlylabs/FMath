@@ -210,14 +210,14 @@ export function Pills<T extends string>(props: {
             onClick={() => props.onChange(o.value)}
             style={o.color ? ({ '--chip': o.color } as CSSProperties) : undefined}
             className={cx(
-              'press inline-flex h-10 shrink-0 items-center gap-2 rounded-full border text-sm font-medium whitespace-nowrap transition-[border-color,background-color,box-shadow] duration-[var(--dur-base)] ease-[var(--ease-standard)] disabled:opacity-40',
+              'press inline-flex h-10 shrink-0 items-center gap-2 rounded-full border text-sm font-medium whitespace-nowrap transition-[border-color,background-color] duration-[var(--dur-base)] ease-[var(--ease-standard)] disabled:opacity-40',
               o.icon ? 'pr-4 pl-2' : 'px-4',
               !selected && 'border-line bg-surface-2 text-ink-2 hover:border-line-strong hover:text-ink',
               selected && !o.color && 'border-accent-strong bg-accent-wash text-ink',
-              // the picked chip glows in the chain's own colour, mixed into the theme so it reads in light and dark
+              // the picked chip takes the chain's own colour, mixed into the theme so it reads in light and dark
               selected &&
                 o.color &&
-                'border-[color-mix(in_oklab,var(--chip)_75%,var(--ink))] bg-[color-mix(in_oklab,var(--chip)_14%,var(--surface))] text-ink shadow-[0_0_0_3px_color-mix(in_oklab,var(--chip)_22%,transparent)]',
+                'border-[color-mix(in_oklab,var(--chip)_75%,var(--ink))] bg-[color-mix(in_oklab,var(--chip)_14%,var(--surface))] text-ink',
             )}
           >
             {o.icon && (
