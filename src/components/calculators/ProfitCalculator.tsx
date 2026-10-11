@@ -17,6 +17,8 @@ import { AMOUNT_PICKS } from './FeeCalculator';
 import { ShareButton } from '../ShareButton';
 import { ReferralNudge } from '../Referral';
 import { buildShareUrl, primitivesFrom, takeUrlState } from '../../lib/urlState';
+import { ladderParam, ladderRows, parseLadderParam, type LadderRow, type LadderStep } from '../../lib/ladder';
+import { ExitPlan, stepFrom } from '../ExitPlan';
 
 interface State {
   chain: ChainId;
@@ -31,6 +33,7 @@ interface State {
   buyImpact: string;
   sellImpact: string;
   token: TokenMarket | null;
+  ladder: LadderRow[];
 }
 
 const INITIAL: State = {
@@ -46,6 +49,10 @@ const INITIAL: State = {
   buyImpact: '',
   sellImpact: '',
   token: null,
+  ladder: [
+    { multiple: '2', share: '50' },
+    { multiple: '5', share: '25' },
+  ],
 };
 
 function fromUrl(params: URLSearchParams): Partial<State> | undefined {
@@ -54,10 +61,11 @@ function fromUrl(params: URLSearchParams): Partial<State> | undefined {
     tokenClass: ['standard', 'major'],
     targetBy: ['mcap', 'multiple'],
   });
+  const ladder = params.get('ladder');
   // only tracking params (?fbclid=, ?utm_*=): not a shared calculation, keep the saved token
-  if (Object.keys(fields).length === 0 && !params.has('token')) return undefined;
+  if (Object.keys(fields).length === 0 && !params.has('token') && ladder === null) return undefined;
   // a shared link describes the whole calculation; its token (if any) loads separately
-  return { ...fields, token: null };
+  return { ...fields, token: null, ...(ladder !== null ? { ladder: parseLadderParam(ladder.slice(0, 200)) } : {}) };
 }
 
 const SCENARIOS = [0.5, 1, 2, 5, 10, 100];
@@ -160,6 +168,8 @@ export function ProfitCalculator() {
   const targetPrice =
     s.token && liveMcap && entryValid && Number.isFinite(m) ? s.token.priceUsd * ((entryMcap * m) / liveMcap) : null;
   const tone = result ? (result.pnl >= 0 ? 'pos' : 'neg') : undefined;
+  // saved state from another version or a hand-edited store may not hold rows
+  const ladder = ladderRows(s.ladder) ?? INITIAL.ladder;
 
   return (
     <div ref={containerRef} className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_400px] lg:gap-6">
@@ -365,6 +375,7 @@ export function ProfitCalculator() {
                   buyImpact: s.buyImpact,
                   sellImpact: s.sellImpact,
                   token: s.token ? `${dexscreenerChainId(s.token.chain)}:${s.token.address}` : '',
+                  ladder: ladderParam(ladder.map(stepFrom).filter((x): x is LadderStep => x !== null)),
                 })
               }
             />
@@ -475,6 +486,8 @@ export function ProfitCalculator() {
           </p>
         )}
       </aside>
+
+      <ExitPlan base={base} rows={ladder} onChange={(rows) => set('ladder', rows)} entryMcap={entryValid ? entryMcap : null} />
 
       <MobileSummary
         resultsRef={resultsRef}
