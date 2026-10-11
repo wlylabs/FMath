@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
-import { GeistSans } from 'geist/font/sans';
-import { GeistMono } from 'geist/font/mono';
+import { GeistMono, GeistSans } from './fonts';
 import { BASE_OPEN_GRAPH, CREATOR, SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, SITE_URL } from '../lib/site';
 import { BRAND } from '../lib/brand';
 import { PwaProvider } from '../components/pwa/PwaProvider';
