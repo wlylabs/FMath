@@ -11,9 +11,9 @@ export const LAST_CHECKED = '2026-10-11';
 
 export const SOURCES: Source[] = [
   {
-    label: 'fomo Help Center',
-    url: 'https://help.fomo.family',
-    use: 'Official source for spot fees, covered gas and minimum sells. Check it before you trade.',
+    label: 'fomo Help Center: Trading fees on fomo',
+    url: 'https://help.fomo.family/en/articles/14436214-trading-fees-on-fomo',
+    use: 'Official source for spot fees, Solana routes, covered gas and the chain list. Check it before you trade.',
     kind: 'official',
   },
   {
@@ -21,6 +21,12 @@ export const SOURCES: Source[] = [
     url: 'https://fomoappguide.com/guides/fees/fomo-fees-explained',
     use: 'Quotes the Solana bands and other-chain rates from the 25 Sep 2026 Help Center.',
     kind: 'secondary',
+  },
+  {
+    label: 'fomo Help Center: Perps Trading Fees',
+    url: 'https://help.fomo.family/en/articles/15453645-perps-trading-fees',
+    use: 'fomo perps fee 0.05% per trade and the 15 USDC minimum position.',
+    kind: 'official',
   },
   {
     label: 'fomotrading.app: fomo perps',
@@ -98,6 +104,12 @@ export const SOURCES: Source[] = [
     label: 'vercel/next.js',
     url: 'https://github.com/vercel/next.js',
     use: 'Framework; the landing page is prerendered to static HTML.',
+    kind: 'opensource',
+  },
+  {
+    label: '0xa3k5/web3icons',
+    url: 'https://github.com/0xa3k5/web3icons',
+    use: 'Chain logos in the chain picker (MIT).',
     kind: 'opensource',
   },
   {

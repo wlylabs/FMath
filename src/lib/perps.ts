@@ -13,6 +13,9 @@ export type PerpVenue = 'hyperliquid' | 'xyz';
 export type PerpSide = 'long' | 'short';
 export type OrderKind = 'taker' | 'maker';
 
+/** Smallest position fomo accepts, in USDC notional (Help Center, Perps Trading Fees). */
+export const MIN_POSITION_USD = 15;
+
 export const PERPS_FEES = {
   /** fomo builder fee per side, and with a referral (10% off). */
   builder: 0.0005,

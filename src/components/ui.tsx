@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
+import { useCallback, useEffect, useId, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode } from 'react';
 import { AlertTriangle, Info } from 'lucide-react';
 import { t } from '../lib/copy';
 import { cx } from '../lib/cx';
@@ -87,6 +87,10 @@ interface Option<T extends string> {
   value: T;
   label: ReactNode;
   sub?: ReactNode;
+  /** Pills only: a logo before the label. */
+  icon?: ReactNode;
+  /** Pills only: brand colour the chip lights up in when picked. */
+  color?: string;
 }
 
 function useRovingKeys<T extends string>(options: Option<T>[], value: T, onChange: (v: T) => void) {
@@ -160,8 +164,9 @@ export function Segmented<T extends string>(props: {
               selected ? (tone === 'pos' ? 'text-pos' : tone === 'neg' ? 'text-neg' : 'text-ink') : 'text-muted hover:text-ink',
             )}
           >
-            <span className="truncate">{o.label}</span>
-            {o.sub && <span className="truncate text-[11px] font-normal text-muted">{o.sub}</span>}
+            {/* long labels wrap onto a second line inside the thumb instead of spilling past it */}
+            <span className="max-w-full text-center leading-tight text-balance">{o.label}</span>
+            {o.sub && <span className="max-w-full truncate text-[11px] font-normal text-muted">{o.sub}</span>}
           </button>
         );
       })}
@@ -185,8 +190,8 @@ export function Pills<T extends string>(props: {
       aria-label={props.labelledBy ? undefined : props.label}
       aria-labelledby={props.labelledBy}
       aria-disabled={props.disabled || undefined}
-      // one swipeable row on phones, wrapping rows from sm up
-      className="-mx-4 flex snap-x snap-proximity scroll-px-4 gap-2 overflow-x-auto overscroll-x-contain px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0 [&::-webkit-scrollbar]:hidden"
+      // wraps onto more rows, so every option is visible without scrolling
+      className="flex flex-wrap gap-2"
     >
       {props.options.map((o, i) => {
         const selected = i === selectedIndex;
@@ -202,18 +207,25 @@ export function Pills<T extends string>(props: {
             disabled={props.disabled && !selected}
             tabIndex={selected ? 0 : -1}
             onKeyDown={(e) => onKeyDown(e, i)}
-            onClick={(e) => {
-              props.onChange(o.value);
-              // in the one-row layout on phones, keep the picked chip fully in view
-              e.currentTarget.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', inline: 'nearest', block: 'nearest' });
-            }}
+            onClick={() => props.onChange(o.value)}
+            style={o.color ? ({ '--chip': o.color } as CSSProperties) : undefined}
             className={cx(
-              'press h-10 shrink-0 snap-start rounded-full border px-4 text-sm font-medium whitespace-nowrap disabled:opacity-40',
-              selected
-                ? 'border-accent-strong bg-accent-wash text-ink'
-                : 'border-line bg-surface-2 text-ink-2 hover:border-line-strong hover:text-ink',
+              'press inline-flex h-10 shrink-0 items-center gap-2 rounded-full border text-sm font-medium whitespace-nowrap transition-[border-color,background-color] duration-[var(--dur-base)] ease-[var(--ease-standard)] disabled:opacity-40',
+              o.icon ? 'pr-4 pl-2' : 'px-4',
+              !selected && 'border-line bg-surface-2 text-ink-2 hover:border-line-strong hover:text-ink',
+              selected && !o.color && 'border-accent-strong bg-accent-wash text-ink',
+              // the picked chip takes the chain's own colour, mixed into the theme so it reads in light and dark
+              selected &&
+                o.color &&
+                'border-[color-mix(in_oklab,var(--chip)_75%,var(--ink))] bg-[color-mix(in_oklab,var(--chip)_14%,var(--surface))] text-ink',
             )}
           >
+            {o.icon && (
+              // a round, brand-colour tile reads the same on light and dark themes
+              <span className="grid size-6 shrink-0 place-items-center overflow-hidden rounded-full ring-1 ring-black/10">
+                {o.icon}
+              </span>
+            )}
             {o.label}
           </button>
         );
@@ -267,10 +279,19 @@ export function Switch(props: { checked: boolean; onChange: (v: boolean) => void
 }
 
 export function QuickPicks(props: { values: { label: string; value: string }[]; onPick: (v: string) => void; label: string; current?: string }) {
+  // on phones short chips (amounts, multiples) share an even grid that shows them all without
+  // scrolling: up to five in one row, more split into two rows that differ by at most one, so a
+  // last chip never sits alone. Wordy chips, and every chip from sm up, wrap at their own width.
+  const n = props.values.length;
+  const cols = n <= 5 ? n : Math.ceil(n / 2);
+  const wordy = props.values.some((v) => v.label.length > 8);
   return (
-    // one swipeable row on phones, so a last chip never sits alone on a second line; wraps from sm up
     <div
-      className="-mx-4 mt-2 flex gap-1.5 overflow-x-auto overscroll-x-contain px-4 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 [&::-webkit-scrollbar]:hidden"
+      className={cx(
+        'mt-2 gap-1.5 sm:flex sm:flex-wrap',
+        wordy ? 'flex flex-wrap' : 'grid grid-cols-[repeat(var(--cols),minmax(0,1fr))]',
+      )}
+      style={wordy ? undefined : ({ '--cols': cols } as CSSProperties)}
       role="group"
       aria-label={props.label}
     >
@@ -281,7 +302,7 @@ export function QuickPicks(props: { values: { label: string; value: string }[]; 
           onClick={() => props.onPick(v.value)}
           aria-pressed={props.current === v.value}
           className={cx(
-            'press num h-8 shrink-0 rounded-lg border px-2.5 text-xs',
+            'press num h-8 min-w-0 shrink-0 truncate rounded-lg border px-1 text-xs sm:px-2.5',
             props.current === v.value
               ? 'border-accent-strong bg-accent-wash text-ink'
               : 'border-line text-ink-2 hover:border-line-strong hover:text-ink',
