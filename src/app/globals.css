@@ -1,0 +1,209 @@
+@import 'tailwindcss';
+
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+/*
+ * "Ledger" palette: warm paper and violet-tinted ink instead of flat grays,
+ * one marigold accent for money and discounts, and green/red kept only for
+ * gains and losses. Text pairs are WCAG AA or better in both themes.
+ */
+:root,
+[data-theme='light'] {
+  --bg: #f5f1e8;
+  --surface: #fffdf8;
+  --surface-2: #eee8dc;
+  --raised: #ffffff;
+  --line: #e3dbcc;
+  --line-strong: #cfc5b3;
+  --ink: #17131c;
+  --ink-2: #463f4d;
+  --muted: #6a6371;
+  --accent: #ffb23f;
+  --accent-hover: #f5a524;
+  --accent-ink: #1a1206;
+  --accent-strong: #8a4f00;
+  --accent-wash: #fcefd6;
+  --chart: #b26b00;
+  --pos: #11774f;
+  --pos-wash: #e2f2e9;
+  --neg: #c22d46;
+  --neg-wash: #fbe6e9;
+  --warn: #a84a12;
+  --warn-wash: #fbeadd;
+  --ring: #8a4f00;
+  color-scheme: light;
+}
+
+[data-theme='dark'] {
+  --bg: #110e17;
+  --surface: #18141f;
+  --surface-2: #201b29;
+  --raised: #2c2636;
+  --line: #2b2535;
+  --line-strong: #3d3549;
+  --ink: #f4efe6;
+  --ink-2: #c9c1b6;
+  --muted: #968e9e;
+  --accent: #ffb23f;
+  --accent-hover: #ffc266;
+  --accent-ink: #1a1206;
+  --accent-strong: #ffb23f;
+  --accent-wash: #2a2116;
+  --chart: #c2831a;
+  --pos: #4fd1a0;
+  --pos-wash: #12251f;
+  --neg: #ff6e7f;
+  --neg-wash: #2c1720;
+  --warn: #ff8a4c;
+  --warn-wash: #2c1b14;
+  --ring: #ffb23f;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-raised: var(--raised);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-wash: var(--accent-wash);
+  --color-chart: var(--chart);
+  --color-pos: var(--pos);
+  --color-pos-wash: var(--pos-wash);
+  --color-neg: var(--neg);
+  --color-neg-wash: var(--neg-wash);
+  --color-warn: var(--warn);
+  --color-warn-wash: var(--warn-wash);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+    scroll-padding-top: 4.5rem;
+  }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    font-feature-settings: 'ss01', 'cv11';
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+  ::selection {
+    background: var(--accent);
+    color: var(--accent-ink);
+  }
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+  input[type='number']::-webkit-inner-spin-button,
+  input[type='number']::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  .num {
+    font-family: var(--font-geist-mono), ui-monospace, 'SFMono-Regular', Menlo, monospace;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 1rem;
+  }
+  .range {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 28px;
+    background: transparent;
+    cursor: pointer;
+  }
+  .range::-webkit-slider-runnable-track {
+    height: 4px;
+    border-radius: 999px;
+    background: linear-gradient(to right, var(--accent-strong) var(--fill, 0%), var(--line-strong) var(--fill, 0%));
+  }
+  .range::-moz-range-track {
+    height: 4px;
+    border-radius: 999px;
+    background: var(--line-strong);
+  }
+  .range::-moz-range-progress {
+    height: 4px;
+    border-radius: 999px;
+    background: var(--accent-strong);
+  }
+  .range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 22px;
+    height: 22px;
+    margin-top: -9px;
+    border-radius: 999px;
+    background: var(--accent);
+    border: 3px solid var(--surface);
+    box-shadow: 0 0 0 1px var(--line-strong);
+  }
+  .range::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border-radius: 999px;
+    background: var(--accent);
+    border: 3px solid var(--surface);
+    box-shadow: 0 0 0 1px var(--line-strong);
+  }
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.toast-in {
+  animation: toast-in 160ms ease-out;
+}
+
+/* torn bottom edge of the hero fee receipt */
+.receipt {
+  box-shadow: 0 1px 0 var(--line), 0 30px 60px -40px rgb(23 19 28 / 0.55);
+}
+.receipt-edge {
+  background:
+    linear-gradient(135deg, var(--surface) 50%, transparent 50%) 0 0 / 14px 12px repeat-x,
+    linear-gradient(225deg, var(--surface) 50%, transparent 50%) 0 0 / 14px 12px repeat-x;
+}
