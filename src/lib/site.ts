@@ -39,3 +39,6 @@ export const REFERRAL = {
   code: 'willydetrade',
   discount: FEE_SCHEDULE.referralDiscount,
 } as const;
+
+/** When the privacy policy and disclaimer last changed. Bump it with any edit to their copy. */
+export const LEGAL_UPDATED = '2026-10-11';

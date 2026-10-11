@@ -15,6 +15,8 @@ const PRIORITY: Record<keyof typeof ROUTES, number> = {
   referral: 0.7,
   methodology: 0.6,
   faq: 0.5,
+  privacy: 0.3,
+  disclaimer: 0.3,
 };
 
 export default function sitemap(): MetadataRoute.Sitemap {

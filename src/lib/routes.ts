@@ -10,6 +10,8 @@ export const ROUTES = {
   referral: '/referral/',
   methodology: '/methodology/',
   faq: '/faq/',
+  privacy: '/privacy/',
+  disclaimer: '/disclaimer/',
 } as const;
 
 export type CalculatorKey = 'fee' | 'profit' | 'perps';

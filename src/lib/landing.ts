@@ -37,6 +37,8 @@ export const LANDING_COPY = {
   by: ['by', 'oleh'],
   schedule: [`fee schedule dated ${date(FEE_SCHEDULE.version)}`, `jadwal fee tanggal ${date(FEE_SCHEDULE.version)}`],
   math: ['see the math', 'lihat rumusnya'],
+  privacy: ['privacy', 'privasi'],
+  disclaimer: ['disclaimer', 'disclaimer'],
 } as const;
 
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -220,7 +222,7 @@ export function landingHtml(): string {
 <figure class="shot"><img src="/landing-shot.jpg" width="1440" height="900" alt="${esc(c.shot[0])}" loading="lazy" decoding="async"></figure>
 </main>
 <footer>
-<p>${both(c.by)} <a href="${CREATOR.url}" rel="noopener">${esc(CREATOR.name)} ${esc(CREATOR.handle)}</a> · ${both(c.schedule)} · <a href="${ROUTES.methodology}">${both(c.math)}</a></p>
+<p>${both(c.by)} <a href="${CREATOR.url}" rel="noopener">${esc(CREATOR.name)} ${esc(CREATOR.handle)}</a> · ${both(c.schedule)} · <a href="${ROUTES.methodology}">${both(c.math)}</a> · <a href="${ROUTES.privacy}">${both(c.privacy)}</a> · <a href="${ROUTES.disclaimer}">${both(c.disclaimer)}</a></p>
 <div class="lang" role="group" aria-label="Language"><button type="button" data-set-lang="en" aria-pressed="true">EN</button><button type="button" data-set-lang="id" aria-pressed="false">wkwk</button></div>
 </footer>
 <script>${bodyScript}${fieldScript}</script>
