@@ -104,16 +104,43 @@ s.onclose=function(){ws=null;timer=setTimeout(open,Math.min(30000,1000*Math.pow(
 function close(){clearTimeout(timer);if(ws){ws.onclose=null;ws.close();ws=null}}
 d.addEventListener('visibilitychange',function(){d.visibilityState==='visible'?open():close()});open()})();`;
 
+// Background: a field of ASCII characters drifting like dunes, brighter around the pointer.
+// Drawn at most ~24 times a second, one fillStyle per brightness level, and not at all while the
+// tab is hidden (requestAnimationFrame pauses); a single still frame under reduced motion.
+const fieldScript = `(function(){var c=document.getElementById('field'),g=c&&c.getContext('2d');if(!g)return;
+var RAMP=' .:-=+*#%@',CW=14,CH=20,LV=8,cols,rows,w,h,base,peak,px=-1,py=-1,last=0,t0=performance.now(),
+still=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+function size(){var r=Math.min(2,window.devicePixelRatio||1);w=innerWidth;h=innerHeight;c.width=w*r;c.height=h*r;
+g.setTransform(r,0,0,r,0,0);g.font='12px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace';g.textAlign='center';g.textBaseline='middle';
+cols=Math.ceil(w/CW);rows=Math.ceil(h/CH);var s=getComputedStyle(document.documentElement);base=s.getPropertyValue('--muted').trim();peak=s.getPropertyValue('--accent-strong').trim()}
+function sm(a,b,x){x=Math.max(0,Math.min(1,(x-a)/(b-a)));return x*x*(3-2*x)}
+function frame(now){if(!still)requestAnimationFrame(frame);if(now-last<40&&!still)return;last=now;
+var t=(now-t0)/1000,wide=w>=900,ar=w/h,buckets=[];for(var k=0;k<LV*2;k++)buckets.push([]);
+for(var j=0;j<rows;j++){var y=j/rows;for(var i=0;i<cols;i++){var x=i/cols*ar,
+v=Math.sin(x*2.4+t*.2+Math.sin(y*2.2-t*.13)*1.8)*.45+Math.sin((x*.7+y)*4.1-t*.27)*.3+Math.sin(y*6.3-x*1.9+t*.1)*.15+Math.sin(x*17+y*11-t*.6)*.1;
+v=sm(.12,.95,v*.5+.5)*(wide?.3+.7*sm(.25,.8,i/cols):.5),heat=0;
+if(px>=0){var dx=(i*CW-px)/130,dy=(j*CH-py)/130;heat=Math.exp(-(dx*dx+dy*dy));v=Math.max(v,Math.min(1,v+heat*.75))}
+if(v<.06)continue;var l=Math.min(LV-1,Math.floor(v*LV));buckets[heat>.3?LV+l:l].push(i,j,v)}}
+g.clearRect(0,0,w,h);for(var k=0;k<LV*2;k++){var b=buckets[k];if(!b.length)continue;var hot=k>=LV,l=k%LV;
+g.fillStyle=hot?peak:base;g.globalAlpha=hot?.2+l*.07:.06+l*.045;
+for(var n=0;n<b.length;n+=3){var ch=RAMP.charAt(Math.max(1,Math.min(RAMP.length-1,Math.round(b[n+2]*(RAMP.length-1)))));g.fillText(ch,b[n]*CW+CW/2,b[n+1]*CH+CH/2)}}g.globalAlpha=1}
+addEventListener('resize',function(){size();if(still)frame(performance.now())});
+addEventListener('pointermove',function(e){if(e.pointerType==='mouse'){px=e.clientX;py=e.clientY}},{passive:true});
+document.documentElement.addEventListener('pointerleave',function(){px=py=-1});
+size();requestAnimationFrame(frame)})();`;
+
 // Same tokens as globals.css, cut down to what this page uses.
-const css = `:root{--bg:#f5f1e8;--surface:#fffdf8;--line:#e3dbcc;--line-strong:#cfc5b3;--ink:#17131c;--ink-2:#463f4d;--muted:#6a6371;--accent:#ffb23f;--accent-hover:#f5a524;--accent-ink:#1a1206;--accent-strong:#8a4f00;--pos:#11774f;--neg:#c22d46;--glow:rgb(255 178 63/.18);color-scheme:light}
-[data-theme=dark]{--bg:#110e17;--surface:#18141f;--line:#2b2535;--line-strong:#3d3549;--ink:#f4efe6;--ink-2:#c9c1b6;--muted:#968e9e;--accent-hover:#ffc266;--accent-strong:#ffb23f;--pos:#4fd1a0;--neg:#ff6e7f;--glow:rgb(255 178 63/.08);color-scheme:dark}
+const css = `:root{--bg:#f5f1e8;--surface:#fffdf8;--line:#e3dbcc;--line-strong:#cfc5b3;--ink:#17131c;--ink-2:#463f4d;--muted:#6a6371;--accent:#ffb23f;--accent-hover:#f5a524;--accent-ink:#1a1206;--accent-strong:#8a4f00;--pos:#11774f;--neg:#c22d46;color-scheme:light}
+[data-theme=dark]{--bg:#110e17;--surface:#18141f;--line:#2b2535;--line-strong:#3d3549;--ink:#f4efe6;--ink-2:#c9c1b6;--muted:#968e9e;--accent-hover:#ffc266;--accent-strong:#ffb23f;--pos:#4fd1a0;--neg:#ff6e7f;color-scheme:dark}
 html[data-lang=id] .en,html:not([data-lang=id]) .id{display:none}
 *{box-sizing:border-box}
 html,body{margin:0}
-body{min-height:100vh;min-height:100dvh;display:grid;grid-template-rows:auto 1fr auto;background:radial-gradient(60rem 30rem at 15% 10%,var(--glow),transparent 70%) var(--bg);color:var(--ink);font:16px/1.5 ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+body{min-height:100vh;min-height:100dvh;display:grid;grid-template-rows:auto 1fr auto;background:var(--bg);color:var(--ink);font:16px/1.5 ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
 a{color:inherit}
+#field{position:fixed;inset:0;width:100%;height:100%;pointer-events:none}
+.tape,main,footer{position:relative}
 :focus-visible{outline:2px solid var(--accent-strong);outline-offset:2px}
-.tape{overflow:hidden;border-bottom:1px solid var(--line);font:500 12px/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:.06em;color:var(--muted);-webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
+.tape{overflow:hidden;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--bg) 75%,transparent);font:500 12px/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:.06em;color:var(--muted);-webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
 .tape-track{display:flex;width:max-content;animation:tape 45s linear infinite}
 .tape-group{display:flex;gap:3rem;padding:.8rem 1.5rem}
 .tick{display:inline-flex;gap:.6rem;white-space:nowrap}
@@ -180,6 +207,7 @@ export function landingHtml(): string {
 <script type="application/ld+json">${json(jsonLd)}</script>
 </head>
 <body>
+<canvas id="field" aria-hidden="true"></canvas>
 <div class="tape" role="region" aria-label="${esc(c.tape[0])}"><div class="tape-track">${tapeGroup(false)}${tapeGroup(true)}</div></div>
 <main>
 <div>
@@ -195,7 +223,7 @@ export function landingHtml(): string {
 <p>${both(c.by)} <a href="${CREATOR.url}" rel="noopener">${esc(CREATOR.name)} ${esc(CREATOR.handle)}</a> · ${both(c.schedule)} · <a href="${ROUTES.methodology}">${both(c.math)}</a></p>
 <div class="lang" role="group" aria-label="Language"><button type="button" data-set-lang="en" aria-pressed="true">EN</button><button type="button" data-set-lang="id" aria-pressed="false">wkwk</button></div>
 </footer>
-<script>${bodyScript}</script>
+<script>${bodyScript}${fieldScript}</script>
 </body>
 </html>
 `;
