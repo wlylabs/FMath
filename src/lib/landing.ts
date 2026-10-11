@@ -136,8 +136,9 @@ const css = `:root{--bg:#f5f1e8;--surface:#fffdf8;--line:#e3dbcc;--line-strong:#
 [data-theme=dark]{--bg:#110e17;--surface:#18141f;--line:#2b2535;--line-strong:#3d3549;--ink:#f4efe6;--ink-2:#c9c1b6;--muted:#968e9e;--accent-hover:#ffc266;--accent-strong:#ffb23f;--pos:#4fd1a0;--neg:#ff6e7f;color-scheme:dark}
 *{box-sizing:border-box}
 html,body{margin:0}
+html{-webkit-tap-highlight-color:transparent}
 body{min-height:100vh;min-height:100dvh;display:grid;grid-template-rows:auto 1fr auto;background:var(--bg);color:var(--ink);font:16px/1.5 ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
-a{color:inherit}
+a{color:inherit;touch-action:manipulation}
 #field{position:fixed;inset:0;width:100%;height:100%;pointer-events:none}
 .tape,main,footer{position:relative}
 :focus-visible{outline:2px solid var(--accent-strong);outline-offset:2px}
