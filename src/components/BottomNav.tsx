@@ -21,11 +21,10 @@ export function BottomNav() {
   return (
     <nav
       aria-label={t.nav.mobile}
-      style={{ viewTransitionName: 'bottom-nav' }}
       className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-bg/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-md lg:hidden"
     >
       <ul className="mx-auto grid h-16 max-w-lg grid-cols-5">
-        {ITEMS.map(({ href, label, Icon }, i) => {
+        {ITEMS.map(({ href, label, Icon }) => {
           const active = samePage(pathname, href);
           return (
             <li key={href}>
@@ -33,18 +32,14 @@ export function BottomNav() {
                 href={href}
                 aria-current={active ? 'page' : undefined}
                 className={cx(
-                  'press flex h-full flex-col items-center justify-center gap-1 text-[11px] font-medium',
+                  'flex h-full flex-col items-center justify-center gap-1 text-[11px] font-medium',
                   active ? 'text-ink' : 'text-muted hover:text-ink',
                 )}
               >
                 <span
                   aria-hidden
-                  // named so the icon stays above the pill while it glides past (vt-tab-label in globals.css)
-                  style={{ viewTransitionName: `bottom-tab-${i}` }}
-                  className={cx('vt-tab-label relative flex h-7 w-12 items-center justify-center rounded-full', active && 'text-accent-ink')}
+                  className={cx('flex h-7 w-12 items-center justify-center rounded-full', active && 'bg-accent text-accent-ink')}
                 >
-                  {/* one pill that glides to the active tab between pages */}
-                  {active && <span className="absolute inset-0 -z-10 rounded-full bg-accent" style={{ viewTransitionName: 'tab-indicator' }} />}
                   <Icon className="size-[18px]" />
                 </span>
                 {label}

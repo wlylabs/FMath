@@ -3,7 +3,6 @@ import { Faq } from '../../components/Sections';
 import { t } from '../../lib/copy';
 import { ROUTES } from '../../lib/routes';
 import { BASE_OPEN_GRAPH } from '../../lib/site';
-import { PageTransition } from '../../components/PageTransition';
 
 const DESCRIPTION = 'Answers on accuracy, live data sources, the fomo fee schedule and the referral discount.';
 
@@ -26,9 +25,9 @@ const jsonLd = {
 
 export default function FaqPage() {
   return (
-    <PageTransition>
+    <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }} />
       <Faq />
-    </PageTransition>
+    </>
   );
 }
