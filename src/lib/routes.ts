@@ -1,6 +1,6 @@
 /** Every page, with the trailing slash the static export serves it under. */
 export const ROUTES = {
-  /** Static landing page, served without the app shell (src/app/route.ts). */
+  /** Static landing page, served without the app shell (src/app/index.html/route.ts). */
   landing: '/',
   home: '/home/',
   fee: '/fee/',

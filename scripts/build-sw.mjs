@@ -2,7 +2,7 @@
 // payloads client-side navigation fetches between them, and the static assets,
 // so the whole app opens and navigates offline. Live market APIs are never cached.
 import { createHash } from 'node:crypto';
-import { readdir, readFile, rename, writeFile } from 'node:fs/promises';
+import { readdir, readFile, writeFile } from 'node:fs/promises';
 import { join, relative, sep } from 'node:path';
 
 const OUT = 'out';
@@ -17,12 +17,6 @@ async function walk(dir) {
 const toUrl = (file) => '/' + relative(OUT, file).split(sep).join('/');
 
 const SKIP = /^\/(_not-found|404)(\/|\.html$)/;
-
-// The landing page is a route handler (src/app/route.ts), which the export writes as out/index.
-// Static hosts serve / from index.html.
-await rename(join(OUT, 'index'), join(OUT, 'index.html')).catch((e) => {
-  if (e.code !== 'ENOENT') throw e;
-});
 
 const all = await walk(OUT);
 const urls = all.map(toUrl);
