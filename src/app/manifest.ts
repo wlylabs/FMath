@@ -15,8 +15,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: SITE_DESCRIPTION,
     lang: 'en',
     dir: 'ltr',
-    // the installed app opens on its home, not on the landing page
-    start_url: `${ROUTES.home}?source=pwa`,
+    // the installed app opens on the landing page, like the site does
+    start_url: `${ROUTES.landing}?source=pwa`,
     scope: '/',
     display: 'standalone',
     display_override: ['standalone', 'minimal-ui'],

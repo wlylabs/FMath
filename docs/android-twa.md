@@ -31,7 +31,7 @@ Answers that matter:
 | Prompt | Value |
 | --- | --- |
 | Domain | your production domain, no `https://` |
-| URL path / start URL | `/home/?source=pwa` (from `src/app/manifest.ts`) |
+| URL path / start URL | `/?source=pwa` (from `src/app/manifest.ts`) |
 | Application ID (package name) | `com.willydetrade.fmath` — must match `TWA_PACKAGE_NAME` if you change it |
 | Display mode | `standalone` |
 | Notifications / location delegation | **No** — FMath uses neither |
