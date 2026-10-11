@@ -118,7 +118,7 @@ export function SwipeNav({ className, children }: { className?: string; children
       // the lifted finger can still produce a click on whatever it ended over
       window.addEventListener('click', swallow, { capture: true, once: true });
       setTimeout(() => window.removeEventListener('click', swallow, { capture: true }), 400);
-      router.push(d.href, { transitionTypes: [d.step === 1 ? 'nav-forward' : 'nav-back'] });
+      router.push(d.href);
     }
     reset();
   };

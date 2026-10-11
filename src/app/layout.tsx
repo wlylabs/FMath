@@ -52,8 +52,7 @@ const themeScript = `(function(){window.addEventListener('beforeinstallprompt',f
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    // data-scroll-behavior lets Next turn smooth scrolling off for the scroll reset on route changes
-    <html lang="en" data-theme="dark" data-scroll-behavior="smooth" suppressHydrationWarning className={`${GeistSans.variable} ${GeistMono.variable}`}>
+    <html lang="en" data-theme="dark" suppressHydrationWarning className={`${GeistSans.variable} ${GeistMono.variable}`}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <link rel="preconnect" href="https://api.dexscreener.com" crossOrigin="" />

@@ -144,8 +144,7 @@ export function Footer() {
   ];
   return (
     <footer
-      style={{ viewTransitionName: 'site-footer' }}
-      className="border-t border-line pb-[calc(5rem+env(safe-area-inset-bottom))] pt-10 lg:pb-10"
+      className="site-footer border-t border-line pb-[calc(5rem+env(safe-area-inset-bottom))] pt-10 lg:pb-10"
     >
       <div className="mx-auto grid max-w-6xl gap-8 px-4 sm:px-6 md:grid-cols-[minmax(0,1fr)_auto] md:gap-16">
         <div>

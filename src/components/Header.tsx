@@ -24,8 +24,7 @@ export function Header() {
   ];
   return (
     <header
-      style={{ viewTransitionName: 'site-header' }}
-      className="sticky top-0 z-40 border-b border-line bg-bg/85 pt-[env(safe-area-inset-top)] backdrop-blur-md"
+      className="sticky top-0 z-40 border-b border-line bg-bg pt-[env(safe-area-inset-top)]"
     >
       <a
         href="#main"
@@ -39,7 +38,7 @@ export function Header() {
           <span className="text-base font-semibold tracking-tight text-ink">FMath</span>
         </NavLink>
         <nav aria-label={t.nav.primary} className="hidden items-center gap-1 lg:flex">
-          {links.map((l, i) => (
+          {links.map((l) => (
             <NavLink
               key={l.href}
               href={l.href}
@@ -50,12 +49,10 @@ export function Header() {
                 l.active ? 'font-medium text-ink' : 'text-ink-2 hover:bg-surface-2 hover:text-ink',
               )}
             >
-              {/* one pill that glides to the active link between pages */}
               {l.active && (
-                <span aria-hidden className="absolute inset-0 -z-10 rounded-lg bg-surface-2" style={{ viewTransitionName: 'header-indicator' }} />
+                <span aria-hidden className="absolute inset-0 -z-10 rounded-lg bg-surface-2" />
               )}
-              {/* named so the text stays above the pill while it glides past (vt-tab-label in globals.css) */}
-              <span className="vt-tab-label relative" style={{ viewTransitionName: `header-tab-${i}` }}>
+              <span className="relative">
                 {l.label}
               </span>
             </NavLink>
@@ -71,10 +68,7 @@ export function Header() {
           <LangToggle />
           <button
             type="button"
-            onClick={(e) => {
-              const r = e.currentTarget.getBoundingClientRect();
-              toggle({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
-            }}
+            onClick={toggle}
             aria-label={t.header.toggleTheme}
             title={t.header.toggleTheme}
             className="press inline-flex size-9 items-center justify-center rounded-lg border border-line text-ink-2 hover:border-line-strong hover:text-ink"
