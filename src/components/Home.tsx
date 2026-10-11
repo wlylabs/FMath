@@ -1,4 +1,6 @@
-import { ArrowRight, ArrowUpRight, BookOpen, CircleHelp, Gauge, Receipt, Target } from 'lucide-react';
+'use client';
+
+import { ArrowRight, ArrowUpRight, BookOpen, CircleHelp, Gauge, GraduationCap, Receipt, Target } from 'lucide-react';
 import { fomoFee } from '../lib/fees';
 import { roundTrip } from '../lib/roundtrip';
 import { PERPS_FEES, venueFeeRate } from '../lib/perps';
@@ -30,6 +32,7 @@ export function ToolCards() {
     { href: ROUTES.perps, Icon: Gauge, item: t.features.items[2]!, example: t.home.perpsExample(pct(perpsRate, { digits: 3 })) },
   ];
   const more = [
+    { href: ROUTES.quiz, Icon: GraduationCap, title: t.nav.quiz, body: t.home.quizBody },
     { href: ROUTES.methodology, Icon: BookOpen, title: t.nav.method, body: t.home.methodBody },
     { href: ROUTES.faq, Icon: CircleHelp, title: t.nav.faq, body: t.home.faqBody },
   ];
@@ -60,7 +63,7 @@ export function ToolCards() {
           </NavLink>
         ))}
       </div>
-      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+      <div className="mt-4 grid gap-4 sm:grid-cols-3">
         {more.map(({ href, Icon, title, body }) => (
           <NavLink key={href} href={href} className="card press-soft group flex items-center gap-4 p-4 hover:border-line-strong sm:p-5">
             <Icon aria-hidden className="size-5 shrink-0 text-ink-2" />

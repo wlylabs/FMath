@@ -1,3 +1,5 @@
+'use client';
+
 import type { CSSProperties } from 'react';
 import { ArrowRight, ArrowUpRight, CalendarCheck } from 'lucide-react';
 import { ROUTES } from '../lib/routes';
@@ -61,7 +63,7 @@ export function Hero() {
             </NavLink>
           </div>
           <ReferralLink className="rise press group mt-4 inline-flex [--i:4] max-w-full items-center gap-2.5 rounded-2xl border border-accent-strong/30 bg-accent-wash py-1.5 pl-1.5 pr-3.5 text-left text-sm hover:border-accent-strong">
-            <span className="shrink-0 rounded-xl bg-accent px-2 py-1 text-xs font-bold text-accent-ink">10% OFF</span>
+            <span className="shrink-0 rounded-xl bg-accent px-2 py-1 text-xs font-bold text-accent-ink">{t.hero.badge}</span>
             <span className="min-w-0">
               <span className="text-ink-2">{t.hero.referralLead}</span>{' '}
               <span className="font-semibold text-ink">{t.hero.referralLink}</span>

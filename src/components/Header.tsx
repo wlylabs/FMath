@@ -10,12 +10,14 @@ import { CALCULATOR_KEYS, ROUTES, samePage } from '../lib/routes';
 import { ReferralLink } from './Referral';
 import { InstallButton } from './pwa/PwaProvider';
 import { NavLink } from './NavLink';
+import { LangToggle } from './LangProvider';
 
 export function Header() {
   const { toggle } = useTheme();
   const pathname = usePathname();
   const links = [
     { href: ROUTES.fee, label: t.nav.calculators, active: CALCULATOR_KEYS.some((k) => samePage(pathname, ROUTES[k])) },
+    { href: ROUTES.quiz, label: t.nav.quiz, active: samePage(pathname, ROUTES.quiz) },
     { href: ROUTES.referral, label: t.nav.referral, active: samePage(pathname, ROUTES.referral) },
     { href: ROUTES.methodology, label: t.nav.method, active: samePage(pathname, ROUTES.methodology) },
     { href: ROUTES.faq, label: t.nav.faq, active: samePage(pathname, ROUTES.faq) },
@@ -44,7 +46,7 @@ export function Header() {
               // "Calculators" links to /fee/ but lights up on every calculator; only the page itself is "page"
               aria-current={samePage(pathname, l.href) ? 'page' : l.active ? 'true' : undefined}
               className={cx(
-                'press relative rounded-lg px-3 py-2 text-sm',
+                'relative rounded-lg px-3 py-2 text-sm',
                 l.active ? 'font-medium text-ink' : 'text-ink-2 hover:bg-surface-2 hover:text-ink',
               )}
             >
@@ -60,11 +62,13 @@ export function Header() {
           ))}
         </nav>
         <div className="flex items-center gap-2">
-          <ReferralLink className="press inline-flex h-9 items-center gap-1 rounded-lg bg-accent px-3 text-sm font-semibold text-accent-ink hover:bg-accent-hover">
+          {/* phones reach the referral from the bottom nav; the header keeps its room for the toggles */}
+          <ReferralLink className="press hidden h-9 items-center gap-1 whitespace-nowrap rounded-lg bg-accent px-3 text-sm font-semibold text-accent-ink hover:bg-accent-hover sm:inline-flex">
             {t.header.referralCta}
             <ArrowUpRight aria-hidden className="size-4" />
           </ReferralLink>
           <InstallButton />
+          <LangToggle />
           <button
             type="button"
             onClick={(e) => {

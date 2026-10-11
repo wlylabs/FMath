@@ -1,5 +1,7 @@
-/** All interface copy. The site is English only. */
-export const t = {
+import { id } from './copy.id';
+
+/** English interface copy; the Indonesian ("wkwk") copy in copy.id.ts has the same shape. */
+const en = {
   meta: {
     title: 'FMath: Fee and profit calculator for fomo traders',
   },
@@ -9,6 +11,7 @@ export const t = {
     profit: 'Profit',
     perps: 'Perps',
     referral: 'Referral',
+    quiz: 'Practice',
     offShort: '10% off',
     calculators: 'Calculators',
     method: 'Methodology',
@@ -33,6 +36,7 @@ export const t = {
     receipt: 'Fee receipt',
     referralLead: 'New to fomo?',
     referralLink: 'Trade with me and get 10% off fees',
+    badge: '10% OFF',
     schedule: (d: string) => `Help Center fee schedule dated ${d}`,
   },
   facts: {
@@ -90,6 +94,7 @@ export const t = {
     more: 'Also on FMath',
     methodBody: 'Every rate and formula, with sources.',
     faqBody: 'Accuracy, data sources and the referral.',
+    quizBody: 'Five quick questions on fees, liquidation and stop-losses.',
   },
   common: {
     chain: 'Chain',
@@ -309,6 +314,38 @@ export const t = {
     riskBeyondLiq: 'At this leverage the stop is past the liquidation price. Move the stop closer or lower the leverage.',
     stopNote: 'Stops trigger on the mark price and fill as market orders, so the close pays the taker fee and can slip.',
   },
+  quiz: {
+    title: 'Practice the math',
+    lead: 'Five short questions on fees, break-even, liquidation and stop-losses, built from the same formulas as the calculators. Every wrong answer shows which mistake it is.',
+    topicLabel: 'Topic',
+    topics: { all: 'Mixed', fees: 'Spot fees', profit: 'Profit', perps: 'Perps', risk: 'Stop-loss' },
+    start: 'Start',
+    meta: (n: number) => `${n} questions · about 2 minutes · nothing leaves your browser`,
+    progress: (i: number, n: number) => `Question ${i} of ${n}`,
+    level: (n: number) => ['Easy', 'Medium', 'Hard'][n - 1] ?? '',
+    given: 'Given',
+    options: 'Answers',
+    right: 'Right',
+    wrong: 'Not quite',
+    yourPick: 'Your pick',
+    answer: 'Answer',
+    solution: 'How it works',
+    formula: 'Formula',
+    open: 'Do it in the calculator',
+    next: 'Next question',
+    finish: 'See results',
+    score: 'Your score',
+    scoreValue: (r: number, n: number) => `${r} / ${n}`,
+    verdict: (r: number, n: number): string =>
+      r === n ? 'Every one right. You know where the fees hide.' : r >= n - 1 ? 'Nearly all right. Check the one you missed below.' : r >= n / 2 ? 'Good base. A few formulas are worth another look.' : 'Worth another round. The solutions show each step.',
+    solid: 'Solid',
+    practice: 'Practice this',
+    again: 'New questions',
+    retryWeak: (topic: string) => `Practice ${topic}`,
+    changeTopic: 'Change topic',
+    review: 'Review',
+    disclaimer: 'Practice only. Rates follow the fomo and Hyperliquid schedules on the methodology page; real fills, funding and fees vary.',
+  },
   method: {
     title: 'Methodology',
     lead: 'The formulas and rates this calculator uses, with sources. When fomo changes its fee schedule, these numbers need to change too.',
@@ -452,7 +489,41 @@ export const t = {
     built: 'Built with Next.js, React, Tailwind CSS, Lucide and Geist.',
     install: 'Install app',
     referral: 'Get 10% off fomo fees',
+    nav: 'Footer',
+    copyright: (year: number, name: string) => `© ${year} FMath by ${name}. Not affiliated with fomo.`,
   },
 };
 
-export type Copy = typeof t;
+export type Copy = typeof en;
+
+export type Lang = 'en' | 'id';
+
+export const LANGS: readonly Lang[] = ['en', 'id'];
+
+/** Toggle labels: Indonesian is shown as "wkwk". */
+export const LANG_LABELS: Record<Lang, string> = { en: 'EN', id: 'wkwk' };
+
+const COPY: Record<Lang, Copy> = { en, id };
+
+let current: Lang = 'en';
+
+export function getLang(): Lang {
+  return current;
+}
+
+/**
+ * Switches the language `t` reads from. Only LangProvider calls this, during
+ * render and before its subtree renders; the static export always renders English.
+ */
+export function setLang(lang: Lang) {
+  current = lang;
+}
+
+/**
+ * All interface copy, in the current language. Every read goes through the
+ * proxy, so code reads `t.nav.home` at render time and gets the language the
+ * page is showing; LangProvider remounts the app when it changes.
+ */
+export const t: Copy = new Proxy(en, {
+  get: (_, key) => COPY[current][key as keyof Copy],
+});

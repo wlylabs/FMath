@@ -1,3 +1,5 @@
+'use client';
+
 import { ArrowUpRight, ChevronDown, ExternalLink } from 'lucide-react';
 import { ROUTES } from '../lib/routes';
 import { t } from '../lib/copy';
@@ -134,6 +136,7 @@ export function Footer() {
     { href: ROUTES.fee, label: t.calc.tabs.fee },
     { href: ROUTES.profit, label: t.calc.tabs.profit },
     { href: ROUTES.perps, label: t.calc.tabs.perps },
+    { href: ROUTES.quiz, label: t.nav.quiz },
     { href: ROUTES.referral, label: t.nav.referral },
     { href: ROUTES.methodology, label: t.nav.method },
     { href: ROUTES.faq, label: t.nav.faq },
@@ -166,7 +169,7 @@ export function Footer() {
             <p>{t.referral.disclosure}</p>
           </div>
         </div>
-        <nav aria-label="Footer" className="grid grid-cols-2 gap-x-6 gap-y-2.5 text-sm md:flex md:flex-col">
+        <nav aria-label={t.footer.nav} className="grid grid-cols-2 gap-x-6 gap-y-2.5 text-sm md:flex md:flex-col">
           <ReferralLink className="inline-flex items-center gap-1.5 font-semibold text-accent-strong hover:underline">
             {t.footer.referral}
             <ArrowUpRight aria-hidden className="size-3.5" />
@@ -180,7 +183,7 @@ export function Footer() {
         </nav>
       </div>
       <div className="mx-auto mt-8 flex max-w-6xl flex-col gap-1 border-t border-line px-4 pt-6 text-xs text-muted sm:flex-row sm:justify-between sm:px-6">
-        <span>© {new Date().getUTCFullYear()} FMath by {CREATOR.name}. Not affiliated with fomo.</span>
+        <span>{t.footer.copyright(new Date().getUTCFullYear(), CREATOR.name)}</span>
         <span>{t.footer.built}</span>
       </div>
     </footer>

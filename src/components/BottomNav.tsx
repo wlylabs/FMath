@@ -7,12 +7,12 @@ import { cx } from '../lib/cx';
 import { ROUTES, samePage } from '../lib/routes';
 import { NavLink } from './NavLink';
 
-const ITEMS = [
-  { href: ROUTES.home, label: t.nav.home, Icon: House },
-  { href: ROUTES.fee, label: t.nav.fee, Icon: Receipt },
-  { href: ROUTES.profit, label: t.nav.profit, Icon: Target },
-  { href: ROUTES.perps, label: t.nav.perps, Icon: Gauge },
-  { href: ROUTES.referral, label: t.nav.offShort, Icon: BadgePercent },
+const ITEMS: { href: string; label: 'home' | 'fee' | 'profit' | 'perps' | 'offShort'; Icon: typeof House }[] = [
+  { href: ROUTES.home, label: 'home', Icon: House },
+  { href: ROUTES.fee, label: 'fee', Icon: Receipt },
+  { href: ROUTES.profit, label: 'profit', Icon: Target },
+  { href: ROUTES.perps, label: 'perps', Icon: Gauge },
+  { href: ROUTES.referral, label: 'offShort', Icon: BadgePercent },
 ];
 
 /** App-style tab bar for phones and tablets; desktop uses the header nav. */
@@ -33,7 +33,7 @@ export function BottomNav() {
                 href={href}
                 aria-current={active ? 'page' : undefined}
                 className={cx(
-                  'press flex h-full flex-col items-center justify-center gap-1 text-[11px] font-medium',
+                  'flex h-full flex-col items-center justify-center gap-1 text-[11px] font-medium',
                   active ? 'text-ink' : 'text-muted hover:text-ink',
                 )}
               >
@@ -47,7 +47,7 @@ export function BottomNav() {
                   {active && <span className="absolute inset-0 -z-10 rounded-full bg-accent" style={{ viewTransitionName: 'tab-indicator' }} />}
                   <Icon className="size-[18px]" />
                 </span>
-                {label}
+                {t.nav[label]}
               </NavLink>
             </li>
           );

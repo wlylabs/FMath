@@ -1,3 +1,5 @@
+'use client';
+
 import type { ReactNode } from 'react';
 import { t } from '../lib/copy';
 import { cx } from '../lib/cx';
@@ -27,7 +29,7 @@ export function CalculatorPage({ active, children }: { active: CalculatorKey; ch
             href={ROUTES[key]}
             aria-current={key === active ? 'page' : undefined}
             className={cx(
-              'press relative isolate flex h-10 min-w-36 items-center justify-center rounded-lg px-4 text-sm font-semibold',
+              'relative isolate flex h-10 min-w-36 items-center justify-center rounded-lg px-4 text-sm font-semibold',
               key === active ? 'text-bg' : 'text-ink-2 hover:bg-surface-2 hover:text-ink',
             )}
           >
