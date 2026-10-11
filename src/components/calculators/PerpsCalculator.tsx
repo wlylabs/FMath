@@ -3,7 +3,7 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { ChevronDown, RefreshCw } from 'lucide-react';
 import { fetchPerpMarkets, watchMarket, type PerpMarket } from '../../api/hyperliquid';
-import { marginForRisk, PERPS_FEES, perpTrade, stopLoss, venueFeeRate, type OrderKind, type PerpSide, type PerpVenue } from '../../lib/perps';
+import { marginForRisk, MIN_POSITION_USD, PERPS_FEES, perpTrade, stopLoss, venueFeeRate, type OrderKind, type PerpSide, type PerpVenue } from '../../lib/perps';
 import { num, parseAmount, pct, price, time, usd } from '../../lib/format';
 import { t } from '../../lib/copy';
 import { ROUTES } from '../../lib/routes';
@@ -661,6 +661,9 @@ export function PerpsCalculator() {
               />
             )}
             <div className="mt-4 space-y-2">
+              {result.notional > 0 && result.notional < MIN_POSITION_USD && (
+                <Notice tone="warn">{t.perps.minPosition(usd(MIN_POSITION_USD))}</Notice>
+              )}
               {result.tierMaxLeverage !== null && leverage > result.tierMaxLeverage && (
                 <Notice tone="warn">{t.perps.tierWarn(result.tierMaxLeverage)}</Notice>
               )}

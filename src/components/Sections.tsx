@@ -44,6 +44,7 @@ export function Methodology() {
           <div className="mt-2.5">
             <BandTable chain="solana" tokenClass="standard" referral={false} caption={t.method.solanaTitle} />
           </div>
+          <p className="mt-2.5 text-sm text-ink-2">{t.method.solanaRoute}</p>
           <dl className="mt-5 space-y-4 text-sm">
             <div>
               <dt className="font-medium text-ink">{t.method.otherTitle}</dt>

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { fomoFee, tradeCost } from './fees';
+import { chainFromDexscreener, fomoFee, solanaOtherRouteFee, tradeCost } from './fees';
 import { roundTrip, multipleForProceeds, type RoundTripInput } from './roundtrip';
 import { parseAmount } from './format';
 import { liquidationPrice, maintenanceSchedule, maintenanceMargin, marginForRisk, perpTrade, stopLoss } from './perps';
@@ -219,5 +219,28 @@ describe('parseAmount', () => {
     expect(parseAmount('$ 100')).toBe(100);
     expect(parseAmount('abc')).toBeNaN();
     expect(parseAmount('')).toBeNaN();
+  });
+});
+
+describe('solanaOtherRouteFee', () => {
+  it('charges 0.50% with a 0.95 USDC minimum off the lowest-fee route', () => {
+    expect(solanaOtherRouteFee(10, 'solana')).toBeCloseTo(0.95);
+    expect(solanaOtherRouteFee(2, 'solana', 'standard', true)).toBeCloseTo(0.855);
+  });
+
+  it('is null where both routes charge the same', () => {
+    expect(solanaOtherRouteFee(100, 'solana')).toBeNull();
+    expect(solanaOtherRouteFee(500, 'solana')).toBeNull();
+    expect(solanaOtherRouteFee(10, 'base')).toBeNull();
+    expect(solanaOtherRouteFee(10, 'solana', 'major')).toBeNull();
+    expect(solanaOtherRouteFee(0, 'solana')).toBeNull();
+  });
+});
+
+describe('Arc', () => {
+  it('charges the standard 0.50% and maps the DexScreener chain id', () => {
+    expect(fomoFee(100, 'arc').fee).toBeCloseTo(0.5);
+    expect(chainFromDexscreener('arc')).toBe('arc');
+    expect(chainFromDexscreener('robinhood')).toBe('robinhood');
   });
 });

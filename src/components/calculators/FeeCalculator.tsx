@@ -2,7 +2,7 @@
 
 import { useId, useRef, useState } from 'react';
 import { BarChart3, Table2 } from 'lucide-react';
-import { bandsFor, CHAINS, fomoFee, getChain, tradeCost, type ChainId, type TokenClass } from '../../lib/fees';
+import { bandsFor, CHAINS, fomoFee, getChain, solanaOtherRouteFee, tradeCost, type ChainId, type TokenClass } from '../../lib/fees';
 import { parseAmount, pct, usd } from '../../lib/format';
 import { t } from '../../lib/copy';
 import { ROUTES } from '../../lib/routes';
@@ -74,6 +74,7 @@ export function FeeCalculator() {
     : null;
 
   const bands = bandsFor(s.chain, s.tokenClass);
+  const otherRouteFee = amountValid ? solanaOtherRouteFee(amount, s.chain, s.tokenClass, s.referral) : null;
 
   return (
     <div ref={containerRef} className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_400px] lg:gap-6">
@@ -244,6 +245,7 @@ export function FeeCalculator() {
               {result.belowMinSell && (
                 <Notice tone="warn">{t.fee.minSell(usd(chain.minSellUsd), chain.name)}</Notice>
               )}
+              {otherRouteFee !== null && <Notice>{t.fee.otherRoute(usd(otherRouteFee))}</Notice>}
               {s.tokenClass === 'major' && result.quote.band.kind === 'flat' && <Notice>{t.fee.majorCap}</Notice>}
             </div>
           </>

@@ -1,13 +1,13 @@
 /**
  * fomo spot trading fee schedule.
  *
- * Source: fomo Help Center (help.fomo.family), version dated 25 Sep 2026, as
- * quoted by independent guides (see src/lib/sources.ts). The schedule changed
- * several times in Aug-Sep 2026, so every rate lives here in one place and the
- * UI always shows the version date next to the result.
+ * Source: fomo Help Center (help.fomo.family), "Trading fees on fomo", read on
+ * 11 Oct 2026 (see src/lib/sources.ts). The schedule changed several times in
+ * Aug-Oct 2026, so every rate lives here in one place and the UI always shows
+ * the version date next to the result.
  */
 
-export type ChainId = 'solana' | 'base' | 'bsc' | 'monad' | 'robinhood' | 'ethereum';
+export type ChainId = 'solana' | 'base' | 'bsc' | 'monad' | 'robinhood' | 'ethereum' | 'arc';
 
 export interface ChainInfo {
   id: ChainId;
@@ -25,8 +25,9 @@ export const CHAINS: readonly ChainInfo[] = [
   { id: 'base', name: 'Base', gasCovered: false, minSellUsd: 2, dexscreenerId: 'base' },
   { id: 'bsc', name: 'BNB Chain', gasCovered: false, minSellUsd: 2, dexscreenerId: 'bsc' },
   { id: 'monad', name: 'Monad', gasCovered: false, minSellUsd: 2, dexscreenerId: 'monad' },
-  { id: 'robinhood', name: 'Robinhood Chain', gasCovered: false, minSellUsd: 2 },
+  { id: 'robinhood', name: 'Robinhood Chain', gasCovered: false, minSellUsd: 2, dexscreenerId: 'robinhood' },
   { id: 'ethereum', name: 'Ethereum', gasCovered: false, minSellUsd: 5, dexscreenerId: 'ethereum' },
+  { id: 'arc', name: 'Arc', gasCovered: false, minSellUsd: 2, dexscreenerId: 'arc' },
 ];
 
 export function getChain(id: ChainId): ChainInfo {
@@ -50,15 +51,25 @@ export interface FeeBand {
 export type TokenClass = 'standard' | 'major';
 
 export const FEE_SCHEDULE = {
-  version: '2026-09-25',
+  version: '2026-10-11',
+  /** Solana on the lowest-fee route. Which route a trade gets changes from trade to trade. */
   solana: [
     { upTo: 5, kind: 'flat', value: 0.1 },
     { upTo: 47.5, kind: 'percent', value: 0.02 },
     { upTo: 190, kind: 'flat', value: 0.95 },
     { upTo: Infinity, kind: 'percent', value: 0.005 },
   ],
+  /** Solana on every other route: 0.50% with a 0.95 USDC minimum. */
+  solanaOtherRoute: [
+    { upTo: 190, kind: 'flat', value: 0.95 },
+    { upTo: Infinity, kind: 'percent', value: 0.005 },
+  ],
   standard: [{ upTo: Infinity, kind: 'percent', value: 0.005 }],
-  /** Select major tokens. The flat band is published as "no more than 0.50 USDC", so it is an upper bound. */
+  /**
+   * Select major tokens. The Help Center now only says "a minimum fee applies on
+   * smaller trades"; the flat band is the last published amount ("no more than
+   * 0.50 USDC", 25 Sep 2026), so it is an upper bound.
+   */
   major: [
     { upTo: 1000, kind: 'flat', value: 0.5 },
     { upTo: Infinity, kind: 'percent', value: 0.0005 },
@@ -68,6 +79,7 @@ export const FEE_SCHEDULE = {
 } as const satisfies {
   version: string;
   solana: readonly FeeBand[];
+  solanaOtherRoute: readonly FeeBand[];
   standard: readonly FeeBand[];
   major: readonly FeeBand[];
   referralDiscount: number;
@@ -76,6 +88,24 @@ export const FEE_SCHEDULE = {
 export function bandsFor(chain: ChainId, tokenClass: TokenClass): readonly FeeBand[] {
   if (tokenClass === 'major') return FEE_SCHEDULE.major;
   return chain === 'solana' ? FEE_SCHEDULE.solana : FEE_SCHEDULE.standard;
+}
+
+/**
+ * fomo fee on Solana when the trade does not get the lowest-fee route, or null
+ * where both routes charge the same (major tokens, other chains, 190 USDC and up).
+ */
+export function solanaOtherRouteFee(
+  orderUsd: number,
+  chain: ChainId,
+  tokenClass: TokenClass = 'standard',
+  referral = false,
+): number | null {
+  if (chain !== 'solana' || tokenClass !== 'standard' || !(orderUsd > 0)) return null;
+  const { band } = findBand(FEE_SCHEDULE.solanaOtherRoute, orderUsd);
+  const raw = band.kind === 'flat' ? band.value : orderUsd * band.value;
+  const fee = referral ? raw * (1 - FEE_SCHEDULE.referralDiscount) : raw;
+  const best = fomoFee(orderUsd, chain, tokenClass, referral).fee;
+  return fee > best + 1e-9 ? fee : null;
 }
 
 export function findBand(bands: readonly FeeBand[], orderUsd: number): { band: FeeBand; index: number } {
