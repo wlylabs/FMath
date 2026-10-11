@@ -13,8 +13,7 @@ export const SITE_URL =
 
 export const SITE_NAME = 'FMath';
 export const SITE_TITLE = t.meta.title;
-export const SITE_DESCRIPTION =
-  'Independent calculator for fomo traders: per-chain trade fees, break-even, net profit, and perps fees with liquidation price. Live market data from DexScreener and Hyperliquid.';
+export const SITE_DESCRIPTION = t.meta.description;
 
 /**
  * Open Graph fields every page shares. Next merges metadata shallowly, so a

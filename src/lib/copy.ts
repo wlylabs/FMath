@@ -1,7 +1,9 @@
 /** English interface copy; the Indonesian ("wkwk") copy in copy.id.ts has the same shape. */
-const en = {
+export const en = {
   meta: {
     title: 'FMath: Fee and profit calculator for fomo traders',
+    description:
+      'Independent calculator for fomo traders: per-chain trade fees, break-even, net profit, and perps fees with liquidation price. Live market data from DexScreener and Hyperliquid.',
   },
   nav: {
     home: 'Home',
@@ -449,6 +451,7 @@ const en = {
   },
   faq: {
     title: 'Questions',
+    description: 'Answers on accuracy, live data sources, the fomo fee schedule and the referral discount.',
     items: [
       {
         q: 'Is FMath part of fomo?',
@@ -612,13 +615,33 @@ export const LANGS: readonly Lang[] = ['en', 'id'];
 /** Toggle labels: Indonesian is shown as "wkwk". */
 export const LANG_LABELS: Record<Lang, string> = { en: 'EN', id: 'wkwk' };
 
-/** Copy per language. Indonesian ships as its own chunk and loads only when someone picks it. */
+/** Copy per language. Indonesian ships as its own chunk and loads only on /id/ pages. */
 const COPY: Partial<Record<Lang, Copy>> = { en };
 
-/** Fetches a language's copy if this page has not loaded it yet. */
-export async function loadLang(lang: Lang): Promise<void> {
-  if (COPY[lang]) return;
-  if (lang === 'id') COPY.id = (await import('./copy.id')).id;
+const loading: Partial<Record<Lang, Promise<void>>> = {};
+
+/** Whether a language's copy is loaded, so `t` can read it without waiting. */
+export function hasLang(lang: Lang): boolean {
+  return COPY[lang] !== undefined;
+}
+
+/**
+ * Fetches a language's copy if this page has not loaded it yet. The same
+ * promise comes back every time, so LangProvider can suspend on it with use().
+ */
+export function loadLang(lang: Lang): Promise<void> {
+  if (COPY[lang]) return Promise.resolve();
+  loading[lang] ??= import('./copy.id').then(
+    (m) => {
+      COPY.id = m.id;
+    },
+    (err: unknown) => {
+      // let the next attempt try again, e.g. once back online
+      delete loading[lang];
+      throw err;
+    },
+  );
+  return loading[lang];
 }
 
 let current: Lang = 'en';
@@ -629,8 +652,8 @@ export function getLang(): Lang {
 
 /**
  * Switches the language `t` reads from. Only LangProvider calls this, during
- * render and before its subtree renders, once loadLang has finished; the
- * static export always renders English.
+ * render and before its subtree renders, once loadLang has finished. The
+ * language comes from the URL: /id/ pages are Indonesian, the rest English.
  */
 export function setLang(lang: Lang) {
   current = lang;

@@ -1,17 +1,9 @@
-import type { Metadata } from 'next';
+import { pageMetadata } from '../../lib/seo';
 import { CalculatorPage } from '../../components/CalculatorPage';
 import { PerpsCalculator } from '../../components/calculators/PerpsCalculator';
-import { t } from '../../lib/copy';
-import { ROUTES } from '../../lib/routes';
-import { BASE_OPEN_GRAPH } from '../../lib/site';
 import { PageTransition } from '../../components/PageTransition';
 
-export const metadata: Metadata = {
-  title: t.calc.pages.perps.title,
-  description: t.calc.pages.perps.lead,
-  alternates: { canonical: ROUTES.perps },
-  openGraph: { ...BASE_OPEN_GRAPH, title: t.calc.pages.perps.title, description: t.calc.pages.perps.lead, url: ROUTES.perps },
-};
+export const metadata = pageMetadata('perps', 'en');
 
 export default function PerpsPage() {
   return (

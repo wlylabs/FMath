@@ -110,6 +110,20 @@ export function Methodology() {
   );
 }
 
+/** FAQPage structured data, in the language the page is in. */
+export function FaqJsonLd() {
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: t.faq.items.map((item) => ({
+      '@type': 'Question',
+      name: item.q,
+      acceptedAnswer: { '@type': 'Answer', text: item.a },
+    })),
+  };
+  return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }} />;
+}
+
 export function Faq() {
   return (
     <section className="mx-auto max-w-3xl px-4 pb-12 pt-8 sm:px-6 lg:pb-16 lg:pt-12" aria-labelledby="faq-title">

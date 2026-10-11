@@ -9,6 +9,8 @@ import type { Copy } from './copy';
 export const id: Copy = {
   meta: {
     title: 'FMath: Kalkulator fee dan profit untuk trader fomo',
+    description:
+      'Kalkulator independen untuk trader fomo: fee trading per chain, break-even, profit bersih, dan fee perps dengan harga likuidasi. Data pasar live dari DexScreener dan Hyperliquid.',
   },
   nav: {
     home: 'Beranda',
@@ -456,6 +458,7 @@ export const id: Copy = {
   },
   faq: {
     title: 'Pertanyaan',
+    description: 'Jawaban soal akurasi, sumber data live, jadwal fee fomo, dan diskon referral.',
     items: [
       {
         q: 'Apakah FMath bagian dari fomo?',
