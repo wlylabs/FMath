@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
 import { GeistSans } from 'geist/font/sans';
 import { GeistMono } from 'geist/font/mono';
-import { SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, SITE_URL } from '../lib/site';
+import { CREATOR, SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, SITE_URL } from '../lib/site';
 import { BRAND } from '../lib/brand';
 import { PwaProvider } from '../components/pwa/PwaProvider';
 import { Toaster } from '../components/Toaster';
@@ -13,6 +13,9 @@ export const metadata: Metadata = {
   title: SITE_TITLE,
   description: SITE_DESCRIPTION,
   applicationName: SITE_NAME,
+  authors: [{ name: CREATOR.name, url: CREATOR.url }],
+  creator: CREATOR.name,
+  publisher: CREATOR.name,
   category: 'finance',
   keywords: ['fomo', 'fomo app', 'fomo.family', 'fee calculator', 'memecoin', 'Solana', 'perps', 'Hyperliquid', 'break-even'],
   appleWebApp: { capable: true, title: SITE_NAME, statusBarStyle: 'black' },
@@ -27,7 +30,14 @@ export const metadata: Metadata = {
     url: '/',
     images: [{ url: '/og.png', width: 1200, height: 630, alt: SITE_TITLE }],
   },
-  twitter: { card: 'summary_large_image', title: SITE_TITLE, description: SITE_DESCRIPTION, images: ['/og.png'] },
+  twitter: {
+    card: 'summary_large_image',
+    site: CREATOR.handle,
+    creator: CREATOR.handle,
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    images: ['/og.png'],
+  },
 };
 
 export const viewport: Viewport = {

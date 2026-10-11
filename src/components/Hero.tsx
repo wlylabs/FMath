@@ -5,6 +5,8 @@ import { date, pct, usd } from '../lib/format';
 import { t } from '../lib/copy';
 import { cx } from '../lib/cx';
 import { ReferralLink } from './Referral';
+import { CreatorLink } from './Creator';
+import { CREATOR } from '../lib/site';
 
 const EXAMPLE_SIZES = [10, 50, 190, 1000];
 
@@ -24,7 +26,12 @@ export function Hero() {
         <div>
           <p className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1 text-xs font-medium text-ink-2">
             <span aria-hidden className="size-1.5 rounded-full bg-accent-strong" />
-            {t.hero.eyebrow}
+            <span>
+              {t.hero.eyebrow} {t.hero.by}{' '}
+              <CreatorLink className="font-semibold text-ink underline decoration-line-strong underline-offset-2 hover:decoration-ink">
+                {CREATOR.name}
+              </CreatorLink>
+            </span>
           </p>
           <h1 className="mt-5 text-[2.5rem] font-semibold leading-[1.05] tracking-tight text-ink sm:text-5xl lg:text-6xl">
             {t.hero.title}

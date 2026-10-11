@@ -4,6 +4,8 @@ import { LAST_CHECKED, SOURCES } from '../lib/sources';
 import { date } from '../lib/format';
 import { BandTable } from './BandTable';
 import { Logo } from './Logo';
+import { CreatorAvatar, CreatorLink, XIcon } from './Creator';
+import { CREATOR } from '../lib/site';
 import { ReferralLink } from './Referral';
 import { InstallButton } from './pwa/PwaProvider';
 
@@ -125,6 +127,17 @@ export function Footer() {
             <Logo className="size-7" />
             <span className="font-semibold tracking-tight text-ink">FMath</span>
           </div>
+          <CreatorLink
+            aria-label={t.creator.followLabel(CREATOR.handle)}
+            className="group mt-4 inline-flex items-center gap-2.5 rounded-full border border-line py-1 pl-1 pr-3.5 text-sm transition-colors hover:border-line-strong"
+          >
+            <CreatorAvatar className="size-7 text-xs" />
+            <span className="text-ink-2">
+              {t.creator.label} <span className="font-semibold text-ink">{CREATOR.name}</span>
+            </span>
+            <XIcon className="size-3.5 text-ink-2 group-hover:text-ink" />
+            <span className="num text-xs text-muted">{CREATOR.handle}</span>
+          </CreatorLink>
           <div className="mt-4 max-w-2xl space-y-2 text-xs leading-relaxed text-muted">
             <p>{t.footer.disclaimer}</p>
             <p>{t.referral.disclosure}</p>
@@ -144,7 +157,7 @@ export function Footer() {
         </nav>
       </div>
       <div className="mx-auto mt-8 flex max-w-6xl flex-col gap-1 border-t border-line px-4 pt-6 text-xs text-muted sm:flex-row sm:justify-between sm:px-6">
-        <span>© {new Date().getUTCFullYear()} FMath. Not affiliated with fomo.</span>
+        <span>© {new Date().getUTCFullYear()} FMath by {CREATOR.name}. Not affiliated with fomo.</span>
         <span>{t.footer.built}</span>
       </div>
     </footer>

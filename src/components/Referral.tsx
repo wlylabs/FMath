@@ -4,13 +4,14 @@ import { useId, type ReactNode } from 'react';
 import { ArrowUpRight, BadgePercent, Check, Copy } from 'lucide-react';
 import { t } from '../lib/copy';
 import { cx } from '../lib/cx';
-import { REFERRAL } from '../lib/site';
+import { CREATOR, REFERRAL } from '../lib/site';
 import { fomoFee, type ChainId } from '../lib/fees';
 import { num, parseAmount, usd } from '../lib/format';
 import { copyText } from '../lib/clipboard';
 import { toast } from '../lib/toast';
 import { usePersistentState } from '../hooks/usePersistentState';
 import { Field, NumberInput, QuickPicks, Segmented } from './ui';
+import { CreatorAvatar, CreatorCard, CreatorLink } from './Creator';
 
 /** Every referral link goes through here so rel, target and URL stay consistent. */
 export function ReferralLink(props: { className?: string; children: ReactNode; 'aria-label'?: string }) {
@@ -198,7 +199,15 @@ function Coupon() {
   return (
     <div className="relative grid overflow-hidden rounded-3xl bg-accent text-accent-ink sm:grid-cols-[minmax(0,1fr)_13rem]">
       <div className="p-6 sm:p-8">
-        <p className="num text-[11px] font-semibold uppercase tracking-[0.18em] text-accent-ink/70">{t.referral.eyebrow}</p>
+        <p className="flex items-center gap-2.5 text-sm">
+          <CreatorAvatar className="size-8 text-sm" />
+          <span className="text-accent-ink/75">
+            {t.referral.from}{' '}
+            <CreatorLink className="font-semibold text-accent-ink underline decoration-accent-ink/30 underline-offset-2 hover:decoration-accent-ink">
+              {CREATOR.name} · {CREATOR.handle}
+            </CreatorLink>
+          </span>
+        </p>
         <h2 id="referral-title" className="mt-3 text-[1.75rem] font-semibold leading-[1.1] tracking-tight sm:text-4xl">
           {t.referral.headline}
         </h2>
@@ -243,7 +252,11 @@ export function ReferralSection() {
             ))}
           </ol>
 
-          <p className="mt-8 max-w-xl text-xs leading-relaxed text-muted">{t.referral.disclosure}</p>
+          <div className="mt-8">
+            <CreatorCard />
+          </div>
+
+          <p className="mt-6 max-w-xl text-xs leading-relaxed text-muted">{t.referral.disclosure}</p>
         </div>
 
         <SavingsEstimator />

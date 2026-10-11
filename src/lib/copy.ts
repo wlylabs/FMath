@@ -11,6 +11,7 @@ export const t = {
   },
   hero: {
     eyebrow: 'An independent calculator for fomo traders',
+    by: 'by',
     title: 'Know the cost before you hit Buy.',
     lead: 'Work out trade fees, break-even and net profit for spot and perps on fomo. Uses the latest fee schedule and live market prices from DexScreener and Hyperliquid.',
     cta: 'Open the calculator',
@@ -269,12 +270,20 @@ export const t = {
     savedMonth: 'You keep per month',
     savedYear: 'You keep per year',
     trades: (n: string) => `${n} orders a month`,
-    disclosure: 'Referral link. When you sign up through it, the FMath author receives referral rewards from fomo. Your discount does not depend on it, and FMath stays independent of fomo.',
+    disclosure: 'Referral link. When you sign up through it, Willy, who makes FMath, receives referral rewards from fomo. Your discount does not depend on it, and FMath stays independent of fomo.',
+    from: 'Referral from',
     nudgeTitle: (save: string) => `Save ${save} on this trade`,
     nudgeTitleRoundTrip: (save: string) => `Keep ${save} more on this round trip`,
     nudgeTitlePerps: (save: string) => `Save ${save} on this position`,
     nudgeCompare: (now: string, then: string) => `Pay ${then} instead of ${now} with 10% off fees.`,
     nudgeHave: 'Already signed up with a referral? Turn on the switch above.',
+  },
+  creator: {
+    label: 'Made by',
+    role: 'Creator of FMath',
+    body: 'Questions, a fee that looks off, or an idea for FMath? Reach Willy on X.',
+    follow: 'Follow on X',
+    followLabel: (handle: string) => `Follow ${handle} on X`,
   },
   share: {
     button: 'Share',
@@ -323,7 +332,7 @@ export const t = {
       },
       {
         q: 'Why is there a referral link?',
-        a: 'It is how FMath is supported. Signing up through it gives you 10% off fomo trading fees, and the FMath author receives referral rewards from fomo. The calculator works the same whether you use it or not.',
+        a: 'It is how FMath is supported. Signing up through it gives you 10% off fomo trading fees, and Willy, who makes FMath, receives referral rewards from fomo. The calculator works the same whether you use it or not.',
       },
       {
         q: 'Does the referral discount apply to flat fees?',

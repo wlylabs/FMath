@@ -16,6 +16,13 @@ export const SITE_TITLE = t.meta.title;
 export const SITE_DESCRIPTION =
   'Independent calculator for fomo traders: per-chain trade fees, break-even, net profit, and perps fees with liquidation price. Live market data from DexScreener and Hyperliquid.';
 
+/** Who makes FMath. */
+export const CREATOR = {
+  name: 'Willy',
+  handle: '@willydetrade',
+  url: 'https://x.com/willydetrade',
+} as const;
+
 /** The FMath author's fomo referral. New sign-ups through it get 10% off trading fees. */
 export const REFERRAL = {
   url: 'https://fomo.family/r/willydetrade',

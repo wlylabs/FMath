@@ -4,7 +4,7 @@ import { CalculatorSection } from '../components/CalculatorSection';
 import { ReferralSection } from '../components/Referral';
 import { Faq, Footer, Methodology } from '../components/Sections';
 import { t } from '../lib/copy';
-import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from '../lib/site';
+import { CREATOR, SITE_DESCRIPTION, SITE_NAME, SITE_URL } from '../lib/site';
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -18,6 +18,16 @@ const jsonLd = {
       operatingSystem: 'Any',
       browserRequirements: 'Requires JavaScript',
       offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+      author: { '@id': `${SITE_URL}/#creator` },
+      creator: { '@id': `${SITE_URL}/#creator` },
+    },
+    {
+      '@type': 'Person',
+      '@id': `${SITE_URL}/#creator`,
+      name: CREATOR.name,
+      alternateName: CREATOR.handle,
+      url: CREATOR.url,
+      sameAs: [CREATOR.url],
     },
     {
       '@type': 'FAQPage',
