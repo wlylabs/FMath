@@ -107,6 +107,12 @@ export const SOURCES: Source[] = [
     kind: 'opensource',
   },
   {
+    label: '0xa3k5/web3icons',
+    url: 'https://github.com/0xa3k5/web3icons',
+    use: 'Chain logos in the chain picker (MIT).',
+    kind: 'opensource',
+  },
+  {
     label: 'lucide-icons/lucide',
     url: 'https://github.com/lucide-icons/lucide',
     use: 'Interface icons.',

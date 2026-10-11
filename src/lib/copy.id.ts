@@ -115,7 +115,7 @@ export const id: Copy = {
     referral: 'Daftar lewat link referral',
     referralHint: 'Diskon 10% untuk fee trading fomo.',
     tokenClass: 'Jenis token',
-    standard: 'Standar / memecoin',
+    standard: 'Standar',
     major: 'Token major',
     majorHint: 'Tarif khusus untuk token major tertentu. Pastikan halaman token di aplikasi menampilkannya.',
     networkFee: 'Network fee per transaksi',

@@ -16,6 +16,7 @@ import { MobileSummary } from '../MobileSummary';
 import { AMOUNT_PICKS } from './FeeCalculator';
 import { ShareButton } from '../ShareButton';
 import { ReferralNudge } from '../Referral';
+import { CHAIN_COLOR, ChainIcon } from '../ChainIcon';
 import { buildShareUrl, primitivesFrom, takeUrlState } from '../../lib/urlState';
 import { ladderParam, ladderRows, parseLadderParam, type LadderRow, type LadderStep } from '../../lib/ladder';
 import { ExitPlan, stepFrom } from '../ExitPlan';
@@ -182,7 +183,7 @@ export function ProfitCalculator() {
           <Pills
             label={t.common.chain}
             labelledBy={ids.chain}
-            options={CHAINS.map((c) => ({ value: c.id, label: c.name }))}
+            options={CHAINS.map((c) => ({ value: c.id, label: c.shortName ?? c.name, icon: <ChainIcon chain={c.id} className="size-full" />, color: CHAIN_COLOR[c.id] }))}
             value={s.chain}
             onChange={(v) => set('chain', v)}
             disabled={!!s.token}

@@ -12,6 +12,8 @@ export type ChainId = 'solana' | 'base' | 'bsc' | 'monad' | 'robinhood' | 'ether
 export interface ChainInfo {
   id: ChainId;
   name: string;
+  /** Name for tight spots such as the chain picker. */
+  shortName?: string;
   /** fomo pays network gas, priority fees and token rent on this chain. */
   gasCovered: boolean;
   /** Smallest sell the app accepts, in USDC. */
@@ -25,7 +27,7 @@ export const CHAINS: readonly ChainInfo[] = [
   { id: 'base', name: 'Base', gasCovered: false, minSellUsd: 2, dexscreenerId: 'base' },
   { id: 'bsc', name: 'BNB Chain', gasCovered: false, minSellUsd: 2, dexscreenerId: 'bsc' },
   { id: 'monad', name: 'Monad', gasCovered: false, minSellUsd: 2, dexscreenerId: 'monad' },
-  { id: 'robinhood', name: 'Robinhood Chain', gasCovered: false, minSellUsd: 2, dexscreenerId: 'robinhood' },
+  { id: 'robinhood', name: 'Robinhood Chain', shortName: 'Robinhood', gasCovered: false, minSellUsd: 2, dexscreenerId: 'robinhood' },
   { id: 'ethereum', name: 'Ethereum', gasCovered: false, minSellUsd: 5, dexscreenerId: 'ethereum' },
   { id: 'arc', name: 'Arc', gasCovered: false, minSellUsd: 2, dexscreenerId: 'arc' },
 ];

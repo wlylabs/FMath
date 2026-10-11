@@ -13,6 +13,7 @@ import { FeeCurveChart } from '../FeeCurveChart';
 import { MobileSummary } from '../MobileSummary';
 import { ShareButton } from '../ShareButton';
 import { ReferralNudge } from '../Referral';
+import { CHAIN_COLOR, ChainIcon } from '../ChainIcon';
 import { buildShareUrl, primitivesFrom } from '../../lib/urlState';
 
 interface State {
@@ -86,7 +87,7 @@ export function FeeCalculator() {
           <Pills
             label={t.common.chain}
             labelledBy={ids.chain}
-            options={CHAINS.map((c) => ({ value: c.id, label: c.name }))}
+            options={CHAINS.map((c) => ({ value: c.id, label: c.shortName ?? c.name, icon: <ChainIcon chain={c.id} className="size-full" />, color: CHAIN_COLOR[c.id] }))}
             value={s.chain}
             onChange={(v) => set('chain', v)}
           />

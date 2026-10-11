@@ -108,7 +108,7 @@ export const en = {
     referral: 'Signed up with a referral link',
     referralHint: '10% off fomo trading fees.',
     tokenClass: 'Token type',
-    standard: 'Standard / memecoin',
+    standard: 'Standard',
     major: 'Major token',
     majorHint: 'Special rate for selected major tokens. Make sure the token page in the app shows it.',
     networkFee: 'Network fee per transaction',

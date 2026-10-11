@@ -87,6 +87,10 @@ interface Option<T extends string> {
   value: T;
   label: ReactNode;
   sub?: ReactNode;
+  /** Pills only: a logo before the label. */
+  icon?: ReactNode;
+  /** Pills only: brand colour the chip lights up in when picked. */
+  color?: string;
 }
 
 function useRovingKeys<T extends string>(options: Option<T>[], value: T, onChange: (v: T) => void) {
@@ -204,13 +208,24 @@ export function Pills<T extends string>(props: {
             tabIndex={selected ? 0 : -1}
             onKeyDown={(e) => onKeyDown(e, i)}
             onClick={() => props.onChange(o.value)}
+            style={o.color ? ({ '--chip': o.color } as CSSProperties) : undefined}
             className={cx(
-              'press h-10 shrink-0 rounded-full border px-4 text-sm font-medium whitespace-nowrap disabled:opacity-40',
-              selected
-                ? 'border-accent-strong bg-accent-wash text-ink'
-                : 'border-line bg-surface-2 text-ink-2 hover:border-line-strong hover:text-ink',
+              'press inline-flex h-10 shrink-0 items-center gap-2 rounded-full border text-sm font-medium whitespace-nowrap transition-[border-color,background-color,box-shadow] duration-[var(--dur-base)] ease-[var(--ease-standard)] disabled:opacity-40',
+              o.icon ? 'pr-4 pl-2' : 'px-4',
+              !selected && 'border-line bg-surface-2 text-ink-2 hover:border-line-strong hover:text-ink',
+              selected && !o.color && 'border-accent-strong bg-accent-wash text-ink',
+              // the picked chip glows in the chain's own colour, mixed into the theme so it reads in light and dark
+              selected &&
+                o.color &&
+                'border-[color-mix(in_oklab,var(--chip)_75%,var(--ink))] bg-[color-mix(in_oklab,var(--chip)_14%,var(--surface))] text-ink shadow-[0_0_0_3px_color-mix(in_oklab,var(--chip)_22%,transparent)]',
             )}
           >
+            {o.icon && (
+              // a round, brand-colour tile reads the same on light and dark themes
+              <span className="grid size-6 shrink-0 place-items-center overflow-hidden rounded-full ring-1 ring-black/10">
+                {o.icon}
+              </span>
+            )}
             {o.label}
           </button>
         );
