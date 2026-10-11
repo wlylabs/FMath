@@ -1,4 +1,6 @@
-import { ArrowDown, ArrowRight, ArrowUpRight, CalendarCheck, Gauge, Receipt, Target } from 'lucide-react';
+import Link from 'next/link';
+import { ArrowRight, ArrowUpRight, CalendarCheck } from 'lucide-react';
+import { ROUTES } from '../lib/routes';
 import { FEE_SCHEDULE, fomoFee } from '../lib/fees';
 import { PERPS_FEES } from '../lib/perps';
 import { date, pct, usd } from '../lib/format';
@@ -21,8 +23,8 @@ export function Hero() {
   ];
 
   return (
-    <section id="top" className="relative overflow-hidden">
-      <div className="relative mx-auto grid max-w-6xl gap-10 px-4 pb-14 pt-12 sm:px-6 sm:pt-16 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:items-center lg:gap-14 lg:pb-20 lg:pt-24">
+    <section className="relative overflow-hidden">
+      <div className="relative mx-auto grid max-w-6xl gap-10 px-4 pb-10 pt-8 sm:px-6 sm:pt-12 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:items-center lg:gap-14 lg:pb-14 lg:pt-16">
         <div>
           <p className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1 text-xs font-medium text-ink-2">
             <span aria-hidden className="size-1.5 rounded-full bg-accent-strong" />
@@ -38,20 +40,19 @@ export function Hero() {
           </h1>
           <p className="mt-5 max-w-xl text-base leading-relaxed text-ink-2 sm:text-lg">{t.hero.lead}</p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <a
-              href="#calculator"
+            <Link
+              href={ROUTES.fee}
               className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-accent px-5 text-sm font-semibold text-accent-ink transition-colors hover:bg-accent-hover"
             >
               {t.hero.cta}
-              <ArrowDown aria-hidden className="size-4" />
-            </a>
-            <a
-              href="#methodology"
+              <ArrowRight aria-hidden className="size-4" />
+            </Link>
+            <Link
+              href={ROUTES.methodology}
               className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-line bg-surface px-5 text-sm font-semibold text-ink transition-colors hover:border-line-strong"
             >
               {t.hero.ctaSecondary}
-              <ArrowRight aria-hidden className="size-4" />
-            </a>
+            </Link>
           </div>
           <ReferralLink className="group mt-4 inline-flex max-w-full items-center gap-2.5 rounded-2xl border border-accent-strong/30 bg-accent-wash py-1.5 pl-1.5 pr-3.5 text-left text-sm transition-colors hover:border-accent-strong">
             <span className="shrink-0 rounded-xl bg-accent px-2 py-1 text-xs font-bold text-accent-ink">10% OFF</span>
@@ -70,7 +71,8 @@ export function Hero() {
           </p>
         </div>
 
-        <figure className="receipt relative mb-3 rounded-t-2xl bg-surface px-5 pb-7 pt-5 sm:px-7 sm:pt-6">
+        {/* phones get the same worked examples from the tool cards, closer to the top */}
+        <figure className="receipt relative mb-3 hidden rounded-t-2xl bg-surface px-5 pb-7 pt-5 sm:block sm:px-7 sm:pt-6">
           <figcaption className="num flex items-baseline justify-between gap-3 border-b border-dashed border-line-strong pb-3 text-[11px] uppercase tracking-[0.16em] text-muted">
             <span>{t.hero.receipt}</span>
             <span>Solana</span>
@@ -111,31 +113,6 @@ export function Hero() {
             </div>
           ))}
         </dl>
-      </div>
-    </section>
-  );
-}
-
-export function Features() {
-  const icons = [Receipt, Target, Gauge];
-  return (
-    <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:py-20" aria-labelledby="features-title">
-      <h2 id="features-title" className="max-w-2xl text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
-        {t.features.title}
-      </h2>
-      <div className="mt-8 grid gap-4 md:grid-cols-3">
-        {t.features.items.map((f, i) => {
-          const Icon = icons[i]!;
-          return (
-            <div key={f.title} className="card p-5 sm:p-6">
-              <span className="inline-flex size-10 items-center justify-center rounded-xl bg-accent-wash text-accent-strong">
-                <Icon aria-hidden className="size-5" />
-              </span>
-              <h3 className="mt-4 text-base font-semibold text-ink">{f.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-ink-2">{f.body}</p>
-            </div>
-          );
-        })}
       </div>
     </section>
   );

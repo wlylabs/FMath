@@ -5,6 +5,7 @@ import { BarChart3, Table2 } from 'lucide-react';
 import { bandsFor, CHAINS, fomoFee, getChain, tradeCost, type ChainId, type TokenClass } from '../../lib/fees';
 import { parseAmount, pct, usd } from '../../lib/format';
 import { t } from '../../lib/copy';
+import { ROUTES } from '../../lib/routes';
 import { usePersistentState } from '../../hooks/usePersistentState';
 import { CardTitle, Field, Headline, Notice, NumberInput, Pills, QuickPicks, Row, Segmented, Switch } from '../ui';
 import { BandTable, bandFee, bandRange } from '../BandTable';
@@ -43,7 +44,7 @@ function fromUrl(params: URLSearchParams): Partial<State> {
 export const AMOUNT_PICKS = ['10', '50', '100', '190', '500', '1000'];
 
 export function FeeCalculator() {
-  const [s, setS] = usePersistentState<State>('fee', INITIAL, { tab: 'fee', fromUrl });
+  const [s, setS] = usePersistentState<State>('fee', INITIAL, { page: ROUTES.fee, fromUrl });
   const [view, setView] = useState<'chart' | 'table'>('chart');
   const set = <K extends keyof State>(k: K, v: State[K]) => setS((p) => ({ ...p, [k]: v }));
   const ids = { amount: useId(), network: useId(), impact: useId(), chain: useId(), side: useId(), cls: useId() };
@@ -166,7 +167,7 @@ export function FeeCalculator() {
           aside={
             <ShareButton
               getUrl={() =>
-                buildShareUrl('fee', {
+                buildShareUrl(ROUTES.fee, {
                   chain: s.chain,
                   side: s.side,
                   amount: s.amount,

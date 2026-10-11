@@ -72,15 +72,15 @@ function subscribe(key: string, listener: () => void): () => void {
 }
 
 interface UrlBinding<T> {
-  /** Query `tab` this state answers to, or null for the tab switcher itself. */
-  tab: string | null;
+  /** Page whose shared links carry this state, e.g. ROUTES.fee. */
+  page: string;
   fromUrl: (params: URLSearchParams) => Partial<T> | T | undefined;
 }
 
 /** A shared link overrides the saved value once, before the first client read. */
 function applyUrl<T>(key: string, initial: T, url: UrlBinding<T> | undefined) {
   if (!url || typeof window === 'undefined') return;
-  const params = takeUrlState(url.tab, key);
+  const params = takeUrlState(url.page, key);
   if (!params) return;
   const patch = url.fromUrl(params);
   if (patch === undefined) return;

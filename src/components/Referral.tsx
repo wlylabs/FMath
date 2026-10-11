@@ -208,9 +208,9 @@ function Coupon() {
             </CreatorLink>
           </span>
         </p>
-        <h2 id="referral-title" className="mt-3 text-[1.75rem] font-semibold leading-[1.1] tracking-tight sm:text-4xl">
+        <h1 id="referral-title" className="mt-3 text-[1.75rem] font-semibold leading-[1.1] tracking-tight sm:text-4xl">
           {t.referral.headline}
-        </h2>
+        </h1>
         <p className="mt-3 max-w-md text-sm leading-relaxed text-accent-ink/80 sm:text-base">{t.referral.lead}</p>
         <ReferralLink className="mt-6 inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-accent-ink px-6 text-sm font-semibold text-accent transition-opacity hover:opacity-90">
           {t.referral.cta}
@@ -233,8 +233,8 @@ function Coupon() {
 
 export function ReferralSection() {
   return (
-    <section id="referral" aria-labelledby="referral-title" className="border-b border-line">
-      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:items-start lg:gap-12 lg:py-20">
+    <section aria-labelledby="referral-title">
+      <div className="mx-auto grid max-w-6xl gap-10 px-4 pb-12 pt-8 sm:px-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:items-start lg:gap-12 lg:pb-16 lg:pt-12">
         <div>
           <Coupon />
 

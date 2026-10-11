@@ -47,8 +47,9 @@ export function MobileSummary(props: {
       inert={!show}
       aria-hidden={!show}
       className={cx(
-        'fixed inset-x-0 bottom-0 z-30 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] transition-transform duration-200 lg:hidden',
-        show ? 'translate-y-0' : 'translate-y-[calc(100%+1rem)]',
+        // sits just above the bottom nav, which is also hidden from lg up
+        'fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-30 px-3 pb-2 transition-transform duration-200 lg:hidden',
+        show ? 'translate-y-0' : 'pointer-events-none translate-y-[calc(100%+6rem)]',
       )}
     >
       <button

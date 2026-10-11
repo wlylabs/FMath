@@ -6,11 +6,14 @@ import { CREATOR, SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, SITE_URL } from '../l
 import { BRAND } from '../lib/brand';
 import { PwaProvider } from '../components/pwa/PwaProvider';
 import { Toaster } from '../components/Toaster';
+import { Header } from '../components/Header';
+import { Footer } from '../components/Sections';
+import { BottomNav } from '../components/BottomNav';
 import './globals.css';
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: SITE_TITLE,
+  title: { default: SITE_TITLE, template: `%s · ${SITE_NAME}` },
   description: SITE_DESCRIPTION,
   applicationName: SITE_NAME,
   authors: [{ name: CREATOR.name, url: CREATOR.url }],
@@ -62,7 +65,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       </head>
       <body>
         <PwaProvider>
-          {children}
+          <Header />
+          <main id="main">{children}</main>
+          <Footer />
+          <BottomNav />
           <Toaster />
         </PwaProvider>
       </body>

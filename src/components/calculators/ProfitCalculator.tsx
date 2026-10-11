@@ -7,6 +7,7 @@ import { roundTrip, type RoundTripInput } from '../../lib/roundtrip';
 import { compactUsd, multiple, num, parseAmount, pct, price, usd } from '../../lib/format';
 import { dexscreenerChainId, getToken, type TokenMarket } from '../../api/dexscreener';
 import { t } from '../../lib/copy';
+import { ROUTES } from '../../lib/routes';
 import { usePersistentState } from '../../hooks/usePersistentState';
 import { CardTitle, Field, Headline, Notice, NumberInput, Pills, QuickPicks, Row, Segmented, Switch } from '../ui';
 import { cx } from '../../lib/cx';
@@ -69,7 +70,7 @@ function optionalPct(raw: string): { value: number; valid: boolean } {
 }
 
 export function ProfitCalculator() {
-  const [s, setS] = usePersistentState<State>('profit', INITIAL, { tab: 'profit', fromUrl });
+  const [s, setS] = usePersistentState<State>('profit', INITIAL, { page: ROUTES.profit, fromUrl });
   const set = <K extends keyof State>(k: K, v: State[K]) => setS((p) => ({ ...p, [k]: v }));
   const ids = {
     buy: useId(),
@@ -107,7 +108,7 @@ export function ProfitCalculator() {
 
   // A shared link can name a token as <dexscreener chain>:<address>; fetch it live.
   useEffect(() => {
-    const ref = takeUrlState('profit', 'profit-token')?.get('token');
+    const ref = takeUrlState(ROUTES.profit, 'profit-token')?.get('token');
     const [chainId, address] = ref?.split(':') ?? [];
     if (!chainId || !address) return;
     getToken(chainId, address)
@@ -351,7 +352,7 @@ export function ProfitCalculator() {
           aside={
             <ShareButton
               getUrl={() =>
-                buildShareUrl('profit', {
+                buildShareUrl(ROUTES.profit, {
                   chain: s.chain,
                   tokenClass: s.tokenClass,
                   referral: s.referral,

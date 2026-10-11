@@ -1,9 +1,6 @@
-import { Header } from '../components/Header';
-import { Features, Hero } from '../components/Hero';
-import { CalculatorSection } from '../components/CalculatorSection';
-import { ReferralSection } from '../components/Referral';
-import { Faq, Footer, Methodology } from '../components/Sections';
-import { t } from '../lib/copy';
+import { Hero } from '../components/Hero';
+import { ReferralStrip, ToolCards } from '../components/Home';
+import { LegacyRedirect } from '../components/LegacyRedirect';
 import { CREATOR, SITE_DESCRIPTION, SITE_NAME, SITE_URL } from '../lib/site';
 
 const jsonLd = {
@@ -29,31 +26,17 @@ const jsonLd = {
       url: CREATOR.url,
       sameAs: [CREATOR.url],
     },
-    {
-      '@type': 'FAQPage',
-      mainEntity: t.faq.items.map((item) => ({
-        '@type': 'Question',
-        name: item.q,
-        acceptedAnswer: { '@type': 'Answer', text: item.a },
-      })),
-    },
   ],
 };
 
-export default function Page() {
+export default function HomePage() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }} />
-      <Header />
-      <main>
-        <Hero />
-        <CalculatorSection />
-        <ReferralSection />
-        <Features />
-        <Methodology />
-        <Faq />
-      </main>
-      <Footer />
+      <LegacyRedirect />
+      <Hero />
+      <ToolCards />
+      <ReferralStrip />
     </>
   );
 }

@@ -1,0 +1,20 @@
+import type { Metadata } from 'next';
+import { CalculatorPage } from '../../components/CalculatorPage';
+import { FeeCalculator } from '../../components/calculators/FeeCalculator';
+import { t } from '../../lib/copy';
+import { ROUTES } from '../../lib/routes';
+
+export const metadata: Metadata = {
+  title: t.calc.pages.fee.title,
+  description: t.calc.pages.fee.lead,
+  alternates: { canonical: ROUTES.fee },
+  openGraph: { title: t.calc.pages.fee.title, description: t.calc.pages.fee.lead, url: ROUTES.fee },
+};
+
+export default function FeePage() {
+  return (
+    <CalculatorPage active="fee">
+      <FeeCalculator />
+    </CalculatorPage>
+  );
+}

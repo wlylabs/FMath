@@ -173,7 +173,8 @@ export function Pills<T extends string>(props: {
       aria-label={props.labelledBy ? undefined : props.label}
       aria-labelledby={props.labelledBy}
       aria-disabled={props.disabled || undefined}
-      className="flex flex-wrap gap-2"
+      // one swipeable row on phones, wrapping rows from sm up
+      className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0 [&::-webkit-scrollbar]:hidden"
     >
       {props.options.map((o, i) => {
         const selected = i === selectedIndex;
@@ -191,7 +192,7 @@ export function Pills<T extends string>(props: {
             onKeyDown={(e) => onKeyDown(e, i)}
             onClick={() => props.onChange(o.value)}
             className={cx(
-              'h-10 rounded-full border px-4 text-sm font-medium transition-colors disabled:opacity-40',
+              'h-10 shrink-0 rounded-full border px-4 text-sm font-medium whitespace-nowrap transition-colors disabled:opacity-40',
               selected
                 ? 'border-accent-strong bg-accent-wash text-ink'
                 : 'border-line bg-surface-2 text-ink-2 hover:border-line-strong hover:text-ink',

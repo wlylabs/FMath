@@ -1,4 +1,6 @@
+import Link from 'next/link';
 import { ArrowUpRight, ChevronDown, ExternalLink } from 'lucide-react';
+import { ROUTES } from '../lib/routes';
 import { t } from '../lib/copy';
 import { LAST_CHECKED, SOURCES } from '../lib/sources';
 import { date } from '../lib/format';
@@ -11,14 +13,30 @@ import { InstallButton } from './pwa/PwaProvider';
 
 export function Methodology() {
   return (
-    <section id="methodology" className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:py-20" aria-labelledby="method-title">
-      <h2 id="method-title" className="text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
+    <section className="mx-auto max-w-6xl px-4 pb-12 pt-8 sm:px-6 lg:pb-16 lg:pt-12" aria-labelledby="method-title">
+      <h1 id="method-title" className="text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
         {t.method.title}
-      </h2>
+      </h1>
       <p className="mt-3 max-w-2xl text-sm leading-relaxed text-ink-2 sm:text-base">{t.method.lead}</p>
+      <nav aria-label={t.method.title} className="-mx-4 mt-5 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:px-0">
+        {[
+          { href: '#spot', label: t.method.spotTitle },
+          { href: '#formulas', label: t.method.formulasTitle },
+          { href: '#perps-fees', label: t.method.perpsTitle },
+          { href: '#sources', label: t.method.sourcesTitle },
+        ].map((l) => (
+          <a
+            key={l.href}
+            href={l.href}
+            className="inline-flex h-9 shrink-0 items-center rounded-full border border-line bg-surface px-3.5 text-sm text-ink-2 transition-colors hover:border-line-strong hover:text-ink"
+          >
+            {l.label}
+          </a>
+        ))}
+      </nav>
 
       <div className="mt-8 grid gap-4 lg:grid-cols-2">
-        <div className="card p-5 sm:p-6">
+        <div id="spot" className="card p-5 sm:p-6">
           <h3 className="text-base font-semibold text-ink">{t.method.spotTitle}</h3>
           <p className="mt-4 text-sm font-medium text-ink">{t.method.solanaTitle}</p>
           <div className="mt-2.5">
@@ -45,7 +63,7 @@ export function Methodology() {
         </div>
 
         <div className="grid gap-4">
-          <div className="card p-5 sm:p-6">
+          <div id="formulas" className="card p-5 sm:p-6">
             <h3 className="text-base font-semibold text-ink">{t.method.formulasTitle}</h3>
             <dl className="mt-4 divide-y divide-line">
               {t.method.formulas.map((f) => (
@@ -56,7 +74,7 @@ export function Methodology() {
               ))}
             </dl>
           </div>
-          <div className="card p-5 sm:p-6">
+          <div id="perps-fees" className="card p-5 sm:p-6">
             <h3 className="text-base font-semibold text-ink">{t.method.perpsTitle}</h3>
             <p className="mt-2 text-sm leading-relaxed text-ink-2">{t.method.perpsBody}</p>
           </div>
@@ -92,10 +110,10 @@ export function Methodology() {
 
 export function Faq() {
   return (
-    <section id="faq" className="mx-auto max-w-3xl px-4 pb-16 sm:px-6 lg:pb-24" aria-labelledby="faq-title">
-      <h2 id="faq-title" className="text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
+    <section className="mx-auto max-w-3xl px-4 pb-12 pt-8 sm:px-6 lg:pb-16 lg:pt-12" aria-labelledby="faq-title">
+      <h1 id="faq-title" className="text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
         {t.faq.title}
-      </h2>
+      </h1>
       <div className="mt-6 divide-y divide-line border-y border-line">
         {t.faq.items.map((item) => (
           <details key={item.q} className="group">
@@ -113,14 +131,16 @@ export function Faq() {
 
 export function Footer() {
   const links = [
-    { href: '#calculator', label: t.nav.calculator },
-    { href: '#referral', label: t.referral.eyebrow },
-    { href: '#methodology', label: t.nav.method },
-    { href: '#faq', label: t.nav.faq },
-    { href: '#sources', label: t.nav.sources },
+    { href: ROUTES.fee, label: t.calc.tabs.fee },
+    { href: ROUTES.profit, label: t.calc.tabs.profit },
+    { href: ROUTES.perps, label: t.calc.tabs.perps },
+    { href: ROUTES.referral, label: t.nav.referral },
+    { href: ROUTES.methodology, label: t.nav.method },
+    { href: ROUTES.faq, label: t.nav.faq },
+    { href: `${ROUTES.methodology}#sources`, label: t.nav.sources },
   ];
   return (
-    <footer className="border-t border-line pb-28 pt-10 lg:pb-10">
+    <footer className="border-t border-line pb-[calc(5rem+env(safe-area-inset-bottom))] pt-10 lg:pb-10">
       <div className="mx-auto grid max-w-6xl gap-8 px-4 sm:px-6 md:grid-cols-[minmax(0,1fr)_auto] md:gap-16">
         <div>
           <div className="flex items-center gap-2.5">
@@ -143,15 +163,15 @@ export function Footer() {
             <p>{t.referral.disclosure}</p>
           </div>
         </div>
-        <nav aria-label="Footer" className="flex flex-col gap-2.5 text-sm">
+        <nav aria-label="Footer" className="grid grid-cols-2 gap-x-6 gap-y-2.5 text-sm md:flex md:flex-col">
           <ReferralLink className="inline-flex items-center gap-1.5 font-semibold text-accent-strong hover:underline">
             {t.footer.referral}
             <ArrowUpRight aria-hidden className="size-3.5" />
           </ReferralLink>
           {links.map((l) => (
-            <a key={l.href} href={l.href} className="text-ink-2 hover:text-ink">
+            <Link key={l.href} href={l.href} className="text-ink-2 hover:text-ink">
               {l.label}
-            </a>
+            </Link>
           ))}
           <InstallButton variant="text" />
         </nav>

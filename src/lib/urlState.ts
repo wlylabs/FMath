@@ -1,22 +1,26 @@
 /**
- * Shared calculation links: /?tab=fee&chain=solana&amount=100#calculator.
+ * Shared calculation links: /fee/?chain=solana&amount=100.
  *
- * The query string is read once when this module loads in the browser, so
- * every calculator sees the same snapshot even after the address bar is
- * cleaned up. Each consumer takes its slice once; remounting a tab later
- * keeps whatever the user edited since.
+ * The page and query string are read once when this module loads in the
+ * browser, so a calculator still sees them after the address bar is cleaned
+ * up. Each consumer takes its slice once, and only on the page the link was
+ * opened on; navigating to another calculator never inherits the query.
  */
 
-const snapshot: URLSearchParams | null =
-  typeof window === 'undefined' ? null : new URLSearchParams(window.location.search);
+import { samePage } from './routes';
+
+const snapshot: { path: string; params: URLSearchParams } | null =
+  typeof window === 'undefined'
+    ? null
+    : { path: window.location.pathname, params: new URLSearchParams(window.location.search) };
 const consumed = new Set<string>();
 
-/** Params for `tab` (or any param set when `tab` is omitted), once per scope. */
-export function takeUrlState(tab: string | null, scope: string = tab ?? 'tab'): URLSearchParams | null {
-  if (!snapshot || consumed.has(scope)) return null;
-  if (tab === null ? !snapshot.has('tab') : snapshot.get('tab') !== tab) return null;
+/** Query params of a link opened on `page`, once per scope. */
+export function takeUrlState(page: string, scope: string = page): URLSearchParams | null {
+  if (!snapshot || consumed.has(scope) || !samePage(snapshot.path, page)) return null;
+  if ([...snapshot.params.keys()].every((k) => k === 'source')) return null;
   consumed.add(scope);
-  return snapshot;
+  return snapshot.params;
 }
 
 /** Drops the query string from the address bar, keeping the hash. */
@@ -56,14 +60,12 @@ export function primitivesFrom<T extends object>(
   return out;
 }
 
-/** Absolute link that reopens the calculator with these inputs. */
-export function buildShareUrl(tab: string, fields: Record<string, Primitive | null | undefined>): string {
-  const url = new URL(window.location.pathname, window.location.origin);
-  url.searchParams.set('tab', tab);
+/** Absolute link that reopens `page` with these inputs. */
+export function buildShareUrl(page: string, fields: Record<string, Primitive | null | undefined>): string {
+  const url = new URL(page, window.location.origin);
   for (const [k, v] of Object.entries(fields)) {
     if (v === null || v === undefined || v === '') continue;
     url.searchParams.set(k, typeof v === 'boolean' ? (v ? '1' : '0') : String(v));
   }
-  url.hash = 'calculator';
   return url.toString();
 }
