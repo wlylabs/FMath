@@ -1,10 +1,13 @@
+'use client';
+
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { ExternalLink, Loader2, RefreshCw, Search, X } from 'lucide-react';
 import { getToken, searchTokens, dexscreenerChainId, type TokenMarket } from '../api/dexscreener';
 import { getChain } from '../lib/fees';
 import { compactUsd, pct, price, shortAddress, time } from '../lib/format';
-import { useI18n } from '../i18n/I18n';
-import { cx, LiveBadge } from './ui';
+import { t } from '../lib/copy';
+import { LiveBadge } from './ui';
+import { cx } from '../lib/cx';
 
 function TokenIcon({ token, size = 36 }: { token: Pick<TokenMarket, 'imageUrl' | 'symbol'>; size?: number }) {
   const [failed, setFailed] = useState(false);
@@ -35,7 +38,6 @@ function TokenIcon({ token, size = 36 }: { token: Pick<TokenMarket, 'imageUrl' |
 }
 
 export function TokenLookup(props: { token: TokenMarket | null; onChange: (t: TokenMarket | null) => void }) {
-  const { t, locale } = useI18n();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<TokenMarket[]>([]);
   const [status, setStatus] = useState<'idle' | 'loading' | 'error' | 'done'>('idle');
@@ -159,26 +161,26 @@ export function TokenLookup(props: { token: TokenMarket | null; onChange: (t: To
         <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2.5 sm:grid-cols-4">
           <div>
             <dt className="text-[11px] text-muted">{t.profit.price}</dt>
-            <dd className="num text-sm text-ink">{price(token.priceUsd, locale)}</dd>
+            <dd className="num text-sm text-ink">{price(token.priceUsd)}</dd>
           </div>
           <div>
             <dt className="text-[11px] text-muted">{token.marketCap !== null ? t.profit.mcap : t.profit.fdv}</dt>
-            <dd className="num text-sm text-ink">{compactUsd(token.marketCap ?? token.fdv, locale)}</dd>
+            <dd className="num text-sm text-ink">{compactUsd(token.marketCap ?? token.fdv)}</dd>
           </div>
           <div>
             <dt className="text-[11px] text-muted">{t.profit.liquidity}</dt>
-            <dd className="num text-sm text-ink">{compactUsd(token.liquidityUsd, locale)}</dd>
+            <dd className="num text-sm text-ink">{compactUsd(token.liquidityUsd)}</dd>
           </div>
           <div>
             <dt className="text-[11px] text-muted">{t.profit.change24h}</dt>
             <dd className={cx('num text-sm', change === null ? 'text-ink' : change >= 0 ? 'text-pos' : 'text-neg')}>
-              {change === null ? '-' : pct(change / 100, locale, { signed: true })}
+              {change === null ? '-' : pct(change / 100, { signed: true })}
             </dd>
           </div>
         </dl>
         <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-line pt-2.5 text-xs text-muted">
           <span>
-            {refreshError ? t.common.loadError : t.common.updated(time(token.fetchedAt, locale))}
+            {refreshError ? t.common.loadError : t.common.updated(time(token.fetchedAt))}
           </span>
           <span className="flex items-center gap-1">
             <button
@@ -280,9 +282,9 @@ export function TokenLookup(props: { token: TokenMarket | null; onChange: (t: To
                     <span className="block truncate text-xs text-muted">{r.name}</span>
                   </span>
                   <span className="shrink-0 text-right">
-                    <span className="num block text-sm text-ink">{compactUsd(r.marketCap ?? r.fdv, locale)}</span>
+                    <span className="num block text-sm text-ink">{compactUsd(r.marketCap ?? r.fdv)}</span>
                     <span className="num block text-[11px] text-muted">
-                      {t.profit.liquidity} {compactUsd(r.liquidityUsd, locale)}
+                      {t.profit.liquidity} {compactUsd(r.liquidityUsd)}
                     </span>
                   </span>
                 </li>

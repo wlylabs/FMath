@@ -1,12 +1,15 @@
+'use client';
+
 import { useCallback, useId, useRef } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { CHAINS, getChain, type ChainId, type TokenClass } from '../../lib/fees';
 import { roundTrip, type RoundTripInput } from '../../lib/roundtrip';
 import { compactUsd, multiple, num, parseAmount, pct, price, usd } from '../../lib/format';
 import type { TokenMarket } from '../../api/dexscreener';
-import { useI18n } from '../../i18n/I18n';
+import { t } from '../../lib/copy';
 import { usePersistentState } from '../../hooks/usePersistentState';
-import { CardTitle, Field, Headline, Notice, NumberInput, Pills, QuickPicks, Row, Segmented, Switch, cx } from '../ui';
+import { CardTitle, Field, Headline, Notice, NumberInput, Pills, QuickPicks, Row, Segmented, Switch } from '../ui';
+import { cx } from '../../lib/cx';
 import { TokenLookup } from '../TokenLookup';
 import { MobileSummary } from '../MobileSummary';
 import { AMOUNT_PICKS } from './FeeCalculator';
@@ -51,7 +54,6 @@ function optionalPct(raw: string): { value: number; valid: boolean } {
 }
 
 export function ProfitCalculator() {
-  const { t, locale } = useI18n();
   const [s, setS] = usePersistentState<State>('profit', INITIAL);
   const set = <K extends keyof State>(k: K, v: State[K]) => setS((p) => ({ ...p, [k]: v }));
   const ids = {
@@ -161,7 +163,7 @@ export function ProfitCalculator() {
             />
             <QuickPicks
               label={t.common.quick}
-              values={AMOUNT_PICKS.map((v) => ({ value: v, label: '$' + Number(v).toLocaleString(locale === 'id' ? 'id-ID' : 'en-US') }))}
+              values={AMOUNT_PICKS.map((v) => ({ value: v, label: '$' + Number(v).toLocaleString('en-US') }))}
               current={buyValid ? String(buy) : undefined}
               onPick={(v) => set('buy', v)}
             />
@@ -170,7 +172,7 @@ export function ProfitCalculator() {
             label={t.profit.entryMcap}
             htmlFor={ids.entry}
             optional={s.targetBy === 'multiple'}
-            hint={entryValid ? compactUsd(entryMcap, locale) : undefined}
+            hint={entryValid ? compactUsd(entryMcap) : undefined}
           >
             <NumberInput
               id={ids.entry}
@@ -202,8 +204,8 @@ export function ProfitCalculator() {
               htmlFor={ids.target}
               hint={
                 entryValid && Number.isFinite(m)
-                  ? t.profit.impliedMcap(compactUsd(entryMcap * m, locale)) +
-                    (targetPrice ? ` · ${t.profit.impliedPrice(price(targetPrice, locale))}` : '')
+                  ? t.profit.impliedMcap(compactUsd(entryMcap * m)) +
+                    (targetPrice ? ` · ${t.profit.impliedPrice(price(targetPrice))}` : '')
                   : undefined
               }
             >
@@ -217,7 +219,7 @@ export function ProfitCalculator() {
               />
               <QuickPicks
                 label={t.common.quick}
-                values={MULTIPLE_PICKS.map((v) => ({ value: v, label: v.replace('.', locale === 'id' ? ',' : '.') + 'x' }))}
+                values={MULTIPLE_PICKS.map((v) => ({ value: v, label: v + 'x' }))}
                 current={Number.isFinite(targetMultiple) ? String(targetMultiple) : undefined}
                 onPick={(v) => set('targetMultiple', v)}
               />
@@ -230,8 +232,8 @@ export function ProfitCalculator() {
                 !entryValid
                   ? t.profit.needEntry
                   : Number.isFinite(m)
-                    ? `${compactUsd(targetMcap, locale)} · ${multiple(m, locale)}` +
-                      (targetPrice ? ` · ${t.profit.impliedPrice(price(targetPrice, locale))}` : '')
+                    ? `${compactUsd(targetMcap)} · ${multiple(m)}` +
+                      (targetPrice ? ` · ${t.profit.impliedPrice(price(targetPrice))}` : '')
                     : undefined
               }
             >
@@ -246,7 +248,7 @@ export function ProfitCalculator() {
               {entryValid && (
                 <QuickPicks
                   label={t.common.quick}
-                  values={[2, 5, 10, 100].map((k) => ({ value: String(Math.round(entryMcap * k)), label: compactUsd(entryMcap * k, locale) }))}
+                  values={[2, 5, 10, 100].map((k) => ({ value: String(Math.round(entryMcap * k)), label: compactUsd(entryMcap * k) }))}
                   current={Number.isFinite(targetMcap) ? String(targetMcap) : undefined}
                   onPick={(v) => set('targetMcap', v)}
                 />
@@ -323,15 +325,15 @@ export function ProfitCalculator() {
             <div className="mt-4">
               <Headline
                 label={result.pnl >= 0 ? t.profit.netPnl : t.profit.loss}
-                value={usd(result.pnl, locale, { signed: true })}
+                value={usd(result.pnl, { signed: true })}
                 tone={tone}
                 sub={
                   <span>
                     {t.profit.roi}{' '}
                     <span className={cx('num font-medium', tone === 'pos' ? 'text-pos' : 'text-neg')}>
-                      {pct(result.roi, locale, { signed: true })}
+                      {pct(result.roi, { signed: true })}
                     </span>{' '}
-                    · {t.profit.proceeds} <span className="num font-medium text-ink">{usd(result.proceeds, locale)}</span>
+                    · {t.profit.proceeds} <span className="num font-medium text-ink">{usd(result.proceeds)}</span>
                   </span>
                 }
               />
@@ -339,40 +341,40 @@ export function ProfitCalculator() {
             <dl className="mt-5 divide-y divide-line border-t border-line">
               <Row
                 label={t.profit.breakEven}
-                value={multiple(result.breakEvenMultiple, locale)}
-                sub={pct(result.breakEvenMultiple - 1, locale, { signed: true })}
+                value={multiple(result.breakEvenMultiple)}
+                sub={pct(result.breakEvenMultiple - 1, { signed: true })}
                 strong
               />
               {entryValid && (
-                <Row label={t.profit.breakEvenMcap} value={compactUsd(entryMcap * result.breakEvenMultiple, locale)} />
+                <Row label={t.profit.breakEvenMcap} value={compactUsd(entryMcap * result.breakEvenMultiple)} />
               )}
-              <Row label={t.profit.costs} value={usd(result.totalCosts, locale)} sub={pct(result.totalCosts / buy, locale)} />
+              <Row label={t.profit.costs} value={usd(result.totalCosts)} sub={pct(result.totalCosts / buy)} />
             </dl>
 
             <div className="mt-4 grid grid-cols-2 gap-3">
               <LegCard
                 title={t.profit.buyLeg}
                 rows={[
-                  [t.profit.fomoFee, usd(result.buyFee, locale)],
-                  [t.profit.network, usd(result.buyNetworkFee, locale)],
-                  [t.profit.impact, usd(result.buyImpactCost, locale)],
+                  [t.profit.fomoFee, usd(result.buyFee)],
+                  [t.profit.network, usd(result.buyNetworkFee)],
+                  [t.profit.impact, usd(result.buyImpactCost)],
                 ]}
-                footer={[t.profit.positionEntry, usd(result.positionAtEntry, locale)]}
+                footer={[t.profit.positionEntry, usd(result.positionAtEntry)]}
               />
               <LegCard
                 title={t.profit.sellLeg}
                 rows={[
-                  [t.profit.fomoFee, usd(result.sellFee, locale)],
-                  [t.profit.network, usd(result.sellNetworkFee, locale)],
-                  [t.profit.impact, usd(result.sellImpactCost, locale)],
+                  [t.profit.fomoFee, usd(result.sellFee)],
+                  [t.profit.network, usd(result.sellNetworkFee)],
+                  [t.profit.impact, usd(result.sellImpactCost)],
                 ]}
-                footer={[t.profit.positionExit, usd(result.positionAtExit, locale)]}
+                footer={[t.profit.positionExit, usd(result.positionAtExit)]}
               />
             </div>
 
             {Number.isFinite(result.breakEvenMultiple) && result.breakEvenMultiple > 1 && (
               <div className="mt-4">
-                <Notice>{t.profit.breakEvenNote(pct(result.breakEvenMultiple - 1, locale))}</Notice>
+                <Notice>{t.profit.breakEvenNote(pct(result.breakEvenMultiple - 1))}</Notice>
               </div>
             )}
 
@@ -396,10 +398,10 @@ export function ProfitCalculator() {
                 <tbody>
                   {scenarios.map(({ k, r }) => (
                     <tr key={k} className="border-t border-line">
-                      <td className="num py-2 text-ink-2">{num(k, locale)}x</td>
-                      <td className="num py-2 text-right text-ink">{usd(r.proceeds, locale)}</td>
+                      <td className="num py-2 text-ink-2">{num(k)}x</td>
+                      <td className="num py-2 text-right text-ink">{usd(r.proceeds)}</td>
                       <td className={cx('num py-2 text-right', r.pnl >= 0 ? 'text-pos' : 'text-neg')}>
-                        {usd(r.pnl, locale, { signed: true })}
+                        {usd(r.pnl, { signed: true })}
                       </td>
                     </tr>
                   ))}
@@ -418,8 +420,8 @@ export function ProfitCalculator() {
         resultsRef={resultsRef}
         containerRef={containerRef}
         label={result ? (result.pnl >= 0 ? t.profit.netPnl : t.profit.loss) : t.fee.enterAmount}
-        value={result ? usd(result.pnl, locale, { signed: true }) : undefined}
-        detail={result ? `${t.profit.roi} ${pct(result.roi, locale, { signed: true })}` : undefined}
+        value={result ? usd(result.pnl, { signed: true }) : undefined}
+        detail={result ? `${t.profit.roi} ${pct(result.roi, { signed: true })}` : undefined}
         tone={tone}
       />
     </div>

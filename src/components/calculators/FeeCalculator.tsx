@@ -1,8 +1,10 @@
+'use client';
+
 import { useId, useRef, useState } from 'react';
 import { BarChart3, Table2 } from 'lucide-react';
 import { bandsFor, CHAINS, getChain, tradeCost, type ChainId, type TokenClass } from '../../lib/fees';
 import { parseAmount, pct, usd } from '../../lib/format';
-import { useI18n } from '../../i18n/I18n';
+import { t } from '../../lib/copy';
 import { usePersistentState } from '../../hooks/usePersistentState';
 import { CardTitle, Field, Headline, Notice, NumberInput, Pills, QuickPicks, Row, Segmented, Switch } from '../ui';
 import { BandTable, bandFee, bandRange } from '../BandTable';
@@ -32,7 +34,6 @@ const INITIAL: State = {
 export const AMOUNT_PICKS = ['10', '50', '100', '190', '500', '1000'];
 
 export function FeeCalculator() {
-  const { t, locale } = useI18n();
   const [s, setS] = usePersistentState<State>('fee', INITIAL);
   const [view, setView] = useState<'chart' | 'table'>('chart');
   const set = <K extends keyof State>(k: K, v: State[K]) => setS((p) => ({ ...p, [k]: v }));
@@ -114,7 +115,7 @@ export function FeeCalculator() {
           />
           <QuickPicks
             label={t.common.quick}
-            values={AMOUNT_PICKS.map((v) => ({ value: v, label: '$' + Number(v).toLocaleString(locale === 'id' ? 'id-ID' : 'en-US') }))}
+            values={AMOUNT_PICKS.map((v) => ({ value: v, label: '$' + Number(v).toLocaleString('en-US') }))}
             current={amountValid ? String(amount) : undefined}
             onPick={(v) => set('amount', v)}
           />
@@ -158,10 +159,10 @@ export function FeeCalculator() {
             <div className="mt-4">
               <Headline
                 label={t.fee.fomoFee}
-                value={usd(result.quote.fee, locale)}
+                value={usd(result.quote.fee)}
                 sub={
                   <span>
-                    <span className="num font-medium text-ink">{pct(result.quote.effectiveRate, locale)}</span> {t.fee.effective}
+                    <span className="num font-medium text-ink">{pct(result.quote.effectiveRate)}</span> {t.fee.effective}
                   </span>
                 }
               />
@@ -169,29 +170,29 @@ export function FeeCalculator() {
             <dl className="mt-5 divide-y divide-line border-t border-line">
               <Row
                 label={t.fee.band}
-                value={bandFee(result.quote.band, s.referral, t, locale)}
-                sub={bandRange(bands, result.quote.bandIndex, t, locale)}
+                value={bandFee(result.quote.band, s.referral)}
+                sub={bandRange(bands, result.quote.bandIndex)}
               />
               <Row
                 label={t.fee.network}
-                value={usd(result.networkFee, locale)}
+                value={usd(result.networkFee)}
                 sub={chain.gasCovered ? t.fee.covered : undefined}
                 tone={chain.gasCovered ? 'muted' : undefined}
               />
-              {result.impactCost > 0 && <Row label={t.fee.impact} value={usd(result.impactCost, locale)} />}
-              <Row label={t.fee.total} value={usd(result.totalCost, locale)} sub={`${pct(result.allInRate, locale)} ${t.fee.effective}`} strong />
+              {result.impactCost > 0 && <Row label={t.fee.impact} value={usd(result.impactCost)} />}
+              <Row label={t.fee.total} value={usd(result.totalCost)} sub={`${pct(result.allInRate)} ${t.fee.effective}`} strong />
               <Row
                 label={s.side === 'buy' ? t.fee.receivedBuy : t.fee.receivedSell}
-                value={usd(result.received, locale)}
+                value={usd(result.received)}
                 strong
               />
               {s.referral && result.savedByReferral > 0 && (
-                <Row label={t.fee.saved} value={usd(result.savedByReferral, locale)} tone="pos" />
+                <Row label={t.fee.saved} value={usd(result.savedByReferral)} tone="pos" />
               )}
             </dl>
             <div className="mt-4 space-y-2">
               {result.belowMinSell && (
-                <Notice tone="warn">{t.fee.minSell(usd(chain.minSellUsd, locale), chain.name)}</Notice>
+                <Notice tone="warn">{t.fee.minSell(usd(chain.minSellUsd), chain.name)}</Notice>
               )}
               {s.tokenClass === 'major' && result.quote.band.kind === 'flat' && <Notice>{t.fee.majorCap}</Notice>}
             </div>
@@ -243,8 +244,8 @@ export function FeeCalculator() {
         resultsRef={resultsRef}
         containerRef={containerRef}
         label={result ? t.fee.fomoFee : t.fee.enterAmount}
-        value={result ? usd(result.quote.fee, locale) : undefined}
-        detail={result ? `${pct(result.quote.effectiveRate, locale)} ${t.fee.effective}` : undefined}
+        value={result ? usd(result.quote.fee) : undefined}
+        detail={result ? `${pct(result.quote.effectiveRate)} ${t.fee.effective}` : undefined}
       />
     </div>
   );

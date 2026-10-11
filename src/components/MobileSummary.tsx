@@ -1,7 +1,9 @@
+'use client';
+
 import { useEffect, useState, type ReactNode, type RefObject } from 'react';
 import { ChevronDown } from 'lucide-react';
-import { useI18n } from '../i18n/I18n';
-import { cx } from './ui';
+import { t } from '../lib/copy';
+import { cx } from '../lib/cx';
 
 /**
  * Bottom bar on small screens that keeps the headline result in view while
@@ -15,7 +17,6 @@ export function MobileSummary(props: {
   detail?: ReactNode;
   tone?: 'pos' | 'neg';
 }) {
-  const { t } = useI18n();
   const [show, setShow] = useState(false);
 
   useEffect(() => {

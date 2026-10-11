@@ -1,11 +1,14 @@
+'use client';
+
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { fetchPerpMarkets, type PerpMarket } from '../../api/hyperliquid';
 import { PERPS_FEES, perpTrade, venueFeeRate, type OrderKind, type PerpSide, type PerpVenue } from '../../lib/perps';
 import { num, parseAmount, pct, price, time, usd } from '../../lib/format';
-import { useI18n } from '../../i18n/I18n';
+import { t } from '../../lib/copy';
 import { usePersistentState } from '../../hooks/usePersistentState';
-import { CardTitle, Field, Headline, LiveBadge, Notice, NumberInput, QuickPicks, Row, Segmented, Switch, cx } from '../ui';
+import { CardTitle, Field, Headline, LiveBadge, Notice, NumberInput, QuickPicks, Row, Segmented, Switch } from '../ui';
+import { cx } from '../../lib/cx';
 import { MobileSummary } from '../MobileSummary';
 
 interface State {
@@ -51,7 +54,6 @@ function toInput(n: number): string {
 }
 
 export function PerpsCalculator() {
-  const { t, locale } = useI18n();
   const [s, setS] = usePersistentState<State>('perps', INITIAL);
   const set = <K extends keyof State>(k: K, v: State[K]) => setS((p) => ({ ...p, [k]: v }));
   const [load, setLoad] = useState<Load>({ status: 'loading', markets: [], at: 0 });
@@ -178,7 +180,7 @@ export function PerpsCalculator() {
             load.status === 'ready' ? (
               <span className="flex items-center gap-2">
                 <LiveBadge label={t.common.live} />
-                <span className="num text-[11px] text-muted">{time(load.at, locale)}</span>
+                <span className="num text-[11px] text-muted">{time(load.at)}</span>
               </span>
             ) : null
           }
@@ -223,7 +225,7 @@ export function PerpsCalculator() {
             <dl className="mt-2.5 grid grid-cols-3 gap-2 rounded-xl bg-surface-2 px-3.5 py-2.5">
               <div>
                 <dt className="text-[11px] text-muted">{t.perps.mark}</dt>
-                <dd className="num text-sm text-ink">{price(market.markPx, locale)}</dd>
+                <dd className="num text-sm text-ink">{price(market.markPx)}</dd>
               </div>
               <div>
                 <dt className="text-[11px] text-muted">{t.profit.change24h}</dt>
@@ -233,12 +235,12 @@ export function PerpsCalculator() {
                     market.change24h === null ? 'text-ink' : market.change24h >= 0 ? 'text-pos' : 'text-neg',
                   )}
                 >
-                  {pct(market.change24h, locale, { signed: true })}
+                  {pct(market.change24h, { signed: true })}
                 </dd>
               </div>
               <div>
                 <dt className="text-[11px] text-muted">{t.perps.fundingLive}</dt>
-                <dd className="num text-sm text-ink">{pct(market.fundingHourly, locale, { digits: 4, signed: true })}</dd>
+                <dd className="num text-sm text-ink">{pct(market.fundingHourly, { digits: 4, signed: true })}</dd>
               </div>
             </dl>
           )}
@@ -284,7 +286,7 @@ export function PerpsCalculator() {
           />
           <QuickPicks
             label={t.common.quick}
-            values={MARGIN_PICKS.map((v) => ({ value: v, label: '$' + Number(v).toLocaleString(locale === 'id' ? 'id-ID' : 'en-US') }))}
+            values={MARGIN_PICKS.map((v) => ({ value: v, label: '$' + Number(v).toLocaleString('en-US') }))}
             current={marginValid ? String(margin) : undefined}
             onPick={(v) => set('margin', v)}
           />
@@ -355,7 +357,7 @@ export function PerpsCalculator() {
             {entryValid && (
               <QuickPicks
                 label={t.perps.exitHint}
-                values={MOVES.map((d) => ({ value: toInput(entry * (1 + d)), label: pct(d, locale, { digits: 0, signed: true }) }))}
+                values={MOVES.map((d) => ({ value: toInput(entry * (1 + d)), label: pct(d, { digits: 0, signed: true }) }))}
                 current={s.exit}
                 onPick={(v) => set('exit', v)}
               />
@@ -400,7 +402,7 @@ export function PerpsCalculator() {
             checked={s.referral}
             onChange={(v) => set('referral', v)}
             label={t.common.referral}
-            hint={`${t.perps.builderFee}: ${pct(PERPS_FEES.builderReferral, locale, { digits: 3 })}`}
+            hint={`${t.perps.builderFee}: ${pct(PERPS_FEES.builderReferral, { digits: 3 })}`}
           />
           {s.venue === 'xyz' && (
             <Switch
@@ -422,13 +424,13 @@ export function PerpsCalculator() {
             <div className="mt-4">
               <Headline
                 label={t.perps.netPnl}
-                value={usd(result.netPnl, locale, { signed: true })}
+                value={usd(result.netPnl, { signed: true })}
                 tone={tone}
                 sub={
                   <span>
                     {t.perps.roe}{' '}
                     <span className={cx('num font-medium', tone === 'pos' ? 'text-pos' : 'text-neg')}>
-                      {pct(result.roe, locale, { signed: true })}
+                      {pct(result.roe, { signed: true })}
                     </span>
                   </span>
                 }
@@ -437,28 +439,28 @@ export function PerpsCalculator() {
             <dl className="mt-5 divide-y divide-line border-t border-line">
               <Row
                 label={t.perps.liq}
-                value={result.liquidation === null ? t.perps.liqNone : price(result.liquidation, locale)}
-                sub={result.liquidationDistance !== null ? t.perps.liqDistance(pct(result.liquidationDistance, locale)) : undefined}
+                value={result.liquidation === null ? t.perps.liqNone : price(result.liquidation)}
+                sub={result.liquidationDistance !== null ? t.perps.liqDistance(pct(result.liquidationDistance)) : undefined}
                 strong
                 tone={result.liquidation === null ? 'muted' : 'neg'}
               />
-              <Row label={t.perps.breakEven} value={price(result.breakEven, locale)} />
+              <Row label={t.perps.breakEven} value={price(result.breakEven)} />
               <Row
                 label={t.perps.notional}
-                value={usd(result.notional, locale)}
-                sub={`${num(result.size, locale, Math.min(6, Math.max(2, market?.szDecimals ?? 4)))} ${market?.label ?? ''}`}
+                value={usd(result.notional)}
+                sub={`${num(result.size, Math.min(6, Math.max(2, market?.szDecimals ?? 4)))} ${market?.label ?? ''}`}
               />
-              <Row label={t.perps.grossPnl} value={usd(result.grossPnl, locale, { signed: true })} />
+              <Row label={t.perps.grossPnl} value={usd(result.grossPnl, { signed: true })} />
               <Row
                 label={t.perps.feeRate}
-                value={pct(result.feeRate, locale, { digits: 3 })}
-                sub={t.perps.feeSplit(pct(builderRate, locale, { digits: 3 }), pct(venueRate, locale, { digits: 3 }))}
+                value={pct(result.feeRate, { digits: 3 })}
+                sub={t.perps.feeSplit(pct(builderRate, { digits: 3 }), pct(venueRate, { digits: 3 }))}
               />
-              <Row label={t.perps.openFee} value={usd(result.openFee, locale)} />
-              <Row label={t.perps.closeFee} value={usd(result.closeFee, locale)} />
+              <Row label={t.perps.openFee} value={usd(result.openFee)} />
+              <Row label={t.perps.closeFee} value={usd(result.closeFee)} />
               <Row
                 label={result.funding >= 0 ? t.perps.fundingCost : t.perps.fundingGain}
-                value={usd(Math.abs(result.funding), locale)}
+                value={usd(Math.abs(result.funding))}
                 tone={result.funding < 0 ? 'pos' : undefined}
               />
             </dl>
@@ -480,8 +482,8 @@ export function PerpsCalculator() {
         resultsRef={resultsRef}
         containerRef={containerRef}
         label={result ? t.perps.netPnl : t.perps.noMarket}
-        value={result ? usd(result.netPnl, locale, { signed: true }) : undefined}
-        detail={result ? `${t.perps.roe} ${pct(result.roe, locale, { signed: true })}` : undefined}
+        value={result ? usd(result.netPnl, { signed: true }) : undefined}
+        detail={result ? `${t.perps.roe} ${pct(result.roe, { signed: true })}` : undefined}
         tone={tone}
       />
     </div>

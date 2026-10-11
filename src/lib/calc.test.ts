@@ -167,16 +167,19 @@ function rArgs() {
 }
 
 describe('parseAmount', () => {
-  it('reads both decimal conventions', () => {
+  it('reads US-style amounts and tolerates comma decimals', () => {
     expect(parseAmount('1250')).toBe(1250);
     expect(parseAmount('1250.5')).toBe(1250.5);
-    expect(parseAmount('1250,5')).toBe(1250.5);
-    expect(parseAmount('1.250,50')).toBe(1250.5);
+    expect(parseAmount('1,250')).toBe(1250);
     expect(parseAmount('1,250.50')).toBe(1250.5);
+    expect(parseAmount('12,500,000')).toBe(12500000);
+    expect(parseAmount('1.250,50')).toBe(1250.5);
     expect(parseAmount('1.250.000')).toBe(1250000);
-    expect(parseAmount('1,250,000')).toBe(1250000);
     expect(parseAmount('145.125')).toBe(145.125);
+    expect(parseAmount('0,5')).toBe(0.5);
+    expect(parseAmount('12,75')).toBe(12.75);
     expect(parseAmount('0,005')).toBe(0.005);
+    expect(parseAmount('1,2,3')).toBeNaN();
     expect(parseAmount('$ 100')).toBe(100);
     expect(parseAmount('abc')).toBeNaN();
     expect(parseAmount('')).toBeNaN();

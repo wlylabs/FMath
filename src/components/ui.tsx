@@ -1,11 +1,10 @@
+'use client';
+
 import { useId, useRef, type KeyboardEvent, type ReactNode } from 'react';
 import { AlertTriangle, Info } from 'lucide-react';
-import { useI18n } from '../i18n/I18n';
+import { t } from '../lib/copy';
+import { cx } from '../lib/cx';
 import { isAmbiguousAmount, num, parseAmount } from '../lib/format';
-
-export function cx(...parts: (string | false | null | undefined)[]): string {
-  return parts.filter(Boolean).join(' ');
-}
 
 export function Field(props: {
   label: ReactNode;
@@ -16,7 +15,6 @@ export function Field(props: {
   children: ReactNode;
   labelId?: string;
 }) {
-  const { t } = useI18n();
   const Label = props.htmlFor ? 'label' : 'span';
   return (
     <div className="min-w-0">
@@ -45,8 +43,7 @@ export function NumberInput(props: {
   describedBy?: string;
   ariaLabel?: string;
 }) {
-  const { t, locale } = useI18n();
-  const echo = isAmbiguousAmount(props.value) ? num(parseAmount(props.value), locale, 8) : null;
+  const echo = isAmbiguousAmount(props.value) ? num(parseAmount(props.value), 8) : null;
   return (
     <>
     <div

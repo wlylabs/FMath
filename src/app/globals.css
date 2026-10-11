@@ -56,8 +56,8 @@
 }
 
 @theme inline {
-  --font-sans: 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: 'Geist Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, 'SFMono-Regular', Menlo, monospace;
   --color-bg: var(--bg);
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
@@ -90,7 +90,7 @@
   body {
     background: var(--bg);
     color: var(--ink);
-    font-family: var(--font-sans);
+    font-family: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
     font-feature-settings: 'ss01', 'cv11';
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -126,7 +126,7 @@
 
 @layer components {
   .num {
-    font-family: var(--font-mono);
+    font-family: var(--font-geist-mono), ui-monospace, 'SFMono-Regular', Menlo, monospace;
     font-variant-numeric: tabular-nums;
     letter-spacing: -0.01em;
   }

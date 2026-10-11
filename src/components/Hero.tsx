@@ -2,20 +2,19 @@ import { ArrowDown, ArrowRight, CalendarCheck, Gauge, Receipt, Target } from 'lu
 import { FEE_SCHEDULE, fomoFee } from '../lib/fees';
 import { PERPS_FEES } from '../lib/perps';
 import { date, pct, usd } from '../lib/format';
-import { useI18n } from '../i18n/I18n';
-import { cx } from './ui';
+import { t } from '../lib/copy';
+import { cx } from '../lib/cx';
 
 const EXAMPLE_SIZES = [10, 50, 190, 1000];
 
 export function Hero() {
-  const { t, locale } = useI18n();
   const examples = EXAMPLE_SIZES.map((size) => ({ size, ...fomoFee(size, 'solana') }));
   const maxRate = Math.max(...examples.map((e) => e.effectiveRate));
   const facts = [
-    { value: pct(FEE_SCHEDULE.standard[0].value, locale), label: t.facts.standard },
+    { value: pct(FEE_SCHEDULE.standard[0].value), label: t.facts.standard },
     { value: t.facts.solanaValue(FEE_SCHEDULE.solana.length), label: t.facts.solana },
-    { value: pct(PERPS_FEES.builder, locale), label: t.facts.builder },
-    { value: pct(FEE_SCHEDULE.referralDiscount, locale, { digits: 0 }), label: t.facts.referral },
+    { value: pct(PERPS_FEES.builder), label: t.facts.builder },
+    { value: pct(FEE_SCHEDULE.referralDiscount, { digits: 0 }), label: t.facts.referral },
   ];
 
   return (
@@ -36,14 +35,14 @@ export function Hero() {
           <p className="mt-5 max-w-xl text-base leading-relaxed text-ink-2 sm:text-lg">{t.hero.lead}</p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <a
-              href="#kalkulator"
+              href="#calculator"
               className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-accent px-5 text-sm font-semibold text-accent-ink transition-colors hover:bg-accent-hover"
             >
               {t.hero.cta}
               <ArrowDown aria-hidden className="size-4" />
             </a>
             <a
-              href="#cara-hitung"
+              href="#methodology"
               className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-line bg-surface px-5 text-sm font-semibold text-ink transition-colors hover:border-line-strong"
             >
               {t.hero.ctaSecondary}
@@ -52,7 +51,7 @@ export function Hero() {
           </div>
           <p className="mt-5 flex items-center gap-2 text-xs text-muted">
             <CalendarCheck aria-hidden className="size-3.5" />
-            {t.hero.schedule(date(FEE_SCHEDULE.version, locale))}
+            {t.hero.schedule(date(FEE_SCHEDULE.version))}
           </p>
         </div>
 
@@ -66,11 +65,11 @@ export function Hero() {
               <li key={e.size}>
                 <div className="flex items-baseline justify-between gap-3 text-sm">
                   <span className="num text-ink-2">
-                    {t.chart.order} {usd(e.size, locale)}
+                    {t.chart.order} {usd(e.size)}
                   </span>
                   <span className="num">
-                    <span className="font-semibold text-ink">{usd(e.fee, locale)}</span>
-                    <span className="ml-2 text-muted">{pct(e.effectiveRate, locale)}</span>
+                    <span className="font-semibold text-ink">{usd(e.fee)}</span>
+                    <span className="ml-2 text-muted">{pct(e.effectiveRate)}</span>
                   </span>
                 </div>
                 <div className="mt-2 h-2 rounded-full bg-surface-2">
@@ -101,7 +100,6 @@ export function Hero() {
 }
 
 export function Features() {
-  const { t } = useI18n();
   const icons = [Receipt, Target, Gauge];
   return (
     <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:py-20" aria-labelledby="features-title">

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, type SetStateAction } from 'react';
 
 const PREFIX = 'fmath:';
 
@@ -16,15 +16,34 @@ function read<T>(key: string, initial: T): T {
   }
 }
 
-/** useState that survives reloads on this device. Storage failures are ignored. */
+/**
+ * useState that survives reloads on this device. The first render uses the
+ * initial value so it matches the prerendered HTML; the saved value loads
+ * right after mount. Storage failures are ignored.
+ */
 export function usePersistentState<T>(key: string, initial: T) {
-  const [value, setValue] = useState<T>(() => read(key, initial));
+  const [state, setState] = useState<{ value: T; ready: boolean }>({ value: initial, ready: false });
+
   useEffect(() => {
+    setState({ value: read(key, initial), ready: true });
+    // initial is a constant default; only the key decides what to load
+  }, [key]);
+
+  useEffect(() => {
+    if (!state.ready) return;
     try {
-      localStorage.setItem(PREFIX + key, JSON.stringify(value));
+      localStorage.setItem(PREFIX + key, JSON.stringify(state.value));
     } catch {
       /* private mode or storage full: keep working in memory */
     }
-  }, [key, value]);
-  return [value, setValue] as const;
+  }, [key, state]);
+
+  const setValue = useCallback((action: SetStateAction<T>) => {
+    setState((s) => ({
+      ready: s.ready,
+      value: typeof action === 'function' ? (action as (prev: T) => T)(s.value) : action,
+    }));
+  }, []);
+
+  return [state.value, setValue] as const;
 }

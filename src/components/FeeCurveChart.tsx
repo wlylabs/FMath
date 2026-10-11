@@ -1,7 +1,9 @@
+'use client';
+
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type PointerEvent } from 'react';
 import { fomoFee, getChain, type ChainId, type TokenClass } from '../lib/fees';
 import { compactUsd, pct, usd } from '../lib/format';
-import { useI18n } from '../i18n/I18n';
+import { t } from '../lib/copy';
 
 interface Props {
   chain: ChainId;
@@ -42,7 +44,6 @@ function tickDigits(y: number): number {
 
 /** Effective fee rate across order sizes: one series, log x, hover crosshair. */
 export function FeeCurveChart(props: Props) {
-  const { t, locale } = useI18n();
   const wrapRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(640);
   const [hoverX, setHoverX] = useState<number | null>(null);
@@ -120,7 +121,7 @@ export function FeeCurveChart(props: Props) {
         viewBox={`0 0 ${width} ${HEIGHT}`}
         role="img"
         aria-label={`${t.chart.title}. ${t.chart.xLabel}.`}
-        className="block overflow-visible"
+        className="block h-auto max-w-full overflow-visible"
       >
         <defs>
           <clipPath id={clipId}>
@@ -131,13 +132,13 @@ export function FeeCurveChart(props: Props) {
           <g key={y}>
             <line x1={PAD.left} x2={width - PAD.right} y1={sy(y)} y2={sy(y)} stroke="var(--line)" strokeWidth={1} />
             <text x={PAD.left - 8} y={sy(y)} dy="0.32em" textAnchor="end" className="num fill-muted text-[11px]">
-              {pct(y, locale, { digits: tickDigits(y) })}
+              {pct(y, { digits: tickDigits(y) })}
             </text>
           </g>
         ))}
         {xTicks.map((x) => (
           <text key={x} x={sx(x)} y={HEIGHT - PAD.bottom + 18} textAnchor="middle" className="num fill-muted text-[11px]">
-            {x < 1000 ? '$' + x.toLocaleString(locale === 'id' ? 'id-ID' : 'en-US') : compactUsd(x, locale)}
+            {x < 1000 ? '$' + x.toLocaleString('en-US') : compactUsd(x)}
           </text>
         ))}
         <g clipPath={`url(#${clipId})`}>
@@ -189,15 +190,15 @@ export function FeeCurveChart(props: Props) {
           className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-full rounded-lg border border-line bg-surface px-3 py-2 shadow-lg"
           style={{ left: tip.left, top: tip.top }}
         >
-          <p className="num text-sm font-semibold text-ink">{pct(hover.y, locale)}</p>
+          <p className="num text-sm font-semibold text-ink">{pct(hover.y)}</p>
           <p className="num mt-0.5 whitespace-nowrap text-xs text-muted">
-            {t.chart.order} {usd(hover.x, locale)} · {t.chart.fee} {usd(hover.y * hover.x, locale)}
+            {t.chart.order} {usd(hover.x)} · {t.chart.fee} {usd(hover.y * hover.x)}
           </p>
         </div>
       )}
       <div className="mt-1 flex flex-wrap items-center justify-between gap-2 text-xs text-muted">
         <span>{t.chart.xLabel}</span>
-        {clipped && <span>{t.chart.clipped(pct(yMax, locale, { digits: tickDigits(yMax) }))}</span>}
+        {clipped && <span>{t.chart.clipped(pct(yMax, { digits: tickDigits(yMax) }))}</span>}
       </div>
     </div>
   );
