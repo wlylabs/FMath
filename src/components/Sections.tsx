@@ -134,6 +134,7 @@ export function Footer() {
     { href: ROUTES.fee, label: t.calc.tabs.fee },
     { href: ROUTES.profit, label: t.calc.tabs.profit },
     { href: ROUTES.perps, label: t.calc.tabs.perps },
+    { href: ROUTES.quiz, label: t.nav.quiz },
     { href: ROUTES.referral, label: t.nav.referral },
     { href: ROUTES.methodology, label: t.nav.method },
     { href: ROUTES.faq, label: t.nav.faq },

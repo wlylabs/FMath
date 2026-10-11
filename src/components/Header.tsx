@@ -16,6 +16,7 @@ export function Header() {
   const pathname = usePathname();
   const links = [
     { href: ROUTES.fee, label: t.nav.calculators, active: CALCULATOR_KEYS.some((k) => samePage(pathname, ROUTES[k])) },
+    { href: ROUTES.quiz, label: t.nav.quiz, active: samePage(pathname, ROUTES.quiz) },
     { href: ROUTES.referral, label: t.nav.referral, active: samePage(pathname, ROUTES.referral) },
     { href: ROUTES.methodology, label: t.nav.method, active: samePage(pathname, ROUTES.methodology) },
     { href: ROUTES.faq, label: t.nav.faq, active: samePage(pathname, ROUTES.faq) },
