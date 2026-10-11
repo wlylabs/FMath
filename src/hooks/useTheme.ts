@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { BRAND } from '../lib/brand';
 
 export type Theme = 'light' | 'dark';
 
@@ -11,7 +12,7 @@ export function useTheme() {
     const root = document.documentElement;
     const next: Theme = root.dataset.theme === 'dark' ? 'light' : 'dark';
     root.dataset.theme = next;
-    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', next === 'dark' ? '#0b0c0e' : '#f6f7f9');
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', next === 'dark' ? BRAND.darkBg : BRAND.lightBg);
     try {
       localStorage.setItem('fmath:theme', next);
     } catch {

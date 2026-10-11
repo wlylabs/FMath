@@ -5,14 +5,15 @@ import { FEE_SCHEDULE, fomoFee } from '../../lib/fees';
 import { PERPS_FEES } from '../../lib/perps';
 import { pct, usd } from '../../lib/format';
 import { t } from '../../lib/copy';
+import { BRAND } from '../../lib/brand';
 
 // Served as /og.png so static hosts send it with an image content type.
 export const dynamic = 'force-static';
 
 const FONT_DIR = join(process.cwd(), 'node_modules/geist/dist/fonts/geist-sans');
 
-const INK = '#0b0c0e';
-const LIME = '#b8f03c';
+const INK = BRAND.glyph;
+const MARIGOLD = BRAND.marigold;
 
 export async function GET() {
   const [regular, semibold] = await Promise.all([
@@ -27,23 +28,23 @@ export async function GET() {
   ];
   return new ImageResponse(
     (
-      <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: INK, padding: 72, color: '#eceef1', fontFamily: 'Geist' }}>
+      <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: BRAND.darkBg, padding: 72, color: BRAND.darkInk, fontFamily: 'Geist' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 22 }}>
           <svg width="76" height="76" viewBox="0 0 64 64">
-            <rect width="64" height="64" rx="16" fill={LIME} />
+            <rect width="64" height="64" rx="16" fill={MARIGOLD} />
             <circle cx="21" cy="23" r="12" fill={INK} />
             <circle cx="43" cy="41" r="12" fill={INK} />
-            <path d="M20 55H31L44 9H33Z" fill={INK} stroke={LIME} strokeWidth="5" />
+            <path d="M20 55H31L44 9H33Z" fill={INK} stroke={MARIGOLD} strokeWidth="5" />
           </svg>
           <div style={{ fontSize: 40, fontWeight: 600, letterSpacing: -1 }}>FMath</div>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           <div style={{ fontSize: 84, fontWeight: 600, lineHeight: 1.02, letterSpacing: -3, maxWidth: 940 }}>{t.hero.title}</div>
-          <div style={{ fontSize: 32, color: '#b6bcc5', maxWidth: 940 }}>Fee, break-even and perps calculator for fomo traders</div>
+          <div style={{ fontSize: 32, color: BRAND.darkInk2, maxWidth: 940 }}>Fee, break-even and perps calculator for fomo traders</div>
         </div>
         <div style={{ display: 'flex', gap: 14 }}>
           {facts.map((f) => (
-            <div key={f} style={{ display: 'flex', fontSize: 24, padding: '12px 20px', borderRadius: 999, border: '2px solid #343a43', color: '#eceef1' }}>
+            <div key={f} style={{ display: 'flex', fontSize: 24, padding: '12px 20px', borderRadius: 999, border: `2px solid ${BRAND.darkLine}`, color: BRAND.darkInk }}>
               {f}
             </div>
           ))}

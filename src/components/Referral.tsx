@@ -27,7 +27,8 @@ export function ReferralLink(props: { className?: string; children: ReactNode; '
   );
 }
 
-export function CopyCodeButton({ className }: { className?: string }) {
+export function CopyCodeButton({ className, tone = 'default' }: { className?: string; tone?: 'default' | 'coupon' }) {
+  const coupon = tone === 'coupon';
   return (
     <button
       type="button"
@@ -41,10 +42,10 @@ export function CopyCodeButton({ className }: { className?: string }) {
       aria-label={`${t.referral.copy}: ${REFERRAL.code}`}
     >
       <span className="flex flex-col leading-tight">
-        <span className="text-[11px] text-muted">{t.referral.code}</span>
-        <span className="num text-sm font-semibold text-ink">{REFERRAL.code}</span>
+        <span className={cx('text-[11px]', coupon ? 'text-accent-ink/70' : 'text-muted')}>{t.referral.code}</span>
+        <span className={cx('num text-sm font-semibold', coupon ? 'text-accent-ink' : 'text-ink')}>{REFERRAL.code}</span>
       </span>
-      <Copy aria-hidden className="size-4 text-muted group-hover:text-accent-strong" />
+      <Copy aria-hidden className={cx('size-4', coupon ? 'text-accent-ink/70' : 'text-muted group-hover:text-accent-strong')} />
     </button>
   );
 }
@@ -110,7 +111,7 @@ function SavingsEstimator() {
   const keptMonth = monthlyFees * REFERRAL.discount;
 
   return (
-    <div className="card p-5 shadow-[0_24px_60px_-30px_rgba(0,0,0,0.45)] sm:p-6">
+    <div className="card p-5 sm:p-6">
       <h3 className="text-base font-semibold text-ink">{t.referral.estimatorTitle}</h3>
       <p className="mt-1 text-xs text-muted">{t.referral.estimatorLead}</p>
 
@@ -192,33 +193,43 @@ function SavingsEstimator() {
   );
 }
 
+/** The referral as what it is, a coupon: offer on the left, the code on the tear-off stub. */
+function Coupon() {
+  return (
+    <div className="relative grid overflow-hidden rounded-3xl bg-accent text-accent-ink sm:grid-cols-[minmax(0,1fr)_13rem]">
+      <div className="p-6 sm:p-8">
+        <p className="num text-[11px] font-semibold uppercase tracking-[0.18em] text-accent-ink/70">{t.referral.eyebrow}</p>
+        <h2 id="referral-title" className="mt-3 text-[1.75rem] font-semibold leading-[1.1] tracking-tight sm:text-4xl">
+          {t.referral.headline}
+        </h2>
+        <p className="mt-3 max-w-md text-sm leading-relaxed text-accent-ink/80 sm:text-base">{t.referral.lead}</p>
+        <ReferralLink className="mt-6 inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-accent-ink px-6 text-sm font-semibold text-accent transition-opacity hover:opacity-90">
+          {t.referral.cta}
+          <ArrowUpRight aria-hidden className="size-4" />
+        </ReferralLink>
+      </div>
+      <div className="relative flex flex-col items-center justify-center gap-4 border-t-2 border-dashed border-accent-ink/25 p-6 text-center sm:border-l-2 sm:border-t-0">
+        {/* punched notches where the stub tears off */}
+        <span aria-hidden className="absolute -left-3 -top-3 size-6 rounded-full bg-bg sm:-top-3 sm:left-[-13px]" />
+        <span aria-hidden className="absolute -right-3 -top-3 size-6 rounded-full bg-bg sm:-bottom-3 sm:left-[-13px] sm:right-auto sm:top-auto" />
+        <p className="leading-none">
+          <span className="block text-6xl font-semibold tracking-tight">{t.referral.couponOff}</span>
+          <span className="mt-1 block text-sm font-medium text-accent-ink/80">{t.referral.couponFees}</span>
+        </p>
+        <CopyCodeButton className="border-accent-ink/35 bg-transparent hover:border-accent-ink" tone="coupon" />
+      </div>
+    </div>
+  );
+}
+
 export function ReferralSection() {
   return (
-    <section id="referral" aria-labelledby="referral-title" className="relative overflow-hidden">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 [background:radial-gradient(60%_50%_at_15%_20%,var(--accent-wash),transparent_70%)]"
-      />
-      <div className="relative mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:items-center lg:gap-14 lg:py-20">
+    <section id="referral" aria-labelledby="referral-title" className="border-b border-line">
+      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:items-start lg:gap-12 lg:py-20">
         <div>
-          <p className="inline-flex items-center gap-2 rounded-full border border-accent-strong/40 bg-accent-wash px-3 py-1 text-xs font-semibold text-accent-strong">
-            <BadgePercent aria-hidden className="size-3.5" />
-            {t.referral.eyebrow}
-          </p>
-          <h2 id="referral-title" className="mt-4 text-3xl font-semibold leading-[1.1] tracking-tight text-ink sm:text-4xl">
-            {t.referral.headline}
-          </h2>
-          <p className="mt-4 max-w-xl text-base leading-relaxed text-ink-2">{t.referral.lead}</p>
+          <Coupon />
 
-          <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <ReferralLink className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-accent px-6 text-sm font-semibold text-accent-ink transition-colors hover:bg-accent-hover">
-              {t.referral.cta}
-              <ArrowUpRight aria-hidden className="size-4" />
-            </ReferralLink>
-            <CopyCodeButton />
-          </div>
-
-          <ol className="mt-9 grid gap-5 sm:grid-cols-3">
+          <ol className="mt-8 grid gap-5 sm:grid-cols-3">
             {t.referral.steps.map((step, i) => (
               <li key={step.title} className="flex gap-3 sm:flex-col sm:gap-2">
                 <span className="num flex size-7 shrink-0 items-center justify-center rounded-full bg-ink text-xs font-semibold text-bg">

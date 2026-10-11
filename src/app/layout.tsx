@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { GeistSans } from 'geist/font/sans';
 import { GeistMono } from 'geist/font/mono';
 import { SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, SITE_URL } from '../lib/site';
+import { BRAND } from '../lib/brand';
 import { PwaProvider } from '../components/pwa/PwaProvider';
 import { Toaster } from '../components/Toaster';
 import './globals.css';
@@ -34,12 +35,12 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: 'cover',
   colorScheme: 'dark light',
-  themeColor: '#0b0c0e',
+  themeColor: BRAND.darkBg,
 };
 
 // Runs before first paint so the saved or system theme applies without a flash, and
 // keeps the install prompt if the browser offers it before React has loaded.
-const themeScript = `(function(){window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();window.__fmathInstall=e});var t;try{t=localStorage.getItem('fmath:theme')}catch(e){}if(t!=='light'&&t!=='dark'){t=window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'}document.documentElement.dataset.theme=t;var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',t==='dark'?'#0b0c0e':'#f6f7f9')})();`;
+const themeScript = `(function(){window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();window.__fmathInstall=e});var t;try{t=localStorage.getItem('fmath:theme')}catch(e){}if(t!=='light'&&t!=='dark'){t=window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'}document.documentElement.dataset.theme=t;var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',t==='dark'?'${BRAND.darkBg}':'${BRAND.lightBg}')})();`;
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (

@@ -15,6 +15,7 @@ export const t = {
     lead: 'Work out trade fees, break-even and net profit for spot and perps on fomo. Uses the latest fee schedule and live market prices from DexScreener and Hyperliquid.',
     cta: 'Open the calculator',
     ctaSecondary: 'See the math',
+    receipt: 'Fee receipt',
     referralLead: 'New to fomo?',
     referralLink: 'Trade with me and get 10% off fees',
     schedule: (d: string) => `Help Center fee schedule dated ${d}`,
@@ -243,6 +244,8 @@ export const t = {
   },
   referral: {
     eyebrow: 'Referral',
+    couponOff: '10%',
+    couponFees: 'off trading fees',
     headline: 'Trade with me on fomo and get 10% off fees!',
     lead: 'Sign up through my link and the discount is applied to your trading fees. Same app, same trades, smaller fee on every order.',
     cta: 'Get 10% off on fomo',

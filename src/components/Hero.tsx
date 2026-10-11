@@ -20,10 +20,6 @@ export function Hero() {
 
   return (
     <section id="top" className="relative overflow-hidden">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-60 [background-image:linear-gradient(var(--line)_1px,transparent_1px),linear-gradient(90deg,var(--line)_1px,transparent_1px)] [background-size:48px_48px] [mask-image:radial-gradient(ellipse_70%_60%_at_50%_0%,black,transparent)]"
-      />
       <div className="relative mx-auto grid max-w-6xl gap-10 px-4 pb-14 pt-12 sm:px-6 sm:pt-16 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:items-center lg:gap-14 lg:pb-20 lg:pt-24">
         <div>
           <p className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1 text-xs font-medium text-ink-2">
@@ -67,12 +63,13 @@ export function Hero() {
           </p>
         </div>
 
-        <figure className="card p-5 shadow-[0_24px_60px_-30px_rgba(0,0,0,0.45)] sm:p-6">
-          <figcaption className="flex items-baseline justify-between gap-3">
-            <span className="text-sm font-semibold text-ink">{t.chart.title}</span>
-            <span className="text-xs text-muted">Solana</span>
+        <figure className="receipt relative mb-3 rounded-t-2xl bg-surface px-5 pb-7 pt-5 sm:px-7 sm:pt-6">
+          <figcaption className="num flex items-baseline justify-between gap-3 border-b border-dashed border-line-strong pb-3 text-[11px] uppercase tracking-[0.16em] text-muted">
+            <span>{t.hero.receipt}</span>
+            <span>Solana</span>
           </figcaption>
-          <ul className="mt-5 space-y-4">
+          <p className="mt-4 text-sm font-semibold text-ink">{t.chart.title}</p>
+          <ul className="mt-4 space-y-4">
             {examples.map((e) => (
               <li key={e.size}>
                 <div className="flex items-baseline justify-between gap-3 text-sm">
@@ -93,7 +90,8 @@ export function Hero() {
               </li>
             ))}
           </ul>
-          <p className="mt-5 border-t border-line pt-4 text-xs leading-relaxed text-muted">{t.faq.items[1]!.a}</p>
+          <p className="mt-5 border-t border-dashed border-line-strong pt-4 text-xs leading-relaxed text-muted">{t.faq.items[1]!.a}</p>
+          <div aria-hidden className="receipt-edge absolute inset-x-0 top-full h-3" />
         </figure>
       </div>
 

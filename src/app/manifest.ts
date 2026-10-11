@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { SITE_DESCRIPTION, SITE_NAME, SITE_TITLE } from '../lib/site';
+import { BRAND } from '../lib/brand';
 
 export const dynamic = 'force-static';
 
@@ -18,8 +19,8 @@ export default function manifest(): MetadataRoute.Manifest {
     display: 'standalone',
     display_override: ['standalone', 'minimal-ui'],
     orientation: 'any',
-    background_color: '#0b0c0e',
-    theme_color: '#0b0c0e',
+    background_color: BRAND.darkBg,
+    theme_color: BRAND.darkBg,
     categories: ['finance', 'utilities'],
     prefer_related_applications: false,
     icons: [
