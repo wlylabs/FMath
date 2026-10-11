@@ -77,13 +77,14 @@ const jsonLd = (lang: Lang) => ({
   ],
 });
 
-// Before first paint: send the installed app and old links where they belong (in the saved
-// language), send someone who picked Indonesian from / to /id/, then apply the saved or
-// system theme, the same way the app's layout does.
+// Before first paint: drop the installed app's ?source=pwa (it opens here like a browser tab
+// does), send old links where they belong (in the saved language), send someone who picked
+// Indonesian from / to /id/, then apply the saved or system theme, the same way the app's
+// layout does.
 const headScript = (lang: Lang) => `(function(){var l=location,q=new URLSearchParams(l.search),r=document.documentElement,t,g;
 try{t=localStorage.getItem('fmath:theme');g=localStorage.getItem('fmath:lang')}catch(e){}
 var P=${json(lang === 'id' ? ID_PREFIX : '')}||(g==='id'?${json(ID_PREFIX)}:'');
-if(q.get('source')==='pwa'||(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)){l.replace(P+${json(ROUTES.home)});return}
+if(q.get('source')==='pwa'){q.delete('source');var u=q.toString();history.replaceState(history.state,'',l.pathname+(u?'?'+u:'')+l.hash)}
 var tabs=${json(Object.fromEntries(CALCULATOR_KEYS.map((k) => [k, ROUTES[k]])))},tab=q.get('tab');
 if(tab&&tabs.hasOwnProperty(tab)){q.delete('tab');var s=q.toString();l.replace(P+tabs[tab]+(s?'?'+s:''));return}
 var h=${json(LEGACY_HASHES)}[l.hash];if(h){var p=h.split('#');l.replace(P+p[0]+l.search+(p[1]?'#'+p[1]:''));return}
