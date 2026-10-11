@@ -7,6 +7,8 @@ import { pct, usd } from '../../lib/format';
 import { t } from '../../lib/copy';
 import { BRAND } from '../../lib/brand';
 import { CREATOR } from '../../lib/site';
+import { identiconFor } from '../../lib/identicon';
+import { IdenticonSvg } from '../../components/Creator';
 
 // Served as /og.png so static hosts send it with an image content type.
 export const dynamic = 'force-static';
@@ -38,7 +40,12 @@ export async function GET() {
             <path d="M20 55H31L44 9H33Z" fill={INK} stroke={MARIGOLD} strokeWidth="5" />
           </svg>
           <div style={{ fontSize: 40, fontWeight: 600, letterSpacing: -1 }}>FMath</div>
-          <div style={{ fontSize: 28, color: BRAND.darkInk2, marginLeft: 8 }}>{`by ${CREATOR.handle}`}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginLeft: 16 }}>
+            <div style={{ display: 'flex', width: 56, height: 56, borderRadius: 9999, overflow: 'hidden' }}>
+              <IdenticonSvg icon={identiconFor(CREATOR.handle).icon} size={56} />
+            </div>
+            <div style={{ fontSize: 28, color: BRAND.darkInk2 }}>{`by ${CREATOR.handle}`}</div>
+          </div>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           <div style={{ fontSize: 84, fontWeight: 600, lineHeight: 1.02, letterSpacing: -3, maxWidth: 940 }}>{t.hero.title}</div>

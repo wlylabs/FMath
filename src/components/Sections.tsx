@@ -151,7 +151,7 @@ export function Footer() {
             aria-label={t.creator.followLabel(CREATOR.handle)}
             className="group mt-4 inline-flex items-center gap-2.5 rounded-full border border-line py-1 pl-1 pr-3.5 text-sm transition-colors hover:border-line-strong"
           >
-            <CreatorAvatar className="size-7 text-xs" />
+            <CreatorAvatar size={28} />
             <span className="text-ink-2">
               {t.creator.label} <span className="font-semibold text-ink">{CREATOR.name}</span>
             </span>

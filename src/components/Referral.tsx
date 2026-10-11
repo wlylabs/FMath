@@ -200,7 +200,7 @@ function Coupon() {
     <div className="relative grid overflow-hidden rounded-3xl bg-accent text-accent-ink sm:grid-cols-[minmax(0,1fr)_13rem]">
       <div className="p-6 sm:p-8">
         <p className="flex items-center gap-2.5 text-sm">
-          <CreatorAvatar className="size-8 text-sm" />
+          <CreatorAvatar size={28} className="ring-2 ring-accent-ink/15" />
           <span className="text-accent-ink/75">
             {t.referral.from}{' '}
             <CreatorLink className="font-semibold text-accent-ink underline decoration-accent-ink/30 underline-offset-2 hover:decoration-accent-ink">

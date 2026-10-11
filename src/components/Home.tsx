@@ -83,7 +83,7 @@ export function ReferralStrip() {
       <div className="flex flex-col gap-6 rounded-3xl bg-accent p-6 text-accent-ink sm:p-8 lg:flex-row lg:items-center lg:justify-between">
         <div className="max-w-2xl">
           <p className="flex items-center gap-2.5 text-sm text-accent-ink/75">
-            <CreatorAvatar className="size-8 text-sm" />
+            <CreatorAvatar size={28} className="ring-2 ring-accent-ink/15" />
             {t.referral.from} {CREATOR.name} · {CREATOR.handle}
           </p>
           <h2 id="referral-strip-title" className="mt-3 text-2xl font-semibold leading-tight tracking-tight sm:text-3xl">

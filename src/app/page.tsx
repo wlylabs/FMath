@@ -25,6 +25,7 @@ const jsonLd = {
       alternateName: CREATOR.handle,
       url: CREATOR.url,
       sameAs: [CREATOR.url],
+      image: `${SITE_URL}/creator.svg`,
     },
   ],
 };
