@@ -215,11 +215,6 @@
     linear-gradient(225deg, var(--surface) 50%, transparent 50%) 0 0 / 14px 12px repeat-x;
 }
 
-/* ---------- language: hidden until a saved choice applies (LangProvider.tsx) ---------- */
-html.lang-pending body {
-  visibility: hidden;
-}
-
 /* ---------- tap feedback ---------- */
 html {
   -webkit-tap-highlight-color: transparent;

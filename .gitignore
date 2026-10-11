@@ -7,3 +7,7 @@ next-env.d.ts
 .DS_Store
 coverage
 *.tsbuildinfo
+# Android signing keys and the generated TWA project (docs/android-twa.md)
+*.keystore
+*.jks
+android/

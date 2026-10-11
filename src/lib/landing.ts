@@ -2,16 +2,18 @@ import { BRAND } from './brand';
 import { FEE_SCHEDULE } from './fees';
 import { date, pct } from './format';
 import { PERPS_FEES } from './perps';
-import { CALCULATOR_KEYS, LEGACY_HASHES, ROUTES } from './routes';
-import { CREATOR, SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, SITE_URL } from './site';
+import { en, LANG_LABELS, LANGS, type Lang } from './copy';
+import { id } from './copy.id';
+import { CALCULATOR_KEYS, ID_PREFIX, LEGACY_HASHES, localize, ROUTES } from './routes';
+import { CREATOR, SITE_NAME, SITE_URL } from './site';
 
 /**
- * The landing page at /: one static HTML file with its CSS and a little script
- * inline, and no React, so it paints from the first response. Everything else
- * lives in the app, which starts at ROUTES.home.
+ * The landing page at / and, in Indonesian, at /id/: one static HTML file each,
+ * with its CSS and a little script inline and no React, so it paints from the
+ * first response. Everything else lives in the app, which starts at ROUTES.home.
  *
- * Both languages are in the markup; <html data-lang> picks one before first
- * paint, from the same saved choice the app uses (fmath:lang).
+ * Someone who picked Indonesian (fmath:lang, the same choice the app uses) and
+ * opens / goes to /id/ before first paint.
  */
 
 /** Coins on the price tape, as Hyperliquid names them. */
@@ -37,24 +39,25 @@ export const LANDING_COPY = {
   by: ['by', 'oleh'],
   schedule: [`fee schedule dated ${date(FEE_SCHEDULE.version)}`, `jadwal fee tanggal ${date(FEE_SCHEDULE.version)}`],
   math: ['see the math', 'lihat rumusnya'],
+  privacy: ['privacy', 'privasi'],
+  disclaimer: ['disclaimer', 'disclaimer'],
 } as const;
 
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-/** Both languages of one phrase; CSS shows the one <html data-lang> picks. */
-const both = ([en, id]: Pair) => `<span class="en">${esc(en)}</span><span class="id" lang="id">${esc(id)}</span>`;
 
 /** Inline JSON for a <script>, safe against "</script>" in the data. */
 const json = (v: unknown) => JSON.stringify(v).replace(/</g, '\\u003c');
 
-const jsonLd = {
+const jsonLd = (lang: Lang) => ({
   '@context': 'https://schema.org',
   '@graph': [
     {
       '@type': 'WebApplication',
       name: SITE_NAME,
-      url: SITE_URL,
-      description: SITE_DESCRIPTION,
+      url: `${SITE_URL}${localize(ROUTES.landing, lang)}`,
+      inLanguage: lang,
+      description: (lang === 'id' ? id : en).meta.description,
       applicationCategory: 'FinanceApplication',
       operatingSystem: 'Any',
       browserRequirements: 'Requires JavaScript',
@@ -72,26 +75,24 @@ const jsonLd = {
       image: `${SITE_URL}/creator.svg`,
     },
   ],
-};
+});
 
-// Before first paint: send the installed app and old links where they belong, then apply
-// the saved or system theme and the saved language, the same way the app's layout does.
-const headScript = `(function(){var l=location,q=new URLSearchParams(l.search),r=document.documentElement;
-if(q.get('source')==='pwa'||(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)){l.replace(${json(ROUTES.home)});return}
+// Before first paint: send the installed app and old links where they belong (in the saved
+// language), send someone who picked Indonesian from / to /id/, then apply the saved or
+// system theme, the same way the app's layout does.
+const headScript = (lang: Lang) => `(function(){var l=location,q=new URLSearchParams(l.search),r=document.documentElement,t,g;
+try{t=localStorage.getItem('fmath:theme');g=localStorage.getItem('fmath:lang')}catch(e){}
+var P=${json(lang === 'id' ? ID_PREFIX : '')}||(g==='id'?${json(ID_PREFIX)}:'');
+if(q.get('source')==='pwa'||(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)){l.replace(P+${json(ROUTES.home)});return}
 var tabs=${json(Object.fromEntries(CALCULATOR_KEYS.map((k) => [k, ROUTES[k]])))},tab=q.get('tab');
-if(tab&&tabs.hasOwnProperty(tab)){q.delete('tab');var s=q.toString();l.replace(tabs[tab]+(s?'?'+s:''));return}
-var h=${json(LEGACY_HASHES)}[l.hash];if(h){var p=h.split('#');l.replace(p[0]+l.search+(p[1]?'#'+p[1]:''));return}
-var t,g;try{t=localStorage.getItem('fmath:theme');g=localStorage.getItem('fmath:lang')}catch(e){}
-if(t!=='light'&&t!=='dark'){t=window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'}
-r.dataset.theme=t;var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',t==='dark'?${json(BRAND.darkBg)}:${json(BRAND.lightBg)});
-if(g==='id'){r.dataset.lang='id';r.lang='id'}})();`;
+if(tab&&tabs.hasOwnProperty(tab)){q.delete('tab');var s=q.toString();l.replace(P+tabs[tab]+(s?'?'+s:''));return}
+var h=${json(LEGACY_HASHES)}[l.hash];if(h){var p=h.split('#');l.replace(P+p[0]+l.search+(p[1]?'#'+p[1]:''));return}
+${lang === 'en' ? `if(P){l.replace(P+'/'+l.search+l.hash);return}
+` : ''}if(t!=='light'&&t!=='dark'){t=window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'}
+r.dataset.theme=t;var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',t==='dark'?${json(BRAND.darkBg)}:${json(BRAND.lightBg)})})();`;
 
-// After the markup: the language toggle, and the price tape over the Hyperliquid websocket,
-// closed while the tab is hidden.
-const bodyScript = `(function(){var d=document,r=d.documentElement;
-d.querySelectorAll('[data-set-lang]').forEach(function(b){b.addEventListener('click',function(){var g=b.getAttribute('data-set-lang');
-if(g==='id'){r.dataset.lang='id'}else{delete r.dataset.lang}r.lang=g;try{localStorage.setItem('fmath:lang',g)}catch(e){}sync()})});
-function sync(){d.querySelectorAll('[data-set-lang]').forEach(function(b){b.setAttribute('aria-pressed',String((r.dataset.lang||'en')===b.getAttribute('data-set-lang')))})}sync();
+const bodyScript = `(function(){var d=document;
+d.querySelectorAll('[data-set-lang]').forEach(function(a){a.addEventListener('click',function(){try{localStorage.setItem('fmath:lang',a.getAttribute('data-set-lang'))}catch(e){}})});
 if(!window.WebSocket)return;var coins=${json(TAPE_COINS)},ws=null,timer,tries=0;
 function fmt(p){return'$'+p.toLocaleString('en-US',{minimumFractionDigits:p>=1000?0:2,maximumFractionDigits:p>=1000?0:p>=1?2:4})}
 function show(c,x){var p=Number(x.markPx),o=Number(x.prevDayPx);if(!(p>0))return;var ch=o>0?p/o-1:null;
@@ -132,7 +133,6 @@ size();requestAnimationFrame(frame)})();`;
 // Same tokens as globals.css, cut down to what this page uses.
 const css = `:root{--bg:#f5f1e8;--surface:#fffdf8;--line:#e3dbcc;--line-strong:#cfc5b3;--ink:#17131c;--ink-2:#463f4d;--muted:#6a6371;--accent:#ffb23f;--accent-hover:#f5a524;--accent-ink:#1a1206;--accent-strong:#8a4f00;--pos:#11774f;--neg:#c22d46;color-scheme:light}
 [data-theme=dark]{--bg:#110e17;--surface:#18141f;--line:#2b2535;--line-strong:#3d3549;--ink:#f4efe6;--ink-2:#c9c1b6;--muted:#968e9e;--accent-hover:#ffc266;--accent-strong:#ffb23f;--pos:#4fd1a0;--neg:#ff6e7f;color-scheme:dark}
-html[data-lang=id] .en,html:not([data-lang=id]) .id{display:none}
 *{box-sizing:border-box}
 html,body{margin:0}
 body{min-height:100vh;min-height:100dvh;display:grid;grid-template-rows:auto 1fr auto;background:var(--bg);color:var(--ink);font:16px/1.5 ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
@@ -163,13 +163,18 @@ footer{width:100%;max-width:74rem;margin:0 auto;padding:1.25rem 1.5rem calc(1.25
 footer p{margin:0}
 footer a{color:var(--ink-2);text-underline-offset:2px}
 .lang{display:inline-flex;border:1px solid var(--line);border-radius:.625rem;padding:2px}
-.lang button{border:0;background:none;color:var(--muted);font:inherit;font-weight:600;padding:.3rem .65rem;border-radius:.5rem;cursor:pointer}
-.lang button[aria-pressed=true]{background:var(--line);color:var(--ink)}
+.lang a{color:var(--muted);font-weight:600;padding:.3rem .65rem;border-radius:.5rem;text-decoration:none}
+.lang a[aria-current]{background:var(--line);color:var(--ink)}
 @media (min-width:900px){main{grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr)}.shot{display:block;margin:0;border:1px solid var(--line);border-radius:1rem;overflow:hidden;box-shadow:0 40px 80px -40px rgb(0 0 0/.45)}.shot img{display:block;width:100%;height:auto}}
 @media (prefers-reduced-motion:reduce){.tape-track,.cursor{animation:none}}`;
 
-export function landingHtml(): string {
+export function landingHtml(lang: Lang = 'en'): string {
   const c = LANDING_COPY;
+  const meta = (lang === 'id' ? id : en).meta;
+  const i = lang === 'id' ? 1 : 0;
+  /** This page's language of one phrase. */
+  const pick = (pair: Pair) => esc(pair[i]);
+  const to = (path: string) => localize(path, lang);
   const tapeGroup = (hidden: boolean) =>
     `<div class="tape-group"${hidden ? ' aria-hidden="true"' : ''}>${TAPE_COINS.map(
       (coin) => `<span class="tick" data-coin="${coin}">${coin} <b>—</b> <i></i></span>`,
@@ -177,21 +182,25 @@ export function landingHtml(): string {
   const abs = (path: string) => `${SITE_URL}${path}`;
 
   return `<!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="${lang}" data-theme="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="${BRAND.darkBg}">
 <meta name="color-scheme" content="dark light">
-<script>${headScript}</script>
-<title>${esc(SITE_TITLE)}</title>
-<meta name="description" content="${esc(SITE_DESCRIPTION)}">
-<link rel="canonical" href="${abs(ROUTES.landing)}">
+<script>${headScript(lang)}</script>
+<title>${esc(meta.title)}</title>
+<meta name="description" content="${esc(meta.description)}">
+<link rel="canonical" href="${abs(to(ROUTES.landing))}">
+<link rel="alternate" hreflang="en" href="${abs(ROUTES.landing)}">
+<link rel="alternate" hreflang="id" href="${abs(localize(ROUTES.landing, 'id'))}">
+<link rel="alternate" hreflang="x-default" href="${abs(ROUTES.landing)}">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="${SITE_NAME}">
-<meta property="og:title" content="${esc(SITE_TITLE)}">
-<meta property="og:description" content="${esc(SITE_DESCRIPTION)}">
-<meta property="og:url" content="${abs(ROUTES.landing)}">
+<meta property="og:title" content="${esc(meta.title)}">
+<meta property="og:description" content="${esc(meta.description)}">
+<meta property="og:url" content="${abs(to(ROUTES.landing))}">
+<meta property="og:locale" content="${lang === 'id' ? 'id_ID' : 'en_US'}">
 <meta property="og:image" content="${abs('/og.png')}">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -204,24 +213,27 @@ export function landingHtml(): string {
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="preconnect" href="https://api.hyperliquid.xyz" crossorigin>
 <style>${css}</style>
-<script type="application/ld+json">${json(jsonLd)}</script>
+<script type="application/ld+json">${json(jsonLd(lang))}</script>
 </head>
 <body>
 <canvas id="field" aria-hidden="true"></canvas>
-<div class="tape" role="region" aria-label="${esc(c.tape[0])}"><div class="tape-track">${tapeGroup(false)}${tapeGroup(true)}</div></div>
+<div class="tape" role="region" aria-label="${pick(c.tape)}"><div class="tape-track">${tapeGroup(false)}${tapeGroup(true)}</div></div>
 <main>
 <div>
 <h1 class="word">fmath<span class="cursor" aria-hidden="true">_</span></h1>
-<p class="lede">${c.lines.map((l) => `<span>${both(l)}</span>`).join('')}</p>
+<p class="lede">${c.lines.map((l) => `<span>${pick(l)}</span>`).join('')}</p>
 <nav class="actions">${c.actions
-    .map((a) => `<a class="btn${'primary' in a ? ' primary' : ''}" href="${a.href}">${both(a.label)}</a>`)
+    .map((a) => `<a class="btn${'primary' in a ? ' primary' : ''}" href="${to(a.href)}">${pick(a.label)}</a>`)
     .join('')}</nav>
 </div>
-<figure class="shot"><img src="/landing-shot.jpg" width="1440" height="900" alt="${esc(c.shot[0])}" loading="lazy" decoding="async"></figure>
+<figure class="shot"><img src="/landing-shot.jpg" width="1440" height="900" alt="${pick(c.shot)}" loading="lazy" decoding="async"></figure>
 </main>
 <footer>
-<p>${both(c.by)} <a href="${CREATOR.url}" rel="noopener">${esc(CREATOR.name)} ${esc(CREATOR.handle)}</a> · ${both(c.schedule)} · <a href="${ROUTES.methodology}">${both(c.math)}</a></p>
-<div class="lang" role="group" aria-label="Language"><button type="button" data-set-lang="en" aria-pressed="true">EN</button><button type="button" data-set-lang="id" aria-pressed="false">wkwk</button></div>
+<p>${pick(c.by)} <a href="${CREATOR.url}" rel="noopener">${esc(CREATOR.name)} ${esc(CREATOR.handle)}</a> · ${pick(c.schedule)} · <a href="${to(ROUTES.methodology)}">${pick(c.math)}</a> · <a href="${to(ROUTES.privacy)}">${pick(c.privacy)}</a> · <a href="${to(ROUTES.disclaimer)}">${pick(c.disclaimer)}</a></p>
+<nav class="lang" aria-label="Language / Bahasa">${LANGS.map(
+    (l) =>
+      `<a href="${localize(ROUTES.landing, l)}" hreflang="${l}" lang="${l}" data-set-lang="${l}"${l === lang ? ' aria-current="page"' : ''}>${LANG_LABELS[l]}</a>`,
+  ).join('')}</nav>
 </footer>
 <script>${bodyScript}${fieldScript}</script>
 </body>

@@ -44,10 +44,11 @@ export const viewport: Viewport = {
   themeColor: BRAND.darkBg,
 };
 
-// Runs before first paint so the saved or system theme applies without a flash, hides the
-// page until a saved Indonesian choice applies (LangProvider), and
-// keeps the install prompt if the browser offers it before React has loaded.
-const themeScript = `(function(){window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();window.__fmathInstall=e});var t;try{t=localStorage.getItem('fmath:theme')}catch(e){}if(t!=='light'&&t!=='dark'){t=window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'}document.documentElement.dataset.theme=t;var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',t==='dark'?'${BRAND.darkBg}':'${BRAND.lightBg}');var r=document.documentElement;try{if(localStorage.getItem('fmath:lang')==='id'){r.lang='id';r.classList.add('lang-pending');setTimeout(function(){r.classList.remove('lang-pending')},1500)}}catch(e){}})();`;
+// Runs before first paint so the saved or system theme applies without a flash, keeps the
+// install prompt if the browser offers it before React has loaded, and marks /id/ pages
+// Indonesian. Someone who picked Indonesian and opens an English page (the installed app's
+// start URL, an old link) goes to the same page under /id/ (LangProvider).
+const themeScript = `(function(){window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();window.__fmathInstall=e});var t;try{t=localStorage.getItem('fmath:theme')}catch(e){}if(t!=='light'&&t!=='dark'){t=window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'}document.documentElement.dataset.theme=t;var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',t==='dark'?'${BRAND.darkBg}':'${BRAND.lightBg}');var l=location,p=l.pathname;if(/^\\/id(\\/|$)/.test(p)){document.documentElement.lang='id';return}try{if(localStorage.getItem('fmath:lang')==='id'){l.replace('/id'+p+l.search+l.hash)}}catch(e){}})();`;
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
@@ -58,16 +59,17 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <link rel="preconnect" href="https://api.hyperliquid.xyz" crossOrigin="" />
       </head>
       <body>
-        <PwaProvider>
-          <LangProvider>
+        {/* outermost, so everything below (the install dialog included) renders in the page's language */}
+        <LangProvider>
+          <PwaProvider>
             <Header />
             <main id="main">{children}</main>
             <Footer />
             <BottomNav />
             <Toaster />
-          </LangProvider>
-          <NavMarker />
-        </PwaProvider>
+            <NavMarker />
+          </PwaProvider>
+        </LangProvider>
       </body>
     </html>
   );
