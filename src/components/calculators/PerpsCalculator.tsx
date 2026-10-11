@@ -82,6 +82,13 @@ function withMarket(p: State, m: PerpMarket): State {
 
 type Load = { venue: PerpVenue; ok: boolean; markets: PerpMarket[]; at: number };
 
+/**
+ * The last good market lists, kept for the life of the tab so coming back to
+ * Perps shows them at once (and refreshes in the background) instead of a
+ * loading state that the market row then pops into.
+ */
+let lastLoads: Partial<Record<PerpVenue, Load>> = {};
+
 /** Strip float noise and trailing zeros so prices go back into inputs cleanly. */
 function toInput(n: number): string {
   if (!Number.isFinite(n)) return '';
@@ -92,7 +99,10 @@ function toInput(n: number): string {
 export function PerpsCalculator() {
   const [s, setS] = usePersistentState<State>('perps', INITIAL, { page: ROUTES.perps, fromUrl });
   const set = <K extends keyof State>(k: K, v: State[K]) => setS((p) => ({ ...p, [k]: v }));
-  const [loads, setLoads] = useState<Partial<Record<PerpVenue, Load>>>({});
+  const [loads, setLoads] = useState<Partial<Record<PerpVenue, Load>>>(() => lastLoads);
+  useEffect(() => {
+    lastLoads = Object.fromEntries(Object.entries(loads).filter(([, l]) => l?.ok));
+  }, [loads]);
   const [reloadKey, setReloadKey] = useState(0);
   const ids = {
     market: useId(),
@@ -242,7 +252,8 @@ export function PerpsCalculator() {
           htmlFor={ids.market}
           aside={
             status === 'ready' && load ? (
-              <span className="flex items-center gap-2">
+              // held to the label's own line height, so the label row does not grow when it appears
+              <span className="flex h-5 items-center gap-2 self-center">
                 <LiveBadge label={t.common.live} />
                 <span className="num text-[11px] text-muted">{time(load.at)}</span>
               </span>
@@ -288,30 +299,31 @@ export function PerpsCalculator() {
               </svg>
             </div>
           )}
-          {market && (
-            <dl className="mt-2.5 grid grid-cols-[auto_auto_auto] justify-between gap-x-3 rounded-xl bg-surface-2 px-3.5 py-2.5">
+          {/* drawn while loading too, with dashes, so the fields below never jump when prices arrive */}
+          {status !== 'error' && (
+            <dl aria-busy={!market || undefined} className="mt-2.5 grid grid-cols-[auto_auto_auto] justify-between gap-x-3 rounded-xl bg-surface-2 px-3.5 py-2.5">
               <div>
                 <dt className="text-[11px] text-muted">{t.perps.mark}</dt>
                 {/* settles in when the live feed or a market change moves it, so "live" is visible */}
-                <dd className="num text-xs text-ink min-[360px]:text-sm">
-                  <SwapValue value={price(market.markPx)} />
+                <dd className="num h-5 text-xs leading-5 text-ink min-[360px]:text-sm min-[360px]:leading-5">
+                  {market ? <SwapValue value={price(market.markPx)} /> : <span className="text-muted">–</span>}
                 </dd>
               </div>
               <div>
                 <dt className="text-[11px] text-muted">{t.profit.change24h}</dt>
                 <dd
                   className={cx(
-                    'num text-xs min-[360px]:text-sm',
-                    market.change24h === null ? 'text-ink' : market.change24h >= 0 ? 'text-pos' : 'text-neg',
+                    'num h-5 text-xs leading-5 min-[360px]:text-sm min-[360px]:leading-5',
+                    !market ? 'text-muted' : market.change24h === null ? 'text-ink' : market.change24h >= 0 ? 'text-pos' : 'text-neg',
                   )}
                 >
-                  {pct(market.change24h, { signed: true })}
+                  {market ? pct(market.change24h, { signed: true }) : '–'}
                 </dd>
               </div>
               <div>
                 <dt className="text-[11px] text-muted">{t.perps.fundingLive}</dt>
-                <dd className="num text-xs text-ink min-[360px]:text-sm">
-                  <SwapValue value={pct(market.fundingHourly, { digits: 4, signed: true })} />
+                <dd className="num h-5 text-xs leading-5 text-ink min-[360px]:text-sm min-[360px]:leading-5">
+                  {market ? <SwapValue value={pct(market.fundingHourly, { digits: 4, signed: true })} /> : <span className="text-muted">–</span>}
                 </dd>
               </div>
             </dl>
