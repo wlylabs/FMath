@@ -53,6 +53,18 @@ export const SOURCES: Source[] = [
     kind: 'official',
   },
   {
+    label: 'Hyperliquid Docs: Take profit and stop loss orders',
+    url: 'https://hyperliquid.gitbook.io/hyperliquid-docs/trading/take-profit-and-stop-loss-orders-tp-sl',
+    use: 'TP/SL trigger on the mark price and fill as market orders with up to 10% slippage, so the stop pays the taker fee.',
+    kind: 'official',
+  },
+  {
+    label: 'DEXTools: Memecoin trading strategy, when to take profits',
+    url: 'https://www.dextools.io/tutorials/memecoin-trading-strategy-take-profits',
+    use: 'Laddered exits and taking the initial stake out at 2x, which the exit plan presets follow.',
+    kind: 'secondary',
+  },
+  {
     label: 'Hyperliquid info API',
     url: 'https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals',
     use: 'Live mark price, hourly funding, max leverage and margin tiers.',
@@ -68,6 +80,18 @@ export const SOURCES: Source[] = [
     label: 'hyperliquid-dex/hyperliquid-python-sdk',
     url: 'https://github.com/hyperliquid-dex/hyperliquid-python-sdk',
     use: 'Reference for the info API response shape.',
+    kind: 'opensource',
+  },
+  {
+    label: 'siamak/calc-trade',
+    url: 'https://github.com/siamak/calc-trade',
+    use: 'Reference for risk-based sizing: risked capital and stop distance in, margin and position size out.',
+    kind: 'opensource',
+  },
+  {
+    label: 'cooljoe623/Tradesizer',
+    url: 'https://github.com/cooljoe623/Tradesizer',
+    use: 'Reference for the risk : reward output: entry, stop and target are inputs, the size is the output.',
     kind: 'opensource',
   },
   {

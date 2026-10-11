@@ -175,3 +175,48 @@ export function perpTrade(input: PerpInput): PerpResult {
     tierMaxLeverage,
   };
 }
+
+export interface StopResult {
+  /** Net loss if the stop fills, as a positive amount: price move, both fees and funding. */
+  loss: number;
+  /** Net loss divided by margin. */
+  lossOfMargin: number;
+  /** Price move from entry to the stop, as a fraction of entry. */
+  distance: number;
+  /** Net PnL at the exit divided by the loss at the stop; null when the exit does not make money. */
+  rewardRisk: number | null;
+  /** The stop sits at or past the liquidation price, so the position is liquidated first. */
+  beyondLiquidation: boolean;
+}
+
+/**
+ * Outcome of a stop-loss at `stop`. Stops trigger as market orders, so the
+ * close pays `stopFeeRate` (the taker rate) whatever the entry order was.
+ * Null when the stop is on the profit side of entry or not a price.
+ */
+export function stopLoss(input: PerpInput, stop: number, stopFeeRate: number): StopResult | null {
+  const result = perpTrade(input);
+  const s = input.side === 'long' ? 1 : -1;
+  if (!(stop > 0) || !(result.size > 0) || s * (stop - input.entry) >= 0) return null;
+  const closeFee = result.size * stop * stopFeeRate;
+  const loss = -(s * result.size * (stop - input.entry) - result.openFee - closeFee - result.funding);
+  const liq = result.liquidation;
+  return {
+    loss,
+    lossOfMargin: input.margin > 0 ? loss / input.margin : 0,
+    distance: Math.abs(stop - input.entry) / input.entry,
+    rewardRisk: result.netPnl > 0 && loss > 0 ? result.netPnl / loss : null,
+    beyondLiquidation: liq !== null && s * (stop - liq) <= 0,
+  };
+}
+
+/**
+ * Margin whose net loss at `stop` equals `risk`, at the input's leverage.
+ * Price move, fees and funding all scale with the position, so the loss is
+ * linear in margin. Null when the stop does not lose money.
+ */
+export function marginForRisk(input: PerpInput, stop: number, stopFeeRate: number, risk: number): number | null {
+  if (!(risk > 0)) return null;
+  const perUnit = stopLoss({ ...input, margin: 1 }, stop, stopFeeRate)?.loss ?? 0;
+  return perUnit > 0 ? risk / perUnit : null;
+}

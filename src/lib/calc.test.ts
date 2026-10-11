@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { fomoFee, tradeCost } from './fees';
 import { roundTrip, multipleForProceeds, type RoundTripInput } from './roundtrip';
 import { parseAmount } from './format';
-import { liquidationPrice, maintenanceSchedule, maintenanceMargin, perpTrade } from './perps';
+import { liquidationPrice, maintenanceSchedule, maintenanceMargin, marginForRisk, perpTrade, stopLoss } from './perps';
 
 describe('fomo spot fee', () => {
   it('applies the four Solana bands', () => {
@@ -148,6 +148,42 @@ describe('perps', () => {
     expect(r.funding).toBeCloseTo(1000 * 0.0001 * 24, 10);
     const s = perpTrade({ ...rArgs(), side: 'short', fundingHourly: 0.0001, holdHours: 24 });
     expect(s.funding).toBeCloseTo(-2.4, 10);
+  });
+});
+
+describe('perps stop-loss', () => {
+  const taker = 0.0005 + 0.00045;
+
+  it('adds the move, both fees and funding to the loss', () => {
+    // 10 units: open fee 1000 × 0.095% = 0.95, close at 95 pays 950 × 0.095% = 0.9025
+    const r = stopLoss(rArgs(), 95, taker)!;
+    expect(r.loss).toBeCloseTo(50 + 0.95 + 0.9025, 10);
+    expect(r.lossOfMargin).toBeCloseTo(0.518525, 10);
+    expect(r.distance).toBeCloseTo(0.05, 12);
+    // target 110 nets 100 - 0.95 - 1.045
+    expect(r.rewardRisk).toBeCloseTo(98.005 / 51.8525, 10);
+    const funded = stopLoss({ ...rArgs(), fundingHourly: 0.0001, holdHours: 24 }, 95, taker)!;
+    expect(funded.loss - r.loss).toBeCloseTo(2.4, 10);
+  });
+
+  it('mirrors for shorts and rejects a stop on the profit side', () => {
+    const r = stopLoss({ ...rArgs(), side: 'short', exit: 90 }, 105, taker)!;
+    expect(r.loss).toBeCloseTo(50 + 0.95 + 1050 * taker, 10);
+    expect(stopLoss(rArgs(), 105, taker)).toBeNull();
+    expect(stopLoss({ ...rArgs(), side: 'short' }, 95, taker)).toBeNull();
+  });
+
+  it('flags a stop the liquidation reaches first', () => {
+    // liquidation for this long sits near 91.14
+    expect(stopLoss(rArgs(), 95, taker)!.beyondLiquidation).toBe(false);
+    expect(stopLoss(rArgs(), 90, taker)!.beyondLiquidation).toBe(true);
+  });
+
+  it('sizes the margin so the loss at the stop equals the risk', () => {
+    const margin = marginForRisk(rArgs(), 95, taker, 25)!;
+    expect(stopLoss({ ...rArgs(), margin }, 95, taker)!.loss).toBeCloseTo(25, 9);
+    expect(marginForRisk(rArgs(), 105, taker, 25)).toBeNull();
+    expect(marginForRisk(rArgs(), 95, taker, 0)).toBeNull();
   });
 });
 
