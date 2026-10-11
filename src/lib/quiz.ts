@@ -12,6 +12,7 @@ import { shareForInitials } from './ladder';
 import { PERPS_FEES, perpTrade, stopLoss, venueFeeRate, type PerpInput, type PerpSide } from './perps';
 import { multiple, pct, price, usd } from './format';
 import { ROUTES } from './routes';
+import { getLang } from './copy';
 
 export type QuizTopic = 'fees' | 'profit' | 'perps' | 'risk';
 export type QuizLevel = 1 | 2 | 3;
@@ -89,7 +90,11 @@ interface Template {
 }
 
 const OPTIONS = 4;
-const NEAR_MISS = 'Close, but not what the numbers give. Work through the solution below.';
+
+/** Picks the question text for the language the quiz is shown in when the session is built. */
+function L(en: string, id: string): string {
+  return getLang() === 'id' ? id : en;
+}
 
 function finish(t: Template, seed: number, d: Draft): Question {
   const r = rng(seed ^ 0x9e3779b9);
@@ -105,7 +110,7 @@ function finish(t: Template, seed: number, d: Draft): Question {
     const label = d.spare(k);
     if (seen.has(label)) continue;
     seen.add(label);
-    wrong.push({ label, why: NEAR_MISS });
+    wrong.push({ label, why: L('Close, but not what the numbers give. Work through the solution below.', 'Hampir, tapi bukan hasil hitungannya. Ikuti pembahasan di bawah.') });
   }
   const options = shuffle(r, [{ label: d.correct }, ...wrong]);
   return {
@@ -173,18 +178,18 @@ const TEMPLATES: readonly Template[] = [
       const q = fomoFee(order, 'solana');
       return {
         level: 1,
-        prompt: `You buy a memecoin for ${usd(order)} on Solana. What is the fomo fee?`,
-        facts: ['Solana', `Order ${usd(order)}`, 'No referral'],
+        prompt: L(`You buy a memecoin for ${usd(order)} on Solana. What is the fomo fee?`, `Kamu beli memecoin seharga ${usd(order)} di Solana. Berapa fee fomo-nya?`),
+        facts: ['Solana', `Order ${usd(order)}`, L('No referral', 'Tanpa referral')],
         correct: usd(q.fee),
         wrong: [
-          { label: usd(order * 0.005), why: '0.50% is the rate from 190 USDC up. Smaller Solana orders fall into the flat and 2% bands.' },
-          { label: usd(order * 0.02), why: '2% only applies from 5 to 47.50 USDC. From 47.50 to 190 USDC the fee is a flat 0.95 USDC.' },
-          { label: usd(0.95), why: 'The flat 0.95 USDC band only covers 47.50 to 190 USDC.' },
-          { label: usd(q.fee * 0.9), why: 'That is the fee with the 10% referral discount, but this order has no referral.' },
+          { label: usd(order * 0.005), why: L('0.50% is the rate from 190 USDC up. Smaller Solana orders fall into the flat and 2% bands.', '0.50% itu tarif mulai 190 USDC. Order Solana yang lebih kecil masuk band flat dan 2%.') },
+          { label: usd(order * 0.02), why: L('2% only applies from 5 to 47.50 USDC. From 47.50 to 190 USDC the fee is a flat 0.95 USDC.', '2% cuma berlaku dari 5 sampai 47.50 USDC. Dari 47.50 sampai 190 USDC fee-nya flat 0.95 USDC.') },
+          { label: usd(0.95), why: L('The flat 0.95 USDC band only covers 47.50 to 190 USDC.', 'Band flat 0.95 USDC cuma untuk 47.50 sampai 190 USDC.') },
+          { label: usd(q.fee * 0.9), why: L('That is the fee with the 10% referral discount, but this order has no referral.', 'Itu fee dengan diskon referral 10%, padahal order ini tanpa referral.') },
         ],
         spare: (k) => usd(nudge(q.fee, k)),
-        explain: `${usd(order)} falls in the ${q.band.kind === 'flat' ? `flat ${usd(q.band.value)}` : `${pct(q.band.value)}`} band, so the fee is ${usd(q.fee)} (${pct(q.effectiveRate)} of the order).`,
-        formula: 'fee = band(order): under 5 → 0.10 · 5–47.50 → 2% · 47.50–190 → 0.95 · from 190 → 0.50%',
+        explain: L(`${usd(order)} falls in the ${q.band.kind === 'flat' ? `flat ${usd(q.band.value)}` : `${pct(q.band.value)}`} band, so the fee is ${usd(q.fee)} (${pct(q.effectiveRate)} of the order).`, `${usd(order)} masuk band ${q.band.kind === 'flat' ? `flat ${usd(q.band.value)}` : `${pct(q.band.value)}`}, jadi fee-nya ${usd(q.fee)} (${pct(q.effectiveRate)} dari order).`),
+        formula: L('fee = band(order): under 5 → 0.10 · 5–47.50 → 2% · 47.50–190 → 0.95 · from 190 → 0.50%', 'fee = band(order): di bawah 5 → 0.10 · 5–47.50 → 2% · 47.50–190 → 0.95 · mulai 190 → 0.50%'),
       };
     },
   },
@@ -197,18 +202,18 @@ const TEMPLATES: readonly Template[] = [
       const q = fomoFee(order, 'solana');
       return {
         level: 2,
-        prompt: `On Solana, what share of a ${usd(order)} order goes to the fomo fee?`,
+        prompt: L(`On Solana, what share of a ${usd(order)} order goes to the fomo fee?`, `Di Solana, berapa persen dari order ${usd(order)} yang jadi fee fomo?`),
         facts: ['Solana', `Order ${usd(order)}`],
         correct: pct(q.effectiveRate),
         wrong: [
-          { label: pct(0.005), why: 'That is the headline rate from 190 USDC up, not the effective rate of this order.' },
-          { label: pct(0.02), why: '2% is the band from 5 to 47.50 USDC.' },
-          { label: pct(0.95 / 47.5), why: 'That is 0.95 USDC on a 47.50 USDC order, the worst case of the flat band, not this order.' },
-          { label: pct(q.effectiveRate * 2), why: 'That counts the fee twice, as if it were a buy and a sell.' },
+          { label: pct(0.005), why: L('That is the headline rate from 190 USDC up, not the effective rate of this order.', 'Itu tarif utama mulai 190 USDC, bukan tarif efektif order ini.') },
+          { label: pct(0.02), why: L('2% is the band from 5 to 47.50 USDC.', '2% itu band dari 5 sampai 47.50 USDC.') },
+          { label: pct(0.95 / 47.5), why: L('That is 0.95 USDC on a 47.50 USDC order, the worst case of the flat band, not this order.', 'Itu 0.95 USDC untuk order 47.50 USDC, kasus terburuk band flat, bukan order ini.') },
+          { label: pct(q.effectiveRate * 2), why: L('That counts the fee twice, as if it were a buy and a sell.', 'Itu menghitung fee dua kali, seolah beli lalu jual.') },
         ],
         spare: (k) => pct(nudge(q.effectiveRate, k)),
-        explain: `The fee on ${usd(order)} is ${usd(q.fee)}. ${usd(q.fee)} ÷ ${usd(order)} = ${pct(q.effectiveRate)}. Flat bands cost more, as a share, on smaller orders.`,
-        formula: 'effective rate = fee ÷ order',
+        explain: L(`The fee on ${usd(order)} is ${usd(q.fee)}. ${usd(q.fee)} ÷ ${usd(order)} = ${pct(q.effectiveRate)}. Flat bands cost more, as a share, on smaller orders.`, `Fee untuk ${usd(order)} adalah ${usd(q.fee)}. ${usd(q.fee)} ÷ ${usd(order)} = ${pct(q.effectiveRate)}. Secara persentase, band flat makin mahal untuk order yang makin kecil.`),
+        formula: L('effective rate = fee ÷ order', 'tarif efektif = fee ÷ order'),
       };
     },
   },
@@ -222,17 +227,17 @@ const TEMPLATES: readonly Template[] = [
       const fee = fomoFee(order, 'base').fee;
       return {
         level: 1,
-        prompt: `You buy ${usd(order)} of a token on Base. The quote shows a ${usd(gas)} network fee. What does the trade cost in total?`,
+        prompt: L(`You buy ${usd(order)} of a token on Base. The quote shows a ${usd(gas)} network fee. What does the trade cost in total?`, `Kamu beli token senilai ${usd(order)} di Base. Quote menunjukkan network fee ${usd(gas)}. Berapa total biaya trade-nya?`),
         facts: ['Base', `Order ${usd(order)}`, `Network fee ${usd(gas)}`],
         correct: usd(fee + gas),
         wrong: [
-          { label: usd(fee), why: 'fomo only covers gas on Solana. On Base the network fee is added on top.' },
-          { label: usd(order * 0.02 + gas), why: '2% is a Solana band. Base charges 0.50% at every size.' },
-          { label: usd(fee + 2 * gas), why: 'One buy is one transaction, so the network fee is paid once.' },
-          { label: usd(gas), why: 'The network fee is only part of it; the 0.50% fomo fee comes on top.' },
+          { label: usd(fee), why: L('fomo only covers gas on Solana. On Base the network fee is added on top.', 'fomo cuma menanggung gas di Solana. Di Base, network fee ditambahkan di atasnya.') },
+          { label: usd(order * 0.02 + gas), why: L('2% is a Solana band. Base charges 0.50% at every size.', '2% itu band Solana. Base kena 0.50% di semua ukuran.') },
+          { label: usd(fee + 2 * gas), why: L('One buy is one transaction, so the network fee is paid once.', 'Satu kali beli = satu transaksi, jadi network fee dibayar sekali.') },
+          { label: usd(gas), why: L('The network fee is only part of it; the 0.50% fomo fee comes on top.', 'Network fee cuma sebagian; fee fomo 0.50% ditambahkan juga.') },
         ],
         spare: (k) => usd(nudge(fee + gas, k)),
-        explain: `fomo fee: 0.50% × ${usd(order)} = ${usd(fee)}. Add the ${usd(gas)} network fee: ${usd(fee + gas)}.`,
+        explain: L(`fomo fee: 0.50% × ${usd(order)} = ${usd(fee)}. Add the ${usd(gas)} network fee: ${usd(fee + gas)}.`, `Fee fomo: 0.50% × ${usd(order)} = ${usd(fee)}. Tambah network fee ${usd(gas)}: ${usd(fee + gas)}.`),
         formula: 'total = order × 0.50% + network fee',
       };
     },
@@ -247,17 +252,17 @@ const TEMPLATES: readonly Template[] = [
       const fee = fomoFee(order, chain, 'standard', true).fee;
       return {
         level: 1,
-        prompt: `With a referral discount, what is the fomo fee on a ${usd(order)} order on ${chain === 'bsc' ? 'BNB Chain' : chain === 'base' ? 'Base' : 'Ethereum'}?`,
-        facts: [`Order ${usd(order)}`, 'Standard rate 0.50%', '10% off fees'],
+        prompt: L(`With a referral discount, what is the fomo fee on a ${usd(order)} order on ${chain === 'bsc' ? 'BNB Chain' : chain === 'base' ? 'Base' : 'Ethereum'}?`, `Dengan diskon referral, berapa fee fomo untuk order ${usd(order)} di ${chain === 'bsc' ? 'BNB Chain' : chain === 'base' ? 'Base' : 'Ethereum'}?`),
+        facts: [`Order ${usd(order)}`, L('Standard rate 0.50%', 'Tarif standar 0.50%'), L('10% off fees', 'Diskon fee 10%')],
         correct: usd(fee),
         wrong: [
-          { label: usd(order * 0.005), why: 'That is the fee without the discount.' },
-          { label: usd(order * 0.004), why: '10% off takes 10% of the fee away (0.50% → 0.45%), not 0.10 percentage points.' },
-          { label: usd(order * 0.005 - 0.1), why: 'The discount is a share of the fee, not a fixed amount.' },
-          { label: usd(order * 0.0005), why: 'That is 10% of the fee: what you save, not what you pay.' },
+          { label: usd(order * 0.005), why: L('That is the fee without the discount.', 'Itu fee tanpa diskon.') },
+          { label: usd(order * 0.004), why: L('10% off takes 10% of the fee away (0.50% → 0.45%), not 0.10 percentage points.', 'Diskon 10% memotong 10% dari fee (0.50% → 0.45%), bukan 0.10 poin persen.') },
+          { label: usd(order * 0.005 - 0.1), why: L('The discount is a share of the fee, not a fixed amount.', 'Diskonnya berupa persentase dari fee, bukan potongan tetap.') },
+          { label: usd(order * 0.0005), why: L('That is 10% of the fee: what you save, not what you pay.', 'Itu 10% dari fee: yang kamu hemat, bukan yang kamu bayar.') },
         ],
         spare: (k) => usd(nudge(fee, k)),
-        explain: `0.50% × (1 − 10%) = 0.45%. 0.45% × ${usd(order)} = ${usd(fee)}, saving ${usd(order * 0.0005)}.`,
+        explain: L(`0.50% × (1 − 10%) = 0.45%. 0.45% × ${usd(order)} = ${usd(fee)}, saving ${usd(order * 0.0005)}.`, `0.50% × (1 − 10%) = 0.45%. 0.45% × ${usd(order)} = ${usd(fee)}, hemat ${usd(order * 0.0005)}.`),
         formula: 'fee = order × 0.50% × (1 − 0.10)',
       };
     },
@@ -274,18 +279,18 @@ const TEMPLATES: readonly Template[] = [
       const one = fomoFee(total, 'solana').fee;
       return {
         level: 2,
-        prompt: `On Solana, you sell ${usd(total)} in ${steps} sells of ${usd(each)} instead of one sell. How much more do you pay in fomo fees?`,
+        prompt: L(`On Solana, you sell ${usd(total)} in ${steps} sells of ${usd(each)} instead of one sell. How much more do you pay in fomo fees?`, `Di Solana, kamu jual ${usd(total)} dalam ${steps} kali jual masing-masing ${usd(each)}, bukan sekali jual. Berapa fee fomo tambahan yang kamu bayar?`),
         facts: ['Solana', `${steps} × ${usd(each)}`, `vs 1 × ${usd(total)}`],
         correct: usd(many - one),
         wrong: [
-          { label: usd(0), why: 'Every sell pays its own fee, and small Solana sells sit in the expensive flat band.' },
-          { label: usd(many), why: 'That is the total for the small sells, not the difference from one sell.' },
-          { label: usd((steps - 1) * fomoFee(each, 'solana').fee), why: 'The one big sell is not free; subtract its fee, not one of the small ones.' },
-          { label: usd(one), why: 'That is the fee of the single sell.' },
+          { label: usd(0), why: L('Every sell pays its own fee, and small Solana sells sit in the expensive flat band.', 'Setiap jual bayar fee sendiri, dan jual kecil di Solana masuk band flat yang mahal.') },
+          { label: usd(many), why: L('That is the total for the small sells, not the difference from one sell.', 'Itu total fee jual kecil-kecil, bukan selisihnya dengan sekali jual.') },
+          { label: usd((steps - 1) * fomoFee(each, 'solana').fee), why: L('The one big sell is not free; subtract its fee, not one of the small ones.', 'Sekali jual besar juga tidak gratis; kurangi dengan fee-nya, bukan fee satu jual kecil.') },
+          { label: usd(one), why: L('That is the fee of the single sell.', 'Itu fee untuk sekali jual.') },
         ],
         spare: (k) => usd(nudge(many - one, k)),
-        explain: `${steps} sells × ${usd(fomoFee(each, 'solana').fee)} = ${usd(many)}. One ${usd(total)} sell pays ${usd(one)}. Difference: ${usd(many - one)}.`,
-        formula: 'extra = n × fee(each) − fee(n × each)',
+        explain: L(`${steps} sells × ${usd(fomoFee(each, 'solana').fee)} = ${usd(many)}. One ${usd(total)} sell pays ${usd(one)}. Difference: ${usd(many - one)}.`, `${steps} kali jual × ${usd(fomoFee(each, 'solana').fee)} = ${usd(many)}. Sekali jual ${usd(total)} bayar ${usd(one)}. Selisih: ${usd(many - one)}.`),
+        formula: L('extra = n × fee(each) − fee(n × each)', 'tambahan = n × fee(per jual) − fee(n × per jual)'),
       };
     },
   },
@@ -300,18 +305,18 @@ const TEMPLATES: readonly Template[] = [
       const buyRate = fomoFee(buy, 'solana').effectiveRate;
       return {
         level: 2,
-        prompt: `You buy ${usd(buy)} of a token on Solana. How much does the price have to rise just to get your ${usd(buy)} back after fees?`,
-        facts: ['Solana', `Buy ${usd(buy)}`, 'No price impact'],
+        prompt: L(`You buy ${usd(buy)} of a token on Solana. How much does the price have to rise just to get your ${usd(buy)} back after fees?`, `Kamu beli token senilai ${usd(buy)} di Solana. Harganya harus naik berapa persen cuma buat balikin ${usd(buy)} kamu setelah fee?`),
+        facts: ['Solana', L(`Buy ${usd(buy)}`, `Beli ${usd(buy)}`), L('No price impact', 'Tanpa price impact')],
         correct: pct(need),
         wrong: [
-          { label: pct(0), why: 'Selling at the buy price returns less than you spent: you paid a fee on the buy and pay another on the sell.' },
-          { label: pct(buyRate), why: 'That only makes up the buy fee. The sell has its own fee.' },
-          { label: pct(2 * buyRate * 1.5), why: 'Overshoots: each fee is taken once, on the amount at that leg.' },
-          { label: pct(0.01), why: 'That is a rule of thumb, not what this order pays.' },
+          { label: pct(0), why: L('Selling at the buy price returns less than you spent: you paid a fee on the buy and pay another on the sell.', 'Jual di harga beli mengembalikan lebih sedikit dari modal: kamu bayar fee saat beli dan bayar lagi saat jual.') },
+          { label: pct(buyRate), why: L('That only makes up the buy fee. The sell has its own fee.', 'Itu cuma menutup fee beli. Jual punya fee sendiri.') },
+          { label: pct(2 * buyRate * 1.5), why: L('Overshoots: each fee is taken once, on the amount at that leg.', 'Kebanyakan: tiap fee diambil sekali, dari jumlah di transaksi itu.') },
+          { label: pct(0.01), why: L('That is a rule of thumb, not what this order pays.', 'Itu cuma kira-kira, bukan yang dibayar order ini.') },
         ],
         spare: (k) => pct(nudge(need, k)),
-        explain: `The buy fee leaves ${usd(trip.positionAtEntry)} of tokens. They have to be worth enough that, after the sell fee, ${usd(buy)} comes back. That takes a ${multiple(trip.breakEvenMultiple)} move, or +${pct(need)}.`,
-        formula: 'find k where (buy − buy fee) × k − sell fee = buy',
+        explain: L(`The buy fee leaves ${usd(trip.positionAtEntry)} of tokens. They have to be worth enough that, after the sell fee, ${usd(buy)} comes back. That takes a ${multiple(trip.breakEvenMultiple)} move, or +${pct(need)}.`, `Setelah fee beli, token kamu senilai ${usd(trip.positionAtEntry)}. Nilainya harus cukup supaya setelah fee jual, ${usd(buy)} kembali. Butuh gerakan ${multiple(trip.breakEvenMultiple)}, atau +${pct(need)}.`),
+        formula: L('find k where (buy − buy fee) × k − sell fee = buy', 'cari k di mana (beli − fee beli) × k − fee jual = beli'),
       };
     },
   },
@@ -328,18 +333,18 @@ const TEMPLATES: readonly Template[] = [
       const buyFee = fomoFee(buy, chain).fee;
       return {
         level: 2,
-        prompt: `You buy ${usd(buy)} of a token on ${chain === 'solana' ? 'Solana' : 'Base'} and sell when it hits ${multiple(k)}. What is the net profit?`,
-        facts: [chain === 'solana' ? 'Solana' : 'Base', `Buy ${usd(buy)}`, `Sell at ${multiple(k)}`, 'Ignore network fees'],
+        prompt: L(`You buy ${usd(buy)} of a token on ${chain === 'solana' ? 'Solana' : 'Base'} and sell when it hits ${multiple(k)}. What is the net profit?`, `Kamu beli token senilai ${usd(buy)} di ${chain === 'solana' ? 'Solana' : 'Base'} dan jual saat naik ${multiple(k)}. Berapa profit bersihnya?`),
+        facts: [chain === 'solana' ? 'Solana' : 'Base', L(`Buy ${usd(buy)}`, `Beli ${usd(buy)}`), L(`Sell at ${multiple(k)}`, `Jual di ${multiple(k)}`), L('Ignore network fees', 'Abaikan network fee')],
         correct: usd(trip.pnl),
         wrong: [
-          { label: usd(gross), why: 'That is the profit before fees.' },
-          { label: usd(gross - buyFee), why: 'That leaves out the sell fee.' },
-          { label: usd(gross - 2 * buyFee), why: 'The sell fee is charged on the larger sell amount, not on what you bought.' },
-          { label: usd(gross - buyFee * k), why: 'The buy fee is not multiplied; it is taken once from the amount you put in.' },
+          { label: usd(gross), why: L('That is the profit before fees.', 'Itu profit sebelum fee.') },
+          { label: usd(gross - buyFee), why: L('That leaves out the sell fee.', 'Itu belum termasuk fee jual.') },
+          { label: usd(gross - 2 * buyFee), why: L('The sell fee is charged on the larger sell amount, not on what you bought.', 'Fee jual dihitung dari nilai jual yang lebih besar, bukan dari nilai beli.') },
+          { label: usd(gross - buyFee * k), why: L('The buy fee is not multiplied; it is taken once from the amount you put in.', 'Fee beli tidak ikut dikali; diambil sekali dari modal yang kamu masukkan.') },
         ],
         spare: (kk) => usd(nudge(trip.pnl, kk)),
-        explain: `Buy fee ${usd(trip.buyFee)} leaves ${usd(trip.positionAtEntry)} of tokens. At ${multiple(k)} they are worth ${usd(trip.positionAtExit)}. Sell fee ${usd(trip.sellFee)} leaves ${usd(trip.proceeds)}. Profit: ${usd(trip.proceeds)} − ${usd(buy)} = ${usd(trip.pnl)}.`,
-        formula: 'profit = (buy − buy fee) × multiple − sell fee − buy',
+        explain: L(`Buy fee ${usd(trip.buyFee)} leaves ${usd(trip.positionAtEntry)} of tokens. At ${multiple(k)} they are worth ${usd(trip.positionAtExit)}. Sell fee ${usd(trip.sellFee)} leaves ${usd(trip.proceeds)}. Profit: ${usd(trip.proceeds)} − ${usd(buy)} = ${usd(trip.pnl)}.`, `Fee beli ${usd(trip.buyFee)} menyisakan token senilai ${usd(trip.positionAtEntry)}. Di ${multiple(k)} nilainya ${usd(trip.positionAtExit)}. Fee jual ${usd(trip.sellFee)} menyisakan ${usd(trip.proceeds)}. Profit: ${usd(trip.proceeds)} − ${usd(buy)} = ${usd(trip.pnl)}.`),
+        formula: L('profit = (buy − buy fee) × multiple − sell fee − buy', 'profit = (beli − fee beli) × kelipatan − fee jual − beli'),
       };
     },
   },
@@ -354,18 +359,18 @@ const TEMPLATES: readonly Template[] = [
       const share = shareForInitials(input, k)!;
       return {
         level: 3,
-        prompt: `You bought ${usd(buy)} of a token on Base. It is now at ${multiple(k)}. What share of the bag do you sell to take your ${usd(buy)} back, after fees?`,
-        facts: ['Base', `Buy ${usd(buy)}`, `Now ${multiple(k)}`, '0.50% per trade'],
+        prompt: L(`You bought ${usd(buy)} of a token on Base. It is now at ${multiple(k)}. What share of the bag do you sell to take your ${usd(buy)} back, after fees?`, `Kamu beli token senilai ${usd(buy)} di Base. Sekarang sudah ${multiple(k)}. Berapa persen bag yang harus dijual supaya ${usd(buy)} kamu balik, setelah fee?`),
+        facts: ['Base', L(`Buy ${usd(buy)}`, `Beli ${usd(buy)}`), L(`Now ${multiple(k)}`, `Sekarang ${multiple(k)}`), '0.50% per trade'],
         correct: pct(share, { digits: 1 }),
         wrong: [
-          { label: pct(1 / k, { digits: 1 }), why: 'That ignores fees: the buy fee left you with fewer tokens, and the sell pays another fee.' },
-          { label: pct(0.5, { digits: 1 }), why: 'Half the bag is only right at about 2x before fees; the share depends on the multiple.' },
-          { label: pct(1 / k + 0.005, { digits: 1 }), why: 'Each fee scales the amount, it does not add a fixed half percent to the share.' },
-          { label: pct(1 / (k - 1), { digits: 1 }), why: 'That would take back your profit, not your initial.' },
+          { label: pct(1 / k, { digits: 1 }), why: L('That ignores fees: the buy fee left you with fewer tokens, and the sell pays another fee.', 'Itu mengabaikan fee: fee beli bikin token kamu lebih sedikit, dan jual bayar fee lagi.') },
+          { label: pct(0.5, { digits: 1 }), why: L('Half the bag is only right at about 2x before fees; the share depends on the multiple.', 'Setengah bag cuma pas di sekitar 2x sebelum fee; porsinya tergantung kelipatan.') },
+          { label: pct(1 / k + 0.005, { digits: 1 }), why: L('Each fee scales the amount, it does not add a fixed half percent to the share.', 'Fee mengalikan jumlahnya, bukan menambah setengah persen tetap ke porsinya.') },
+          { label: pct(1 / (k - 1), { digits: 1 }), why: L('That would take back your profit, not your initial.', 'Itu malah mengambil profit kamu, bukan modal.') },
         ],
         spare: (kk) => pct(nudge(share, kk), { digits: 1 }),
-        explain: `After the 0.50% buy fee you hold ${usd(buy * 0.995)} of tokens, worth ${usd(buy * 0.995 * k)} at ${multiple(k)}. Selling ${pct(share, { digits: 1 })} of that and paying the 0.50% sell fee returns ${usd(buy)}. The rest rides for free.`,
-        formula: 'find share s where (buy − buy fee) × multiple × s × (1 − sell fee) = buy',
+        explain: L(`After the 0.50% buy fee you hold ${usd(buy * 0.995)} of tokens, worth ${usd(buy * 0.995 * k)} at ${multiple(k)}. Selling ${pct(share, { digits: 1 })} of that and paying the 0.50% sell fee returns ${usd(buy)}. The rest rides for free.`, `Setelah fee beli 0.50% kamu pegang token senilai ${usd(buy * 0.995)}, jadi ${usd(buy * 0.995 * k)} di ${multiple(k)}. Jual ${pct(share, { digits: 1 })} dari itu dan bayar fee jual 0.50% mengembalikan ${usd(buy)}. Sisanya jalan gratis.`),
+        formula: L('find share s where (buy − buy fee) × multiple × s × (1 − sell fee) = buy', 'cari porsi s di mana (beli − fee beli) × kelipatan × s × (1 − fee jual) = beli'),
       };
     },
   },
@@ -378,18 +383,18 @@ const TEMPLATES: readonly Template[] = [
       const lev = pick(r, [3, 5, 10, 20, 25]);
       return {
         level: 1,
-        prompt: `You open a perps position with ${usd(margin)} of margin at ${lev}x. How big is the position?`,
-        facts: [`Margin ${usd(margin)}`, `${lev}x leverage`],
+        prompt: L(`You open a perps position with ${usd(margin)} of margin at ${lev}x. How big is the position?`, `Kamu buka posisi perps dengan margin ${usd(margin)} di ${lev}x. Berapa ukuran posisinya?`),
+        facts: [`Margin ${usd(margin)}`, L(`${lev}x leverage`, `Leverage ${lev}x`)],
         correct: usd(margin * lev),
         wrong: [
-          { label: usd(margin), why: 'That is the margin you put up. Leverage multiplies it.' },
-          { label: usd(margin / lev), why: 'Leverage multiplies the margin; it does not divide it.' },
-          { label: usd(margin * (lev + 1)), why: 'Your margin is already inside the position; it is not added on top.' },
-          { label: usd(margin + lev), why: 'Leverage is a multiplier, not an amount.' },
+          { label: usd(margin), why: L('That is the margin you put up. Leverage multiplies it.', 'Itu margin yang kamu setor. Leverage mengalikannya.') },
+          { label: usd(margin / lev), why: L('Leverage multiplies the margin; it does not divide it.', 'Leverage mengalikan margin, bukan membaginya.') },
+          { label: usd(margin * (lev + 1)), why: L('Your margin is already inside the position; it is not added on top.', 'Margin kamu sudah termasuk di dalam posisi; tidak ditambahkan lagi.') },
+          { label: usd(margin + lev), why: L('Leverage is a multiplier, not an amount.', 'Leverage itu pengali, bukan jumlah uang.') },
         ],
         spare: (k) => usd(nudge(margin * lev, k)),
-        explain: `${usd(margin)} × ${lev} = ${usd(margin * lev)}. Fees, PnL and funding all scale with this number, not with the margin.`,
-        formula: 'position = margin × leverage',
+        explain: L(`${usd(margin)} × ${lev} = ${usd(margin * lev)}. Fees, PnL and funding all scale with this number, not with the margin.`, `${usd(margin)} × ${lev} = ${usd(margin * lev)}. Fee, PnL, dan funding semuanya mengikuti angka ini, bukan margin.`),
+        formula: L('position = margin × leverage', 'posisi = margin × leverage'),
       };
     },
   },
@@ -405,18 +410,18 @@ const TEMPLATES: readonly Template[] = [
       const notional = margin * lev;
       return {
         level: 2,
-        prompt: `${usd(margin)} margin at ${lev}x on Hyperliquid, opened with a ${maker ? 'limit (maker)' : 'market (taker)'} order. What is the fee to open?`,
+        prompt: L(`${usd(margin)} margin at ${lev}x on Hyperliquid, opened with a ${maker ? 'limit (maker)' : 'market (taker)'} order. What is the fee to open?`, `Margin ${usd(margin)} di ${lev}x di Hyperliquid, dibuka dengan order ${maker ? 'limit (maker)' : 'market (taker)'}. Berapa fee untuk buka posisinya?`),
         facts: [`Margin ${usd(margin)}`, `${lev}x`, `fomo ${pct(PERPS_FEES.builder, { digits: 3 })} + venue ${pct(rate - PERPS_FEES.builder, { digits: 3 })}`],
         correct: usd(notional * rate),
         wrong: [
-          { label: usd(margin * rate), why: 'Fees are charged on the whole position, not on the margin.' },
-          { label: usd(notional * PERPS_FEES.builder), why: 'That is only the fomo builder fee; the venue fee comes on top.' },
-          { label: usd(notional * rate * 2), why: 'That is open and close together. Opening is one side.' },
-          { label: usd(notional * (rate - PERPS_FEES.builder)), why: 'That is only the venue fee; fomo adds its builder fee on top.' },
+          { label: usd(margin * rate), why: L('Fees are charged on the whole position, not on the margin.', 'Fee dihitung dari seluruh posisi, bukan dari margin.') },
+          { label: usd(notional * PERPS_FEES.builder), why: L('That is only the fomo builder fee; the venue fee comes on top.', 'Itu cuma builder fee fomo; venue fee ditambahkan juga.') },
+          { label: usd(notional * rate * 2), why: L('That is open and close together. Opening is one side.', 'Itu buka dan tutup sekaligus. Buka cuma satu sisi.') },
+          { label: usd(notional * (rate - PERPS_FEES.builder)), why: L('That is only the venue fee; fomo adds its builder fee on top.', 'Itu cuma venue fee; fomo menambahkan builder fee-nya juga.') },
         ],
         spare: (k) => usd(nudge(notional * rate, k)),
-        explain: `Position: ${usd(margin)} × ${lev} = ${usd(notional)}. Fee per side: ${pct(rate, { digits: 3 })}. ${usd(notional)} × ${pct(rate, { digits: 3 })} = ${usd(notional * rate)}.`,
-        formula: 'fee per side = margin × leverage × (builder fee + venue fee)',
+        explain: L(`Position: ${usd(margin)} × ${lev} = ${usd(notional)}. Fee per side: ${pct(rate, { digits: 3 })}. ${usd(notional)} × ${pct(rate, { digits: 3 })} = ${usd(notional * rate)}.`, `Posisi: ${usd(margin)} × ${lev} = ${usd(notional)}. Fee per sisi: ${pct(rate, { digits: 3 })}. ${usd(notional)} × ${pct(rate, { digits: 3 })} = ${usd(notional * rate)}.`),
+        formula: L('fee per side = margin × leverage × (builder fee + venue fee)', 'fee per sisi = margin × leverage × (builder fee + venue fee)'),
       };
     },
   },
@@ -429,18 +434,18 @@ const TEMPLATES: readonly Template[] = [
       const share = 2 * lev * HL_TAKER;
       return {
         level: 3,
-        prompt: `You open and close a ${lev}x position with market orders on Hyperliquid, and the price does not move. What share of your margin goes to fees?`,
-        facts: [`${lev}x`, `${pct(HL_TAKER, { digits: 3 })} per side`, 'Price unchanged'],
+        prompt: L(`You open and close a ${lev}x position with market orders on Hyperliquid, and the price does not move. What share of your margin goes to fees?`, `Kamu buka lalu tutup posisi ${lev}x pakai market order di Hyperliquid, dan harganya tidak bergerak. Berapa persen margin kamu yang habis buat fee?`),
+        facts: [`${lev}x`, L(`${pct(HL_TAKER, { digits: 3 })} per side`, `${pct(HL_TAKER, { digits: 3 })} per sisi`), L('Price unchanged', 'Harga tetap')],
         correct: pct(share),
         wrong: [
-          { label: pct(2 * HL_TAKER), why: 'That is the fee as a share of the position. As a share of margin it is multiplied by the leverage.' },
-          { label: pct(lev * HL_TAKER), why: 'That is one side. Opening and closing both pay.' },
-          { label: pct(HL_TAKER), why: 'That is the fee rate per side on the position, not the cost against your margin.' },
-          { label: pct(4 * lev * HL_TAKER), why: 'Each side pays once: two fees, not four.' },
+          { label: pct(2 * HL_TAKER), why: L('That is the fee as a share of the position. As a share of margin it is multiplied by the leverage.', 'Itu fee sebagai persen dari posisi. Sebagai persen dari margin, dikali leverage.') },
+          { label: pct(lev * HL_TAKER), why: L('That is one side. Opening and closing both pay.', 'Itu cuma satu sisi. Buka dan tutup sama-sama bayar.') },
+          { label: pct(HL_TAKER), why: L('That is the fee rate per side on the position, not the cost against your margin.', 'Itu tarif fee per sisi terhadap posisi, bukan biaya terhadap margin kamu.') },
+          { label: pct(4 * lev * HL_TAKER), why: L('Each side pays once: two fees, not four.', 'Tiap sisi bayar sekali: dua fee, bukan empat.') },
         ],
         spare: (k) => pct(nudge(share, k)),
-        explain: `Each side pays ${pct(HL_TAKER, { digits: 3 })} of the position, and the position is ${lev}× the margin. 2 × ${lev} × ${pct(HL_TAKER, { digits: 3 })} = ${pct(share)} of margin gone before the price moves at all.`,
-        formula: 'fees ÷ margin = 2 × leverage × fee per side',
+        explain: L(`Each side pays ${pct(HL_TAKER, { digits: 3 })} of the position, and the position is ${lev}× the margin. 2 × ${lev} × ${pct(HL_TAKER, { digits: 3 })} = ${pct(share)} of margin gone before the price moves at all.`, `Tiap sisi bayar ${pct(HL_TAKER, { digits: 3 })} dari posisi, dan posisinya ${lev}× margin. 2 × ${lev} × ${pct(HL_TAKER, { digits: 3 })} = ${pct(share)} margin hilang bahkan sebelum harga bergerak.`),
+        formula: L('fees ÷ margin = 2 × leverage × fee per side', 'fee ÷ margin = 2 × leverage × fee per sisi'),
       };
     },
   },
@@ -460,18 +465,18 @@ const TEMPLATES: readonly Template[] = [
       const liq = res.liquidation!;
       return {
         level: 3,
-        prompt: `${sideWord(side)} at ${lev}x from ${price(entry)}, isolated margin. The market's max leverage is ${maxLev}x. Roughly where is the liquidation price?`,
-        facts: [sideWord(side), `${lev}x`, `Entry ${price(entry)}`, `Max ${maxLev}x`],
+        prompt: L(`${sideWord(side)} at ${lev}x from ${price(entry)}, isolated margin. The market's max leverage is ${maxLev}x. Roughly where is the liquidation price?`, `${sideWord(side)} ${lev}x dari ${price(entry)}, isolated margin. Leverage maksimal market-nya ${maxLev}x. Kira-kira di mana harga likuidasinya?`),
+        facts: [sideWord(side), `${lev}x`, `Entry ${price(entry)}`, L(`Max ${maxLev}x`, `Maks ${maxLev}x`)],
         correct: p(liq),
         wrong: [
-          { label: p(entry * (1 - s / lev)), why: 'That is where the whole margin is gone. Liquidation comes earlier, when equity drops to the maintenance margin.' },
-          { label: p(entry * (1 + s / lev)), why: 'Wrong direction: a ' + side + ' loses when the price moves ' + (side === 'long' ? 'down' : 'up') + '.' },
-          { label: p(entry * (1 - s / (2 * lev))), why: 'Halving the move confuses the maintenance rate with the margin itself.' },
-          { label: p(entry * (1 - (s * 1) / maxLev)), why: 'The max leverage sets the maintenance rate; your own leverage sets how far the price can move.' },
+          { label: p(entry * (1 - s / lev)), why: L('That is where the whole margin is gone. Liquidation comes earlier, when equity drops to the maintenance margin.', 'Itu titik seluruh margin habis. Likuidasi datang lebih dulu, saat ekuitas turun ke maintenance margin.') },
+          { label: p(entry * (1 + s / lev)), why: L('Wrong direction: a ' + side + ' loses when the price moves ' + (side === 'long' ? 'down' : 'up') + '.', 'Arah salah: posisi ' + side + ' rugi saat harga ' + (side === 'long' ? 'turun' : 'naik') + '.') },
+          { label: p(entry * (1 - s / (2 * lev))), why: L('Halving the move confuses the maintenance rate with the margin itself.', 'Membagi dua gerakannya berarti menyamakan maintenance rate dengan margin itu sendiri.') },
+          { label: p(entry * (1 - (s * 1) / maxLev)), why: L('The max leverage sets the maintenance rate; your own leverage sets how far the price can move.', 'Leverage maksimal menentukan maintenance rate; leverage kamu sendiri yang menentukan seberapa jauh harga boleh bergerak.') },
         ],
         spare: (k) => p(nudge(liq, k)),
-        explain: `Maintenance rate = 1 ÷ (2 × ${maxLev}) = ${pct(1 / (2 * maxLev))}. The position is liquidated when the loss leaves only that much margin, ${pct(res.liquidationDistance)} ${side === 'long' ? 'below' : 'above'} entry: ${p(liq)}.`,
-        formula: 'liq = (size × entry − side × margin) ÷ (size × (1 − side × mmr)), mmr = 1 ÷ (2 × max leverage)',
+        explain: L(`Maintenance rate = 1 ÷ (2 × ${maxLev}) = ${pct(1 / (2 * maxLev))}. The position is liquidated when the loss leaves only that much margin, ${pct(res.liquidationDistance)} ${side === 'long' ? 'below' : 'above'} entry: ${p(liq)}.`, `Maintenance rate = 1 ÷ (2 × ${maxLev}) = ${pct(1 / (2 * maxLev))}. Posisi dilikuidasi saat rugi menyisakan margin sebesar itu, ${pct(res.liquidationDistance)} ${side === 'long' ? 'di bawah' : 'di atas'} entry: ${p(liq)}.`),
+        formula: L('liq = (size × entry − side × margin) ÷ (size × (1 − side × mmr)), mmr = 1 ÷ (2 × max leverage)', 'liq = (size × entry − side × margin) ÷ (size × (1 − side × mmr)), mmr = 1 ÷ (2 × leverage maks)'),
       };
     },
   },
@@ -486,18 +491,18 @@ const TEMPLATES: readonly Template[] = [
       const d = res.liquidationDistance!;
       return {
         level: 2,
-        prompt: `A ${lev}x long on a market with 50x max leverage. About how far can the price fall before liquidation?`,
-        facts: ['Long', `${lev}x`, 'Max 50x (maintenance 1%)'],
+        prompt: L(`A ${lev}x long on a market with 50x max leverage. About how far can the price fall before liquidation?`, `Long ${lev}x di market dengan leverage maksimal 50x. Kira-kira harga boleh turun berapa jauh sebelum likuidasi?`),
+        facts: ['Long', `${lev}x`, L('Max 50x (maintenance 1%)', 'Maks 50x (maintenance 1%)')],
         correct: pct(d, { digits: 1 }),
         wrong: [
-          { label: pct(1 / lev, { digits: 1 }), why: 'That is the drop that wipes out the whole margin. Liquidation hits before that, at the maintenance margin.' },
-          { label: pct(1 / (2 * lev), { digits: 1 }), why: 'Half the margin is not the trigger; the maintenance margin is much smaller.' },
-          { label: pct(lev / 100, { digits: 1 }), why: 'Leverage shrinks the room to move; it does not grow it.' },
-          { label: pct(1 / lev + 0.01, { digits: 1 }), why: 'The maintenance margin is subtracted from your room, not added.' },
+          { label: pct(1 / lev, { digits: 1 }), why: L('That is the drop that wipes out the whole margin. Liquidation hits before that, at the maintenance margin.', 'Itu penurunan yang menghabiskan seluruh margin. Likuidasi kena sebelum itu, di maintenance margin.') },
+          { label: pct(1 / (2 * lev), { digits: 1 }), why: L('Half the margin is not the trigger; the maintenance margin is much smaller.', 'Setengah margin bukan pemicunya; maintenance margin jauh lebih kecil.') },
+          { label: pct(lev / 100, { digits: 1 }), why: L('Leverage shrinks the room to move; it does not grow it.', 'Leverage memperkecil ruang gerak, bukan memperbesar.') },
+          { label: pct(1 / lev + 0.01, { digits: 1 }), why: L('The maintenance margin is subtracted from your room, not added.', 'Maintenance margin mengurangi ruang gerak kamu, bukan menambah.') },
         ],
         spare: (k) => pct(nudge(d, k), { digits: 1 }),
-        explain: `Without maintenance margin it would be 1 ÷ ${lev} = ${pct(1 / lev, { digits: 1 })}. Hyperliquid liquidates while 1% of the position is still left as margin, so the room is a bit smaller: ${pct(d, { digits: 1 })}.`,
-        formula: 'distance ≈ (1 ÷ leverage − mmr) ÷ (1 − mmr)',
+        explain: L(`Without maintenance margin it would be 1 ÷ ${lev} = ${pct(1 / lev, { digits: 1 })}. Hyperliquid liquidates while 1% of the position is still left as margin, so the room is a bit smaller: ${pct(d, { digits: 1 })}.`, `Tanpa maintenance margin, jaraknya 1 ÷ ${lev} = ${pct(1 / lev, { digits: 1 })}. Hyperliquid melikuidasi saat masih tersisa 1% dari posisi sebagai margin, jadi ruangnya sedikit lebih kecil: ${pct(d, { digits: 1 })}.`),
+        formula: L('distance ≈ (1 ÷ leverage − mmr) ÷ (1 − mmr)', 'jarak ≈ (1 ÷ leverage − mmr) ÷ (1 − mmr)'),
       };
     },
   },
@@ -515,18 +520,18 @@ const TEMPLATES: readonly Template[] = [
       const be = res.breakEven!;
       return {
         level: 3,
-        prompt: `${sideWord(side)} at ${lev}x from ${price(entry)} with market orders on Hyperliquid. Ignoring funding, where do you break even?`,
-        facts: [sideWord(side), `${lev}x`, `Entry ${price(entry)}`, `${pct(HL_TAKER, { digits: 3 })} per side`],
+        prompt: L(`${sideWord(side)} at ${lev}x from ${price(entry)} with market orders on Hyperliquid. Ignoring funding, where do you break even?`, `${sideWord(side)} ${lev}x dari ${price(entry)} pakai market order di Hyperliquid. Tanpa funding, di harga berapa kamu break-even?`),
+        facts: [sideWord(side), `${lev}x`, `Entry ${price(entry)}`, L(`${pct(HL_TAKER, { digits: 3 })} per side`, `${pct(HL_TAKER, { digits: 3 })} per sisi`)],
         correct: p(be),
         wrong: [
-          { label: p(entry), why: 'At the entry price you have still paid the open and close fees.' },
-          { label: p(entry * (1 + s * HL_TAKER)), why: 'That covers the open fee only; the close pays another.' },
-          { label: p(entry * (1 + s * 2 * HL_TAKER * lev)), why: 'Leverage does not change the break-even move: fees and PnL both scale with the position.' },
-          { label: p(entry * (1 - s * 2 * HL_TAKER)), why: 'Wrong direction: a ' + side + ' needs the price to move ' + (side === 'long' ? 'up' : 'down') + ' to cover fees.' },
+          { label: p(entry), why: L('At the entry price you have still paid the open and close fees.', 'Di harga entry kamu tetap sudah bayar fee buka dan tutup.') },
+          { label: p(entry * (1 + s * HL_TAKER)), why: L('That covers the open fee only; the close pays another.', 'Itu cuma menutup fee buka; tutup posisi bayar fee lagi.') },
+          { label: p(entry * (1 + s * 2 * HL_TAKER * lev)), why: L('Leverage does not change the break-even move: fees and PnL both scale with the position.', 'Leverage tidak mengubah gerakan break-even: fee dan PnL sama-sama mengikuti ukuran posisi.') },
+          { label: p(entry * (1 - s * 2 * HL_TAKER)), why: L('Wrong direction: a ' + side + ' needs the price to move ' + (side === 'long' ? 'up' : 'down') + ' to cover fees.', 'Arah salah: posisi ' + side + ' butuh harga ' + (side === 'long' ? 'naik' : 'turun') + ' untuk menutup fee.') },
         ],
         spare: (k) => p(entry + nudge(be - entry, k)),
-        explain: `Fees take ${pct(HL_TAKER, { digits: 3 })} on the open and about as much on the close, so the price has to move about ${pct(2 * HL_TAKER, { digits: 3 })} your way: ${p(be)}. Leverage changes the size, not this move.`,
-        formula: 'break-even = (size × entry + side × open fee) ÷ (size × (1 − side × fee rate))',
+        explain: L(`Fees take ${pct(HL_TAKER, { digits: 3 })} on the open and about as much on the close, so the price has to move about ${pct(2 * HL_TAKER, { digits: 3 })} your way: ${p(be)}. Leverage changes the size, not this move.`, `Fee mengambil ${pct(HL_TAKER, { digits: 3 })} saat buka dan kira-kira segitu juga saat tutup, jadi harga harus bergerak sekitar ${pct(2 * HL_TAKER, { digits: 3 })} ke arah kamu: ${p(be)}. Leverage mengubah ukuran, bukan gerakan ini.`),
+        formula: L('break-even = (size × entry + side × open fee) ÷ (size × (1 − side × fee rate))', 'break-even = (size × entry + side × fee buka) ÷ (size × (1 − side × tarif fee))'),
       };
     },
   },
@@ -543,18 +548,18 @@ const TEMPLATES: readonly Template[] = [
       const cost = notional * rate * hours;
       return {
         level: 2,
-        prompt: `You hold a long of ${usd(margin)} at ${lev}x for ${hours} hours. Funding is ${pct(rate, { digits: 4 })} per hour, paid by longs. How much funding do you pay?`,
-        facts: ['Long', `Position ${usd(notional)}`, `Funding ${pct(rate, { digits: 4 })}/h`, `${hours}h`],
+        prompt: L(`You hold a long of ${usd(margin)} at ${lev}x for ${hours} hours. Funding is ${pct(rate, { digits: 4 })} per hour, paid by longs. How much funding do you pay?`, `Kamu pegang long ${usd(margin)} di ${lev}x selama ${hours} jam. Funding ${pct(rate, { digits: 4 })} per jam, dibayar oleh long. Berapa funding yang kamu bayar?`),
+        facts: ['Long', L(`Position ${usd(notional)}`, `Posisi ${usd(notional)}`), L(`Funding ${pct(rate, { digits: 4 })}/h`, `Funding ${pct(rate, { digits: 4 })}/jam`), L(`${hours}h`, `${hours} jam`)],
         correct: usd(cost),
         wrong: [
-          { label: usd(margin * rate * hours), why: 'Funding is charged on the position size, not on the margin.' },
-          { label: usd(notional * rate), why: 'That is one hour. Hyperliquid charges funding every hour.' },
-          { label: usd(notional * rate * (hours / 8)), why: 'Hyperliquid funding is hourly, not every 8 hours.' },
-          { label: usd(0), why: 'When the rate is positive, longs pay shorts.' },
+          { label: usd(margin * rate * hours), why: L('Funding is charged on the position size, not on the margin.', 'Funding dihitung dari ukuran posisi, bukan dari margin.') },
+          { label: usd(notional * rate), why: L('That is one hour. Hyperliquid charges funding every hour.', 'Itu cuma satu jam. Hyperliquid menagih funding tiap jam.') },
+          { label: usd(notional * rate * (hours / 8)), why: L('Hyperliquid funding is hourly, not every 8 hours.', 'Funding Hyperliquid per jam, bukan tiap 8 jam.') },
+          { label: usd(0), why: L('When the rate is positive, longs pay shorts.', 'Kalau rate-nya positif, long membayar short.') },
         ],
         spare: (k) => usd(nudge(cost, k)),
         explain: `${usd(notional)} × ${pct(rate, { digits: 4 })} × ${hours} = ${usd(cost)}.`,
-        formula: 'funding = position × hourly rate × hours',
+        formula: L('funding = position × hourly rate × hours', 'funding = posisi × rate per jam × jam'),
       };
     },
   },
@@ -573,18 +578,18 @@ const TEMPLATES: readonly Template[] = [
       const notional = margin * lev;
       return {
         level: 2,
-        prompt: `Long ${usd(margin)} at ${lev}x from ${price(entry)}, stop-loss at ${price(stop)} (${pct(dist, { digits: 0 })} below). How much do you lose if the stop fills?`,
-        facts: [`Position ${usd(notional)}`, `Stop −${pct(dist, { digits: 0 })}`, `${pct(HL_TAKER, { digits: 3 })} per side`],
+        prompt: L(`Long ${usd(margin)} at ${lev}x from ${price(entry)}, stop-loss at ${price(stop)} (${pct(dist, { digits: 0 })} below). How much do you lose if the stop fills?`, `Long ${usd(margin)} di ${lev}x dari ${price(entry)}, stop-loss di ${price(stop)} (${pct(dist, { digits: 0 })} di bawah). Berapa rugi kamu kalau stop kena?`),
+        facts: [L(`Position ${usd(notional)}`, `Posisi ${usd(notional)}`), `Stop −${pct(dist, { digits: 0 })}`, L(`${pct(HL_TAKER, { digits: 3 })} per side`, `${pct(HL_TAKER, { digits: 3 })} per sisi`)],
         correct: usd(res.loss),
         wrong: [
-          { label: usd(notional * dist), why: 'That is the price move only. The open fee and the close fee at the stop add to the loss.' },
-          { label: usd(margin * dist), why: 'The loss scales with the position, not the margin: multiply by the leverage.' },
-          { label: usd(margin * dist + notional * HL_TAKER * 2), why: 'The fees are right, but the price move is on the whole position, not the margin.' },
-          { label: usd(margin), why: 'A stop this close fills well before the margin is gone.' },
+          { label: usd(notional * dist), why: L('That is the price move only. The open fee and the close fee at the stop add to the loss.', 'Itu cuma pergerakan harga. Fee buka dan fee tutup di stop menambah ruginya.') },
+          { label: usd(margin * dist), why: L('The loss scales with the position, not the margin: multiply by the leverage.', 'Rugi mengikuti ukuran posisi, bukan margin: kalikan dengan leverage.') },
+          { label: usd(margin * dist + notional * HL_TAKER * 2), why: L('The fees are right, but the price move is on the whole position, not the margin.', 'Fee-nya sudah benar, tapi pergerakan harga berlaku ke seluruh posisi, bukan margin.') },
+          { label: usd(margin), why: L('A stop this close fills well before the margin is gone.', 'Stop sedekat ini kena jauh sebelum margin habis.') },
         ],
         spare: (k) => usd(nudge(res.loss, k)),
-        explain: `Price move: ${usd(notional)} × ${pct(dist, { digits: 0 })} = ${usd(notional * dist)}. Plus the open fee and the taker fee on the stop fill: ${usd(res.loss)}, or ${pct(res.lossOfMargin, { digits: 1 })} of the margin.`,
-        formula: 'loss = size × |entry − stop| + open fee + close fee at stop',
+        explain: L(`Price move: ${usd(notional)} × ${pct(dist, { digits: 0 })} = ${usd(notional * dist)}. Plus the open fee and the taker fee on the stop fill: ${usd(res.loss)}, or ${pct(res.lossOfMargin, { digits: 1 })} of the margin.`, `Pergerakan harga: ${usd(notional)} × ${pct(dist, { digits: 0 })} = ${usd(notional * dist)}. Ditambah fee buka dan fee taker saat stop kena: ${usd(res.loss)}, atau ${pct(res.lossOfMargin, { digits: 1 })} dari margin.`),
+        formula: L('loss = size × |entry − stop| + open fee + close fee at stop', 'rugi = size × |entry − stop| + fee buka + fee tutup di stop'),
       };
     },
   },
@@ -601,18 +606,18 @@ const TEMPLATES: readonly Template[] = [
       const margin = risk / per;
       return {
         level: 3,
-        prompt: `You will lose at most ${usd(risk)} if the stop fills. The stop is ${pct(dist, { digits: 0 })} below entry and you trade at ${lev}x. How much margin can you put in?`,
-        facts: [`Max loss ${usd(risk)}`, `Stop −${pct(dist, { digits: 0 })}`, `${lev}x`, 'Fees included'],
+        prompt: L(`You will lose at most ${usd(risk)} if the stop fills. The stop is ${pct(dist, { digits: 0 })} below entry and you trade at ${lev}x. How much margin can you put in?`, `Kamu mau rugi maksimal ${usd(risk)} kalau stop kena. Stop ada ${pct(dist, { digits: 0 })} di bawah entry dan kamu pakai ${lev}x. Berapa margin yang boleh kamu pasang?`),
+        facts: [L(`Max loss ${usd(risk)}`, `Rugi maks ${usd(risk)}`), `Stop −${pct(dist, { digits: 0 })}`, `${lev}x`, L('Fees included', 'Termasuk fee')],
         correct: usd(margin),
         wrong: [
-          { label: usd(risk / dist), why: 'That is the position size the risk allows, not the margin. Divide by the leverage.' },
-          { label: usd(risk / (lev * dist)), why: 'Close, but it forgets the fees, so the real loss at the stop would be bigger than planned.' },
-          { label: usd(risk), why: 'With leverage, a small move loses more than the margin share; size from the stop distance.' },
-          { label: usd((risk * lev) / dist), why: 'Leverage makes each dollar of margin riskier, so the margin goes down, not up.' },
+          { label: usd(risk / dist), why: L('That is the position size the risk allows, not the margin. Divide by the leverage.', 'Itu ukuran posisi yang diizinkan risikonya, bukan margin. Bagi dengan leverage.') },
+          { label: usd(risk / (lev * dist)), why: L('Close, but it forgets the fees, so the real loss at the stop would be bigger than planned.', 'Hampir, tapi lupa fee, jadi rugi asli di stop bakal lebih besar dari rencana.') },
+          { label: usd(risk), why: L('With leverage, a small move loses more than the margin share; size from the stop distance.', 'Dengan leverage, gerakan kecil merugikan lebih dari porsi margin; hitung ukurannya dari jarak stop.') },
+          { label: usd((risk * lev) / dist), why: L('Leverage makes each dollar of margin riskier, so the margin goes down, not up.', 'Leverage bikin tiap dolar margin lebih berisiko, jadi margin-nya turun, bukan naik.') },
         ],
         spare: (k) => usd(nudge(margin, k)),
-        explain: `Each 1 USDC of margin at ${lev}x loses $${per.toFixed(4)} at the stop (${pct(dist, { digits: 0 })} × ${lev} plus fees). ${usd(risk)} ÷ $${per.toFixed(4)} = ${usd(margin)} of margin, a ${usd(margin * lev)} position.`,
-        formula: 'margin = max loss ÷ loss at the stop per 1 USDC of margin',
+        explain: L(`Each 1 USDC of margin at ${lev}x loses $${per.toFixed(4)} at the stop (${pct(dist, { digits: 0 })} × ${lev} plus fees). ${usd(risk)} ÷ $${per.toFixed(4)} = ${usd(margin)} of margin, a ${usd(margin * lev)} position.`, `Tiap 1 USDC margin di ${lev}x rugi $${per.toFixed(4)} di stop (${pct(dist, { digits: 0 })} × ${lev} ditambah fee). ${usd(risk)} ÷ $${per.toFixed(4)} = margin ${usd(margin)}, posisi ${usd(margin * lev)}.`),
+        formula: L('margin = max loss ÷ loss at the stop per 1 USDC of margin', 'margin = rugi maks ÷ rugi di stop per 1 USDC margin'),
       };
     },
   },
@@ -626,26 +631,26 @@ const TEMPLATES: readonly Template[] = [
       const dist = pick(r, [0.02, 0.03, 0.05, 0.08]);
       const liqDist = perpTrade(perpInput('long', 100, lev, 100, maxLev)).liquidationDistance!;
       const first = dist >= liqDist;
-      const right = first ? 'You get liquidated before the stop' : 'The stop fills first';
-      const other = first ? 'The stop fills first' : 'You get liquidated before the stop';
+      const right = first ? L('You get liquidated before the stop', 'Kena likuidasi sebelum stop') : L('The stop fills first', 'Stop kena duluan');
+      const other = first ? L('The stop fills first', 'Stop kena duluan') : L('You get liquidated before the stop', 'Kena likuidasi sebelum stop');
       return {
         level: 2,
-        prompt: `Long at ${lev}x (max 50x) with a stop-loss ${pct(dist, { digits: 0 })} below entry. The price falls straight through. What happens?`,
+        prompt: L(`Long at ${lev}x (max 50x) with a stop-loss ${pct(dist, { digits: 0 })} below entry. The price falls straight through. What happens?`, `Long ${lev}x (maks 50x) dengan stop-loss ${pct(dist, { digits: 0 })} di bawah entry. Harga anjlok terus menembus. Apa yang terjadi?`),
         facts: ['Long', `${lev}x`, `Stop −${pct(dist, { digits: 0 })}`],
         correct: right,
         wrong: [
           {
             label: other,
             why: first
-              ? `At ${lev}x liquidation sits ${pct(liqDist, { digits: 1 })} below entry, closer than the stop.`
-              : `At ${lev}x liquidation sits ${pct(liqDist, { digits: 1 })} below entry, past the stop.`,
+              ? L(`At ${lev}x liquidation sits ${pct(liqDist, { digits: 1 })} below entry, closer than the stop.`, `Di ${lev}x, likuidasi ada ${pct(liqDist, { digits: 1 })} di bawah entry, lebih dekat dari stop.`)
+              : L(`At ${lev}x liquidation sits ${pct(liqDist, { digits: 1 })} below entry, past the stop.`, `Di ${lev}x, likuidasi ada ${pct(liqDist, { digits: 1 })} di bawah entry, lebih jauh dari stop.`),
           },
-          { label: 'Both trigger at the same price', why: 'They are set by different things: the stop by you, liquidation by leverage and the maintenance margin.' },
-          { label: 'Neither, the position stays open', why: 'A stop or liquidation always closes the position once the price reaches it.' },
+          { label: L('Both trigger at the same price', 'Dua-duanya kena di harga yang sama'), why: L('They are set by different things: the stop by you, liquidation by leverage and the maintenance margin.', 'Keduanya ditentukan hal berbeda: stop oleh kamu, likuidasi oleh leverage dan maintenance margin.') },
+          { label: L('Neither, the position stays open', 'Tidak dua-duanya, posisi tetap terbuka'), why: L('A stop or liquidation always closes the position once the price reaches it.', 'Stop atau likuidasi selalu menutup posisi begitu harga menyentuhnya.') },
         ],
         spare: () => other,
-        explain: `At ${lev}x the liquidation price is about ${pct(liqDist, { digits: 1 })} from entry. The stop is ${pct(dist, { digits: 0 })} away, so ${first ? 'liquidation comes first and the stop never fills. Lower the leverage or move the stop closer.' : 'the stop fills first and caps the loss.'}`,
-        formula: 'liquidation distance ≈ (1 ÷ leverage − mmr) ÷ (1 − mmr)',
+        explain: L(`At ${lev}x the liquidation price is about ${pct(liqDist, { digits: 1 })} from entry. The stop is ${pct(dist, { digits: 0 })} away, so ${first ? 'liquidation comes first and the stop never fills. Lower the leverage or move the stop closer.' : 'the stop fills first and caps the loss.'}`, `Di ${lev}x, harga likuidasi sekitar ${pct(liqDist, { digits: 1 })} dari entry. Stop berjarak ${pct(dist, { digits: 0 })}, jadi ${first ? 'likuidasi datang duluan dan stop tidak pernah kena. Turunkan leverage atau dekatkan stop.' : 'stop kena duluan dan membatasi rugi.'}`),
+        formula: L('liquidation distance ≈ (1 ÷ leverage − mmr) ÷ (1 − mmr)', 'jarak likuidasi ≈ (1 ÷ leverage − mmr) ÷ (1 − mmr)'),
       };
     },
   },

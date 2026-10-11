@@ -147,6 +147,139 @@
     margin: 0;
   }
   @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  .num {
+    font-family: var(--font-geist-mono), ui-monospace, 'SFMono-Regular', Menlo, monospace;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 1rem;
+  }
+  .range {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 28px;
+    background: transparent;
+    cursor: pointer;
+  }
+  .range::-webkit-slider-runnable-track {
+    height: 4px;
+    border-radius: 999px;
+    background: linear-gradient(to right, var(--accent-strong) var(--fill, 0%), var(--line-strong) var(--fill, 0%));
+  }
+  .range::-moz-range-track {
+    height: 4px;
+    border-radius: 999px;
+    background: var(--line-strong);
+  }
+  .range::-moz-range-progress {
+    height: 4px;
+    border-radius: 999px;
+    background: var(--accent-strong);
+  }
+  .range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 22px;
+    height: 22px;
+    margin-top: -9px;
+    border-radius: 999px;
+    background: var(--accent);
+    border: 3px solid var(--surface);
+    box-shadow: 0 0 0 1px var(--line-strong);
+  }
+  .range::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border-radius: 999px;
+    background: var(--accent);
+    border: 3px solid var(--surface);
+    box-shadow: 0 0 0 1px var(--line-strong);
+  }
+}
+
+/* torn bottom edge of the hero fee receipt */
+.receipt {
+  box-shadow: 0 1px 0 var(--line), 0 30px 60px -40px rgb(23 19 28 / 0.55);
+}
+.receipt-edge {
+  background:
+    linear-gradient(135deg, var(--surface) 50%, transparent 50%) 0 0 / 14px 12px repeat-x,
+    linear-gradient(225deg, var(--surface) 50%, transparent 50%) 0 0 / 14px 12px repeat-x;
+}
+
+/* ---------- language: hidden until a saved choice applies (LangProvider.tsx) ---------- */
+html.lang-pending body {
+  visibility: hidden;
+}
+
+/* ---------- tap feedback ---------- */
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+.press {
+  transition:
+    transform var(--dur-fast) var(--ease-standard),
+    background-color var(--dur-fast) var(--ease-standard),
+    border-color var(--dur-fast) var(--ease-standard),
+    color var(--dur-fast) var(--ease-standard),
+    opacity var(--dur-fast) var(--ease-standard);
+}
+.press:active:not(:disabled) {
+  transform: scale(0.97);
+  transition-duration: var(--dur-press);
+}
+/* everything else that is tappable dims under the finger, in place of the grey tap highlight */
+:where(a[href], button, summary, [role='option']):where(:not(.press, .press-soft, :disabled)):active {
+  opacity: 0.7;
+}
+/* large surfaces (cards) give less, or they read as wobbling */
+.press-soft {
+  transition:
+    transform var(--dur-fast) var(--ease-standard),
+    border-color var(--dur-fast) var(--ease-standard);
+}
+.press-soft:active {
+  transform: scale(0.985);
+  transition-duration: var(--dur-press);
+}
+/* the slider thumb swells under the finger */
+.range::-webkit-slider-thumb {
+  transition: transform var(--dur-fast) var(--ease-standard);
+}
+.range:active::-webkit-slider-thumb {
+  transform: scale(1.15);
+}
+.range::-moz-range-thumb {
+  transition: transform var(--dur-fast) var(--ease-standard);
+}
+.range:active::-moz-range-thumb {
+  transform: scale(1.15);
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
   .press:active:not(:disabled),
   .press-soft:active,
   .range:active::-webkit-slider-thumb,

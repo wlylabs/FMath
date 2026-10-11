@@ -41,37 +41,41 @@ export function Quiz() {
   }, [step]);
 
   return (
-    <div ref={top} className="mx-auto max-w-2xl scroll-mt-24">
-      {phase.kind === 'pick' && <Picker topic={topic} onTopic={setTopic} onStart={() => start(topic)} />}
-      {phase.kind === 'play' && (
-        <Play
-          key={phase.questions[phase.index]!.id}
-          question={phase.questions[phase.index]!}
-          index={phase.index}
-          total={phase.questions.length}
-          pick={phase.picks[phase.index] ?? null}
-          onPick={(i) =>
-            setPhase((p) => (p.kind === 'play' ? { ...p, picks: p.picks.map((v, j) => (j === p.index ? i : v)) } : p))
-          }
-          onNext={() =>
-            setPhase((p) => {
-              if (p.kind !== 'play') return p;
-              if (p.index + 1 < p.questions.length) return { ...p, index: p.index + 1 };
-              return { kind: 'done', topic: p.topic, questions: p.questions, picks: p.picks };
-            })
-          }
-        />
-      )}
-      {phase.kind === 'done' && (
-        <Results
-          questions={phase.questions}
-          picks={phase.picks}
-          onAgain={() => start(phase.topic)}
-          onTopic={(tp) => start(tp)}
-          onChange={() => setPhase({ kind: 'pick' })}
-        />
-      )}
-      <p className="mt-6 text-xs leading-relaxed text-muted">{t.quiz.disclaimer}</p>
+    <div className="mx-auto max-w-2xl">
+      <h1 className="text-2xl font-semibold tracking-tight text-ink sm:text-3xl">{t.quiz.title}</h1>
+      <p className="mt-2 text-sm leading-relaxed text-ink-2">{t.quiz.lead}</p>
+      <div ref={top} className="mt-6 scroll-mt-24">
+        {phase.kind === 'pick' && <Picker topic={topic} onTopic={setTopic} onStart={() => start(topic)} />}
+        {phase.kind === 'play' && (
+          <Play
+            key={phase.questions[phase.index]!.id}
+            question={phase.questions[phase.index]!}
+            index={phase.index}
+            total={phase.questions.length}
+            pick={phase.picks[phase.index] ?? null}
+            onPick={(i) =>
+              setPhase((p) => (p.kind === 'play' ? { ...p, picks: p.picks.map((v, j) => (j === p.index ? i : v)) } : p))
+            }
+            onNext={() =>
+              setPhase((p) => {
+                if (p.kind !== 'play') return p;
+                if (p.index + 1 < p.questions.length) return { ...p, index: p.index + 1 };
+                return { kind: 'done', topic: p.topic, questions: p.questions, picks: p.picks };
+              })
+            }
+          />
+        )}
+        {phase.kind === 'done' && (
+          <Results
+            questions={phase.questions}
+            picks={phase.picks}
+            onAgain={() => start(phase.topic)}
+            onTopic={(tp) => start(tp)}
+            onChange={() => setPhase({ kind: 'pick' })}
+          />
+        )}
+        <p className="mt-6 text-xs leading-relaxed text-muted">{t.quiz.disclaimer}</p>
+      </div>
     </div>
   );
 }

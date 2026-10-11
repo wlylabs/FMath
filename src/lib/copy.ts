@@ -1,5 +1,7 @@
-/** All interface copy. The site is English only. */
-export const t = {
+import { id } from './copy.id';
+
+/** English interface copy; the Indonesian ("wkwk") copy in copy.id.ts has the same shape. */
+const en = {
   meta: {
     title: 'FMath: Fee and profit calculator for fomo traders',
   },
@@ -34,6 +36,7 @@ export const t = {
     receipt: 'Fee receipt',
     referralLead: 'New to fomo?',
     referralLink: 'Trade with me and get 10% off fees',
+    badge: '10% OFF',
     schedule: (d: string) => `Help Center fee schedule dated ${d}`,
   },
   facts: {
@@ -333,7 +336,7 @@ export const t = {
     finish: 'See results',
     score: 'Your score',
     scoreValue: (r: number, n: number) => `${r} / ${n}`,
-    verdict: (r: number, n: number) =>
+    verdict: (r: number, n: number): string =>
       r === n ? 'Every one right. You know where the fees hide.' : r >= n - 1 ? 'Nearly all right. Check the one you missed below.' : r >= n / 2 ? 'Good base. A few formulas are worth another look.' : 'Worth another round. The solutions show each step.',
     solid: 'Solid',
     practice: 'Practice this',
@@ -486,7 +489,41 @@ export const t = {
     built: 'Built with Next.js, React, Tailwind CSS, Lucide and Geist.',
     install: 'Install app',
     referral: 'Get 10% off fomo fees',
+    nav: 'Footer',
+    copyright: (year: number, name: string) => `© ${year} FMath by ${name}. Not affiliated with fomo.`,
   },
 };
 
-export type Copy = typeof t;
+export type Copy = typeof en;
+
+export type Lang = 'en' | 'id';
+
+export const LANGS: readonly Lang[] = ['en', 'id'];
+
+/** Toggle labels: Indonesian is shown as "wkwk". */
+export const LANG_LABELS: Record<Lang, string> = { en: 'EN', id: 'wkwk' };
+
+const COPY: Record<Lang, Copy> = { en, id };
+
+let current: Lang = 'en';
+
+export function getLang(): Lang {
+  return current;
+}
+
+/**
+ * Switches the language `t` reads from. Only LangProvider calls this, during
+ * render and before its subtree renders; the static export always renders English.
+ */
+export function setLang(lang: Lang) {
+  current = lang;
+}
+
+/**
+ * All interface copy, in the current language. Every read goes through the
+ * proxy, so code reads `t.nav.home` at render time and gets the language the
+ * page is showing; LangProvider remounts the app when it changes.
+ */
+export const t: Copy = new Proxy(en, {
+  get: (_, key) => COPY[current][key as keyof Copy],
+});

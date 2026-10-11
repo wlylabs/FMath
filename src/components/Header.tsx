@@ -10,6 +10,7 @@ import { CALCULATOR_KEYS, ROUTES, samePage } from '../lib/routes';
 import { ReferralLink } from './Referral';
 import { InstallButton } from './pwa/PwaProvider';
 import { NavLink } from './NavLink';
+import { LangToggle } from './LangProvider';
 
 export function Header() {
   const { toggle } = useTheme();
@@ -52,12 +53,14 @@ export function Header() {
             </NavLink>
           ))}
         </nav>
-        <div className="flex items-center gap-2">
-          <ReferralLink className="press inline-flex h-9 items-center gap-1 rounded-lg bg-accent px-3 text-sm font-semibold text-accent-ink hover:bg-accent-hover">
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          <ReferralLink className="press inline-flex h-9 items-center gap-1 whitespace-nowrap rounded-lg bg-accent px-2.5 text-sm font-semibold text-accent-ink hover:bg-accent-hover sm:px-3">
             {t.header.referralCta}
-            <ArrowUpRight aria-hidden className="size-4" />
+            {/* the arrow goes first on small phones, so the language and theme toggles keep their room */}
+            <ArrowUpRight aria-hidden className="hidden size-4 min-[400px]:block" />
           </ReferralLink>
           <InstallButton />
+          <LangToggle />
           <button
             type="button"
             onClick={(e) => {

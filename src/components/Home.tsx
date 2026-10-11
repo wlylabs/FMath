@@ -1,3 +1,5 @@
+'use client';
+
 import { ArrowRight, ArrowUpRight, BookOpen, CircleHelp, Gauge, GraduationCap, Receipt, Target } from 'lucide-react';
 import { fomoFee } from '../lib/fees';
 import { roundTrip } from '../lib/roundtrip';

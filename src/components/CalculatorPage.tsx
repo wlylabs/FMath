@@ -1,3 +1,5 @@
+'use client';
+
 import type { ReactNode } from 'react';
 import { t } from '../lib/copy';
 import { cx } from '../lib/cx';

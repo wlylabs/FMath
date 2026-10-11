@@ -7,12 +7,12 @@ import { cx } from '../lib/cx';
 import { ROUTES, samePage } from '../lib/routes';
 import { NavLink } from './NavLink';
 
-const ITEMS = [
-  { href: ROUTES.home, label: t.nav.home, Icon: House },
-  { href: ROUTES.fee, label: t.nav.fee, Icon: Receipt },
-  { href: ROUTES.profit, label: t.nav.profit, Icon: Target },
-  { href: ROUTES.perps, label: t.nav.perps, Icon: Gauge },
-  { href: ROUTES.referral, label: t.nav.offShort, Icon: BadgePercent },
+const ITEMS: { href: string; label: 'home' | 'fee' | 'profit' | 'perps' | 'offShort'; Icon: typeof House }[] = [
+  { href: ROUTES.home, label: 'home', Icon: House },
+  { href: ROUTES.fee, label: 'fee', Icon: Receipt },
+  { href: ROUTES.profit, label: 'profit', Icon: Target },
+  { href: ROUTES.perps, label: 'perps', Icon: Gauge },
+  { href: ROUTES.referral, label: 'offShort', Icon: BadgePercent },
 ];
 
 /** App-style tab bar for phones and tablets; desktop uses the header nav. */
@@ -42,7 +42,7 @@ export function BottomNav() {
                 >
                   <Icon className="size-[18px]" />
                 </span>
-                {label}
+                {t.nav[label]}
               </NavLink>
             </li>
           );

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { fomoFee } from './fees';
 import { makeSession, questionFrom, rng, scoreByTopic, templateIds, QUIZ_TOPICS } from './quiz';
 import { usd } from './format';
+import { setLang } from './copy';
 
 const SEEDS = Array.from({ length: 300 }, (_, i) => (i * 2654435761) >>> 0);
 
@@ -65,5 +66,23 @@ describe('quiz generator', () => {
     expect(all.reduce((n, t) => n + t.right, 0)).toBe(5);
     const none = scoreByTopic(s, s.map(() => null));
     expect(none.reduce((n, t) => n + t.right, 0)).toBe(0);
+  });
+
+  it('writes the same questions in Indonesian', () => {
+    const en = makeSession(77, 'all', 8);
+    setLang('id');
+    try {
+      const id = makeSession(77, 'all', 8);
+      expect(id.map((q) => q.answer)).toEqual(en.map((q) => q.answer));
+      expect(id.every((q, i) => q.prompt !== en[i]!.prompt)).toBe(true);
+      for (const tid of templateIds()) {
+        for (const seed of SEEDS.slice(0, 50)) {
+          const q = questionFrom(tid, seed);
+          expect(new Set(q.options.map((o) => o.label)).size).toBe(q.options.length);
+        }
+      }
+    } finally {
+      setLang('en');
+    }
   });
 });
