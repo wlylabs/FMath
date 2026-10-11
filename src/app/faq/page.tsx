@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Faq } from '../../components/Sections';
 import { t } from '../../lib/copy';
 import { ROUTES } from '../../lib/routes';
+import { BASE_OPEN_GRAPH } from '../../lib/site';
 
 const DESCRIPTION = 'Answers on accuracy, live data sources, the fomo fee schedule and the referral discount.';
 
@@ -9,7 +10,7 @@ export const metadata: Metadata = {
   title: t.faq.title,
   description: DESCRIPTION,
   alternates: { canonical: ROUTES.faq },
-  openGraph: { title: t.faq.title, description: DESCRIPTION, url: ROUTES.faq },
+  openGraph: { ...BASE_OPEN_GRAPH, title: t.faq.title, description: DESCRIPTION, url: ROUTES.faq },
 };
 
 const jsonLd = {

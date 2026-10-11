@@ -38,7 +38,8 @@ export function Header() {
             <Link
               key={l.href}
               href={l.href}
-              aria-current={l.active ? 'page' : undefined}
+              // "Calculators" links to /fee/ but lights up on every calculator; only the page itself is "page"
+              aria-current={samePage(pathname, l.href) ? 'page' : l.active ? 'true' : undefined}
               className={cx(
                 'rounded-lg px-3 py-2 text-sm transition-colors',
                 l.active ? 'bg-surface-2 font-medium text-ink' : 'text-ink-2 hover:bg-surface-2 hover:text-ink',

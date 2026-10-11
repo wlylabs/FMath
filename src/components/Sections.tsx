@@ -37,7 +37,7 @@ export function Methodology() {
 
       <div className="mt-8 grid gap-4 lg:grid-cols-2">
         <div id="spot" className="card p-5 sm:p-6">
-          <h3 className="text-base font-semibold text-ink">{t.method.spotTitle}</h3>
+          <h2 className="text-base font-semibold text-ink">{t.method.spotTitle}</h2>
           <p className="mt-4 text-sm font-medium text-ink">{t.method.solanaTitle}</p>
           <div className="mt-2.5">
             <BandTable chain="solana" tokenClass="standard" referral={false} caption={t.method.solanaTitle} />
@@ -64,7 +64,7 @@ export function Methodology() {
 
         <div className="grid gap-4">
           <div id="formulas" className="card p-5 sm:p-6">
-            <h3 className="text-base font-semibold text-ink">{t.method.formulasTitle}</h3>
+            <h2 className="text-base font-semibold text-ink">{t.method.formulasTitle}</h2>
             <dl className="mt-4 divide-y divide-line">
               {t.method.formulas.map((f) => (
                 <div key={f.name} className="py-3 first:pt-0 last:pb-0">
@@ -75,7 +75,7 @@ export function Methodology() {
             </dl>
           </div>
           <div id="perps-fees" className="card p-5 sm:p-6">
-            <h3 className="text-base font-semibold text-ink">{t.method.perpsTitle}</h3>
+            <h2 className="text-base font-semibold text-ink">{t.method.perpsTitle}</h2>
             <p className="mt-2 text-sm leading-relaxed text-ink-2">{t.method.perpsBody}</p>
           </div>
         </div>
@@ -83,7 +83,7 @@ export function Methodology() {
 
       <div id="sources" className="mt-4 card p-5 sm:p-6">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h3 className="text-base font-semibold text-ink">{t.method.sourcesTitle}</h3>
+          <h2 className="text-base font-semibold text-ink">{t.method.sourcesTitle}</h2>
           <p className="text-xs text-muted">{t.method.checked(date(LAST_CHECKED))}</p>
         </div>
         <ul className="mt-4 grid gap-x-6 sm:grid-cols-2">

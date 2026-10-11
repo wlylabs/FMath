@@ -113,7 +113,7 @@ function SavingsEstimator() {
 
   return (
     <div className="card p-5 sm:p-6">
-      <h3 className="text-base font-semibold text-ink">{t.referral.estimatorTitle}</h3>
+      <h2 className="text-base font-semibold text-ink">{t.referral.estimatorTitle}</h2>
       <p className="mt-1 text-xs text-muted">{t.referral.estimatorLead}</p>
 
       <div className="mt-5 space-y-5">

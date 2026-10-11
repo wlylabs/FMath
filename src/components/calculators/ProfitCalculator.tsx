@@ -48,16 +48,16 @@ const INITIAL: State = {
   token: null,
 };
 
-function fromUrl(params: URLSearchParams): Partial<State> {
-  return {
-    ...primitivesFrom(INITIAL, params, {
-      chain: CHAINS.map((c) => c.id),
-      tokenClass: ['standard', 'major'],
-      targetBy: ['mcap', 'multiple'],
-    }),
-    // a shared link describes the whole calculation; its token (if any) loads separately
-    token: null,
-  };
+function fromUrl(params: URLSearchParams): Partial<State> | undefined {
+  const fields = primitivesFrom(INITIAL, params, {
+    chain: CHAINS.map((c) => c.id),
+    tokenClass: ['standard', 'major'],
+    targetBy: ['mcap', 'multiple'],
+  });
+  // only tracking params (?fbclid=, ?utm_*=): not a shared calculation, keep the saved token
+  if (Object.keys(fields).length === 0 && !params.has('token')) return undefined;
+  // a shared link describes the whole calculation; its token (if any) loads separately
+  return { ...fields, token: null };
 }
 
 const SCENARIOS = [0.5, 1, 2, 5, 10, 100];
@@ -439,7 +439,7 @@ export function ProfitCalculator() {
             )}
 
             <div className="mt-5">
-              <h4 className="text-sm font-medium text-ink">{t.profit.scenarios}</h4>
+              <h3 className="text-sm font-medium text-ink">{t.profit.scenarios}</h3>
               <p className="mt-0.5 text-xs text-muted">{t.profit.scenariosHint}</p>
               <table className="mt-3 w-full text-sm">
                 <thead className="text-xs text-muted">

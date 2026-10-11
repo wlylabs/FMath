@@ -92,6 +92,15 @@
     -webkit-text-size-adjust: 100%;
     scroll-padding-top: 4.5rem;
   }
+  /* keyboard focus and anchors stop above the bottom tab bar, and above the result bar while it shows */
+  @media (width < 64rem) {
+    html {
+      scroll-padding-bottom: calc(4.5rem + env(safe-area-inset-bottom));
+    }
+    html:has([data-mobile-summary][aria-hidden='false']) {
+      scroll-padding-bottom: calc(9.5rem + env(safe-area-inset-bottom));
+    }
+  }
   body {
     background: var(--bg);
     color: var(--ink);

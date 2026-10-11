@@ -100,6 +100,19 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  if (url.pathname.endsWith('.txt')) {
+    // RSC payloads name the build they belong to: network first, or after a deploy every
+    // in-app navigation would fetch an old build's payload and fall back to a full reload.
+    // Keyed by path (the _rsc query is a cache-buster) so the fresh copy replaces the precached one.
+    const key = new Request(url.origin + url.pathname);
+    event.respondWith(
+      fetch(request)
+        .then((res) => put(key, res))
+        .catch(async () => (await fromCache(key)) || Response.error()),
+    );
+    return;
+  }
+
   // icons, manifest and the rest: serve cached, refresh in the background
   event.respondWith(
     fromCache(request).then((hit) => {

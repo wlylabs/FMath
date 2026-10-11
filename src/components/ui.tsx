@@ -306,9 +306,9 @@ export function Notice(props: { tone?: 'info' | 'warn'; children: ReactNode }) {
 export function CardTitle(props: { children: ReactNode; aside?: ReactNode; id?: string }) {
   return (
     <div className="flex items-center justify-between gap-3">
-      <h3 id={props.id} className="text-sm font-semibold tracking-tight text-ink">
+      <h2 id={props.id} className="text-sm font-semibold tracking-tight text-ink">
         {props.children}
-      </h3>
+      </h2>
       {props.aside}
     </div>
   );

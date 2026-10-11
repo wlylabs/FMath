@@ -26,7 +26,8 @@ export function MobileSummary(props: {
     let resultsVisible = true;
     let resultsBelow = false;
     let containerVisible = false;
-    const io = new IntersectionObserver((entries) => {
+    const io = new IntersectionObserver(
+      (entries) => {
       for (const e of entries) {
         if (e.target === results) {
           resultsVisible = e.isIntersecting;
@@ -35,8 +36,11 @@ export function MobileSummary(props: {
           containerVisible = e.isIntersecting;
         }
       }
-      setShow(containerVisible && !resultsVisible && resultsBelow);
-    });
+        setShow(containerVisible && !resultsVisible && resultsBelow);
+      },
+      // the bottom tab bar covers the last 64px; results under it are not in view yet
+      { rootMargin: '0px 0px -80px 0px' },
+    );
     io.observe(results);
     io.observe(container);
     return () => io.disconnect();
@@ -44,6 +48,7 @@ export function MobileSummary(props: {
 
   return (
     <div
+      data-mobile-summary
       inert={!show}
       aria-hidden={!show}
       className={cx(

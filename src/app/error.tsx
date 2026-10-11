@@ -6,7 +6,7 @@ import { t } from '../lib/copy';
 
 export default function Error({ retry }: { error: Error & { digest?: string }; retry: () => void }) {
   return (
-    <main className="mx-auto flex min-h-[100svh] max-w-md flex-col items-center justify-center px-4 text-center">
+    <div className="mx-auto flex min-h-[60svh] max-w-md flex-col items-center justify-center px-4 py-16 text-center">
       <Logo className="size-12" />
       <h1 className="mt-8 text-3xl font-semibold tracking-tight text-ink">{t.error.title}</h1>
       <p className="mt-3 text-sm leading-relaxed text-ink-2">{t.error.body}</p>
@@ -18,6 +18,6 @@ export default function Error({ retry }: { error: Error & { digest?: string }; r
         <RotateCcw aria-hidden className="size-4" />
         {t.error.retry}
       </button>
-    </main>
+    </div>
   );
 }
