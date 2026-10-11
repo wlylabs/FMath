@@ -13,7 +13,7 @@ export default function Error({ retry }: { error: Error & { digest?: string }; r
       <button
         type="button"
         onClick={() => retry()}
-        className="mt-8 inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-accent px-6 text-sm font-semibold text-accent-ink transition-colors hover:bg-accent-hover"
+        className="press mt-8 inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-accent px-6 text-sm font-semibold text-accent-ink hover:bg-accent-hover"
       >
         <RotateCcw aria-hidden className="size-4" />
         {t.error.retry}

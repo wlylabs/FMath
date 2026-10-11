@@ -7,7 +7,12 @@ export interface ToastItem {
   id: number;
   message: string;
   action?: ToastAction;
+  /** Playing its exit; removed once that finishes. */
+  leaving?: boolean;
 }
+
+/** Matches the exit animation in globals.css (Sonner's TIME_BEFORE_UNMOUNT). */
+export const TOAST_EXIT_MS = 200;
 
 type Listener = (items: ToastItem[]) => void;
 
@@ -30,8 +35,14 @@ export function toast(message: string, opts: { action?: ToastAction; duration?: 
 }
 
 export function dismissToast(id: number) {
-  items = items.filter((i) => i.id !== id);
+  const item = items.find((i) => i.id === id);
+  if (!item || item.leaving) return;
+  items = items.map((i) => (i.id === id ? { ...i, leaving: true } : i));
   emit();
+  setTimeout(() => {
+    items = items.filter((i) => i.id !== id);
+    emit();
+  }, TOAST_EXIT_MS);
 }
 
 export function subscribeToasts(l: Listener): () => void {

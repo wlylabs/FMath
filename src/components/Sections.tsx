@@ -1,4 +1,5 @@
-import Link from 'next/link';
+'use client';
+
 import { ArrowUpRight, ChevronDown, ExternalLink } from 'lucide-react';
 import { ROUTES } from '../lib/routes';
 import { t } from '../lib/copy';
@@ -10,6 +11,7 @@ import { CreatorAvatar, CreatorLink, XIcon } from './Creator';
 import { CREATOR } from '../lib/site';
 import { ReferralLink } from './Referral';
 import { InstallButton } from './pwa/PwaProvider';
+import { NavLink } from './NavLink';
 
 export function Methodology() {
   return (
@@ -18,7 +20,7 @@ export function Methodology() {
         {t.method.title}
       </h1>
       <p className="mt-3 max-w-2xl text-sm leading-relaxed text-ink-2 sm:text-base">{t.method.lead}</p>
-      <nav aria-label={t.method.title} className="-mx-4 mt-5 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:px-0">
+      <nav aria-label={t.method.title} className="-mx-4 mt-5 flex gap-2 overflow-x-auto overscroll-x-contain px-4 [scrollbar-width:none] sm:mx-0 sm:px-0">
         {[
           { href: '#spot', label: t.method.spotTitle },
           { href: '#formulas', label: t.method.formulasTitle },
@@ -28,7 +30,7 @@ export function Methodology() {
           <a
             key={l.href}
             href={l.href}
-            className="inline-flex h-9 shrink-0 items-center rounded-full border border-line bg-surface px-3.5 text-sm text-ink-2 transition-colors hover:border-line-strong hover:text-ink"
+            className="press inline-flex h-9 shrink-0 items-center rounded-full border border-line bg-surface px-3.5 text-sm text-ink-2 hover:border-line-strong hover:text-ink"
           >
             {l.label}
           </a>
@@ -119,7 +121,7 @@ export function Faq() {
           <details key={item.q} className="group">
             <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 py-4 text-left text-base font-medium text-ink [&::-webkit-details-marker]:hidden">
               {item.q}
-              <ChevronDown aria-hidden className="size-4 shrink-0 text-muted transition-transform group-open:rotate-180" />
+              <ChevronDown aria-hidden className="size-4 shrink-0 text-muted transition-transform duration-[var(--dur-base)] ease-[var(--ease-standard)] group-open:rotate-180" />
             </summary>
             <p className="pb-5 pr-8 text-sm leading-relaxed text-ink-2">{item.a}</p>
           </details>
@@ -134,13 +136,17 @@ export function Footer() {
     { href: ROUTES.fee, label: t.calc.tabs.fee },
     { href: ROUTES.profit, label: t.calc.tabs.profit },
     { href: ROUTES.perps, label: t.calc.tabs.perps },
+    { href: ROUTES.quiz, label: t.nav.quiz },
     { href: ROUTES.referral, label: t.nav.referral },
     { href: ROUTES.methodology, label: t.nav.method },
     { href: ROUTES.faq, label: t.nav.faq },
     { href: `${ROUTES.methodology}#sources`, label: t.nav.sources },
   ];
   return (
-    <footer className="border-t border-line pb-[calc(5rem+env(safe-area-inset-bottom))] pt-10 lg:pb-10">
+    <footer
+      style={{ viewTransitionName: 'site-footer' }}
+      className="border-t border-line pb-[calc(5rem+env(safe-area-inset-bottom))] pt-10 lg:pb-10"
+    >
       <div className="mx-auto grid max-w-6xl gap-8 px-4 sm:px-6 md:grid-cols-[minmax(0,1fr)_auto] md:gap-16">
         <div>
           <div className="flex items-center gap-2.5">
@@ -163,21 +169,21 @@ export function Footer() {
             <p>{t.referral.disclosure}</p>
           </div>
         </div>
-        <nav aria-label="Footer" className="grid grid-cols-2 gap-x-6 gap-y-2.5 text-sm md:flex md:flex-col">
+        <nav aria-label={t.footer.nav} className="grid grid-cols-2 gap-x-6 gap-y-2.5 text-sm md:flex md:flex-col">
           <ReferralLink className="inline-flex items-center gap-1.5 font-semibold text-accent-strong hover:underline">
             {t.footer.referral}
             <ArrowUpRight aria-hidden className="size-3.5" />
           </ReferralLink>
           {links.map((l) => (
-            <Link key={l.href} href={l.href} className="text-ink-2 hover:text-ink">
+            <NavLink key={l.href} href={l.href} className="text-ink-2 hover:text-ink">
               {l.label}
-            </Link>
+            </NavLink>
           ))}
           <InstallButton variant="text" />
         </nav>
       </div>
       <div className="mx-auto mt-8 flex max-w-6xl flex-col gap-1 border-t border-line px-4 pt-6 text-xs text-muted sm:flex-row sm:justify-between sm:px-6">
-        <span>© {new Date().getUTCFullYear()} FMath by {CREATOR.name}. Not affiliated with fomo.</span>
+        <span>{t.footer.copyright(new Date().getUTCFullYear(), CREATOR.name)}</span>
         <span>{t.footer.built}</span>
       </div>
     </footer>

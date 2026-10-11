@@ -1,5 +1,6 @@
-import Link from 'next/link';
-import { ArrowRight, ArrowUpRight, BookOpen, CircleHelp, Gauge, Receipt, Target } from 'lucide-react';
+'use client';
+
+import { ArrowRight, ArrowUpRight, BookOpen, CircleHelp, Gauge, GraduationCap, Receipt, Target } from 'lucide-react';
 import { fomoFee } from '../lib/fees';
 import { roundTrip } from '../lib/roundtrip';
 import { PERPS_FEES, venueFeeRate } from '../lib/perps';
@@ -9,6 +10,7 @@ import { CREATOR } from '../lib/site';
 import { ROUTES } from '../lib/routes';
 import { ReferralLink } from './Referral';
 import { CreatorAvatar } from './Creator';
+import { NavLink } from './NavLink';
 
 /** One linked card per calculator, each with a worked example from the real fee schedule. */
 export function ToolCards() {
@@ -30,6 +32,7 @@ export function ToolCards() {
     { href: ROUTES.perps, Icon: Gauge, item: t.features.items[2]!, example: t.home.perpsExample(pct(perpsRate, { digits: 3 })) },
   ];
   const more = [
+    { href: ROUTES.quiz, Icon: GraduationCap, title: t.nav.quiz, body: t.home.quizBody },
     { href: ROUTES.methodology, Icon: BookOpen, title: t.nav.method, body: t.home.methodBody },
     { href: ROUTES.faq, Icon: CircleHelp, title: t.nav.faq, body: t.home.faqBody },
   ];
@@ -42,7 +45,7 @@ export function ToolCards() {
       <p className="mt-2 text-sm text-ink-2">{t.home.toolsLead}</p>
       <div className="mt-6 grid gap-4 md:grid-cols-3">
         {cards.map(({ href, Icon, item, example }) => (
-          <Link key={href} href={href} className="card group flex flex-col p-4 transition-colors hover:border-line-strong sm:p-6">
+          <NavLink key={href} href={href} className="card press-soft group flex flex-col p-4 hover:border-line-strong sm:p-6">
             <span className="flex items-center gap-3 sm:flex-col sm:items-start sm:gap-0">
               <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-accent-wash text-accent-strong">
                 <Icon aria-hidden className="size-5" />
@@ -57,19 +60,19 @@ export function ToolCards() {
               {t.home.open}
               <ArrowRight aria-hidden className="size-4 transition-transform group-hover:translate-x-0.5" />
             </span>
-          </Link>
+          </NavLink>
         ))}
       </div>
-      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+      <div className="mt-4 grid gap-4 sm:grid-cols-3">
         {more.map(({ href, Icon, title, body }) => (
-          <Link key={href} href={href} className="card group flex items-center gap-4 p-4 transition-colors hover:border-line-strong sm:p-5">
+          <NavLink key={href} href={href} className="card press-soft group flex items-center gap-4 p-4 hover:border-line-strong sm:p-5">
             <Icon aria-hidden className="size-5 shrink-0 text-ink-2" />
             <span className="min-w-0 flex-1">
               <span className="block text-sm font-semibold text-ink">{title}</span>
               <span className="block text-xs text-ink-2">{body}</span>
             </span>
             <ArrowRight aria-hidden className="size-4 shrink-0 text-muted transition-transform group-hover:translate-x-0.5" />
-          </Link>
+          </NavLink>
         ))}
       </div>
     </section>
@@ -91,16 +94,16 @@ export function ReferralStrip() {
           </h2>
         </div>
         <div className="flex shrink-0 flex-col gap-3 sm:flex-row">
-          <ReferralLink className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-accent-ink px-5 text-sm font-semibold text-accent transition-opacity hover:opacity-90">
+          <ReferralLink className="press inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-accent-ink px-5 text-sm font-semibold text-accent hover:opacity-90">
             {t.referral.cta}
             <ArrowUpRight aria-hidden className="size-4" />
           </ReferralLink>
-          <Link
+          <NavLink
             href={ROUTES.referral}
-            className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-accent-ink/30 px-5 text-sm font-semibold transition-colors hover:border-accent-ink"
+            className="press inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-accent-ink/30 px-5 text-sm font-semibold hover:border-accent-ink"
           >
             {t.home.referralCta}
-          </Link>
+          </NavLink>
         </div>
       </div>
     </section>

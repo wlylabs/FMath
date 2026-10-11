@@ -1,5 +1,7 @@
-/** All interface copy. The site is English only. */
-export const t = {
+import { id } from './copy.id';
+
+/** English interface copy; the Indonesian ("wkwk") copy in copy.id.ts has the same shape. */
+const en = {
   meta: {
     title: 'FMath: Fee and profit calculator for fomo traders',
   },
@@ -9,6 +11,7 @@ export const t = {
     profit: 'Profit',
     perps: 'Perps',
     referral: 'Referral',
+    quiz: 'Practice',
     offShort: '10% off',
     calculators: 'Calculators',
     method: 'Methodology',
@@ -33,6 +36,7 @@ export const t = {
     receipt: 'Fee receipt',
     referralLead: 'New to fomo?',
     referralLink: 'Trade with me and get 10% off fees',
+    badge: '10% OFF',
     schedule: (d: string) => `Help Center fee schedule dated ${d}`,
   },
   facts: {
@@ -51,11 +55,11 @@ export const t = {
       },
       {
         title: 'Targets and break-even',
-        body: 'Look up a token live, set a market cap target and see net profit after both the buy and sell fees.',
+        body: 'Look up a token live, set a market cap target, plan a stepped exit and see net profit after every buy and sell fee.',
       },
       {
         title: 'Perps and liquidation',
-        body: 'Work out builder fee, venue fee, funding and liquidation price with Hyperliquid margin tiers.',
+        body: 'Work out builder fee, venue fee, funding, liquidation price and a stop-loss sized to the loss you can take.',
       },
     ],
   },
@@ -71,11 +75,11 @@ export const t = {
       },
       profit: {
         title: 'Profit and break-even calculator',
-        lead: 'Net profit after the buy and sell fees, the move you need to break even, and a target by market cap or multiple.',
+        lead: 'Net profit after the buy and sell fees, the move you need to break even, a target by market cap or multiple, and an exit plan that sells in steps.',
       },
       perps: {
         title: 'Perps fee and liquidation calculator',
-        lead: 'Builder and venue fees, funding and the isolated liquidation price for Hyperliquid and trade.xyz markets.',
+        lead: 'Builder and venue fees, funding, the isolated liquidation price and stop-loss risk for Hyperliquid and trade.xyz markets.',
       },
     },
   },
@@ -90,6 +94,7 @@ export const t = {
     more: 'Also on FMath',
     methodBody: 'Every rate and formula, with sources.',
     faqBody: 'Accuracy, data sources and the referral.',
+    quizBody: 'Five quick questions on fees, liquidation and stop-losses.',
   },
   common: {
     chain: 'Chain',
@@ -205,6 +210,42 @@ export const t = {
     scenarioProceeds: 'Back',
     scenarioPnl: 'Profit',
   },
+  ladder: {
+    title: 'Exit plan',
+    lead: 'Sell the bag in steps as the price climbs. Every step is its own sell and pays its own fomo fee.',
+    presets: 'Start from',
+    presetInitials: 'Initials out at 2x',
+    presetLadder: '2x · 5x · 10x',
+    multiple: 'Sell at',
+    share: 'Share of bag',
+    multipleLabel: (n: number) => `Step ${n} price multiple`,
+    shareLabel: (n: number) => `Step ${n} share of the bag`,
+    remove: (n: number) => `Remove step ${n}`,
+    add: 'Add step',
+    initialsHint: (share: string, m: string) => `Selling ${share} of the bag at ${m} gets back what you spent, after fees.`,
+    initialsNever: (m: string) => `Selling the whole bag at ${m} does not get back what you spent.`,
+    allocated: (p: string) => `${p} of the bag allocated`,
+    over: 'The steps add up to more than the whole bag. Later steps only sell what is left.',
+    asked: (p: string) => `${p} asked, cut to what is left`,
+    back: 'USDC back',
+    realized: 'Realized profit',
+    realizedLoss: 'Realized loss',
+    fees: 'fomo fees on sells',
+    feesSub: (n: number) => (n === 1 ? '1 sell' : `${n} sells`),
+    initialsBack: 'Initials back',
+    initialsNotBack: 'Not yet',
+    left: 'Still holding',
+    leftSub: (share: string, m: string) => `${share} of the bag, valued at ${m}`,
+    colSell: 'Sell',
+    colFee: 'fomo fee',
+    colBack: 'Back',
+    colTotal: 'Total back',
+    smallSells: (n: number, under: string, rate: string) =>
+      `${n === 1 ? '1 step sells' : `${n} steps sell`} under ${under} on Solana and ${n === 1 ? 'pays' : 'pay'} up to ${rate} in fomo fees. Fewer, larger steps cost less.`,
+    minSell: (min: string, chain: string) => `A step sells under the ${min} minimum on ${chain}. The app will reject it.`,
+    empty: 'Add a step to plan the exit.',
+    needBuy: 'Enter an amount to buy to plan the exit.',
+  },
   perps: {
     venue: 'Venue',
     hlHint: 'Crypto',
@@ -253,6 +294,57 @@ export const t = {
     tierWarn: (n: number) => `At this position size the margin tier only allows ${n}x. Lower the leverage or margin.`,
     noMarket: 'Pick a market or type an entry price.',
     estimate: 'Funding uses the current rate and the entry price; the real amount changes every hour.',
+    stop: 'Stop-loss price',
+    stopHint: 'Quick moves against you',
+    stopSideLong: 'For a long, the stop-loss goes below the entry price.',
+    stopSideShort: 'For a short, the stop-loss goes above the entry price.',
+    risk: 'Max loss at stop',
+    riskHint: 'The most you want to lose if the stop fills, fees included.',
+    riskMargin: (m: string, n: string) => `Margin for this risk: ${m} (position ${n}).`,
+    riskNeedStop: 'Set a stop-loss price to size the margin from this risk.',
+    useMargin: 'Use',
+    useMarginLabel: (m: string) => `Set margin to ${m}`,
+    lossAtStop: 'Loss at stop',
+    lossAtStopSub: (p: string, d: string) => `${p} of margin · stop ${d} from entry`,
+    riskReward: 'Risk : reward',
+    riskRewardValue: (r: string) => `1 : ${r}`,
+    riskRewardNone: 'Target not in profit',
+    stopBeyondLiq: (liq: string) => `The stop is past the liquidation price (${liq}), so the position would be liquidated before the stop fills. Move the stop closer or lower the leverage.`,
+    liquidatedFirst: 'Liquidated first',
+    riskBeyondLiq: 'At this leverage the stop is past the liquidation price. Move the stop closer or lower the leverage.',
+    stopNote: 'Stops trigger on the mark price and fill as market orders, so the close pays the taker fee and can slip.',
+  },
+  quiz: {
+    title: 'Practice the math',
+    lead: 'Five short questions on fees, break-even, liquidation and stop-losses, built from the same formulas as the calculators. Every wrong answer shows which mistake it is.',
+    topicLabel: 'Topic',
+    topics: { all: 'Mixed', fees: 'Spot fees', profit: 'Profit', perps: 'Perps', risk: 'Stop-loss' },
+    start: 'Start',
+    meta: (n: number) => `${n} questions · about 2 minutes · nothing leaves your browser`,
+    progress: (i: number, n: number) => `Question ${i} of ${n}`,
+    level: (n: number) => ['Easy', 'Medium', 'Hard'][n - 1] ?? '',
+    given: 'Given',
+    options: 'Answers',
+    right: 'Right',
+    wrong: 'Not quite',
+    yourPick: 'Your pick',
+    answer: 'Answer',
+    solution: 'How it works',
+    formula: 'Formula',
+    open: 'Do it in the calculator',
+    next: 'Next question',
+    finish: 'See results',
+    score: 'Your score',
+    scoreValue: (r: number, n: number) => `${r} / ${n}`,
+    verdict: (r: number, n: number): string =>
+      r === n ? 'Every one right. You know where the fees hide.' : r >= n - 1 ? 'Nearly all right. Check the one you missed below.' : r >= n / 2 ? 'Good base. A few formulas are worth another look.' : 'Worth another round. The solutions show each step.',
+    solid: 'Solid',
+    practice: 'Practice this',
+    again: 'New questions',
+    retryWeak: (topic: string) => `Practice ${topic}`,
+    changeTopic: 'Change topic',
+    review: 'Review',
+    disclaimer: 'Practice only. Rates follow the fomo and Hyperliquid schedules on the methodology page; real fills, funding and fees vary.',
   },
   method: {
     title: 'Methodology',
@@ -276,6 +368,10 @@ export const t = {
       { name: 'Perps fee', expr: 'fee per side = notional × (builder fee + venue fee)' },
       { name: 'Liquidation', expr: 'liq = (size × entry - side × (margin + deduction)) / (size × (1 - side × mmr))' },
       { name: 'Maintenance', expr: 'mmr = 1 / (2 × tier max leverage)' },
+      { name: 'Exit plan step', expr: 'back = value × (1 - impact) - fomo fee(step order) - network fee' },
+      { name: 'Initials out', expr: 'find share s where back(s × position × multiple) = amount spent (bisection)' },
+      { name: 'Loss at stop', expr: 'loss = size × |entry - stop| + open fee + size × stop × taker fee + funding' },
+      { name: 'Risk sizing', expr: 'margin = max loss / loss at the stop per 1 USDC of margin' },
     ],
     perpsTitle: 'Perps fees',
     perpsBody: 'fomo builder fee 0.05% per side (0.045% with a referral), plus the venue fee. Hyperliquid base tier: taker 0.045%, maker 0.015%. trade.xyz (HIP-3): 2x the standard rate, or 90% lower in growth mode.',
@@ -375,6 +471,14 @@ export const t = {
         a: 'It is how FMath is supported. Signing up through it gives you 10% off fomo trading fees, and Willy, who makes FMath, receives referral rewards from fomo. The calculator works the same whether you use it or not.',
       },
       {
+        q: 'Why does selling in small steps cost more on Solana?',
+        a: 'Every sell pays its own fomo fee. On Solana, sells under 190 USDC pay a flat 0.95 USDC or 2%, so four 50 USDC sells pay 3.80 USDC where one 200 USDC sell pays 1.00 USDC. The exit plan in the profit calculator shows the fee on every step.',
+      },
+      {
+        q: 'How does the perps stop-loss math work?',
+        a: 'The loss at the stop adds the price move, the open fee, the close fee at the taker rate and the funding for the hours you hold. Set a max loss and the calculator works out the margin that loses exactly that much at your stop and leverage. If the stop sits past the liquidation price, it warns you: the position would be liquidated first.',
+      },
+      {
         q: 'Does the referral discount apply to flat fees?',
         a: 'fomo describes it as 10% off trading fees. The calculator applies it to every band, flat ones included. Check the quote screen to be sure.',
       },
@@ -385,7 +489,41 @@ export const t = {
     built: 'Built with Next.js, React, Tailwind CSS, Lucide and Geist.',
     install: 'Install app',
     referral: 'Get 10% off fomo fees',
+    nav: 'Footer',
+    copyright: (year: number, name: string) => `© ${year} FMath by ${name}. Not affiliated with fomo.`,
   },
 };
 
-export type Copy = typeof t;
+export type Copy = typeof en;
+
+export type Lang = 'en' | 'id';
+
+export const LANGS: readonly Lang[] = ['en', 'id'];
+
+/** Toggle labels: Indonesian is shown as "wkwk". */
+export const LANG_LABELS: Record<Lang, string> = { en: 'EN', id: 'wkwk' };
+
+const COPY: Record<Lang, Copy> = { en, id };
+
+let current: Lang = 'en';
+
+export function getLang(): Lang {
+  return current;
+}
+
+/**
+ * Switches the language `t` reads from. Only LangProvider calls this, during
+ * render and before its subtree renders; the static export always renders English.
+ */
+export function setLang(lang: Lang) {
+  current = lang;
+}
+
+/**
+ * All interface copy, in the current language. Every read goes through the
+ * proxy, so code reads `t.nav.home` at render time and gets the language the
+ * page is showing; LangProvider remounts the app when it changes.
+ */
+export const t: Copy = new Proxy(en, {
+  get: (_, key) => COPY[current][key as keyof Copy],
+});

@@ -46,6 +46,8 @@ export const AMOUNT_PICKS = ['10', '50', '100', '190', '500', '1000'];
 export function FeeCalculator() {
   const [s, setS] = usePersistentState<State>('fee', INITIAL, { page: ROUTES.fee, fromUrl });
   const [view, setView] = useState<'chart' | 'table'>('chart');
+  // flash the saving only when the user turns referral on, not when a saved "on" is restored
+  const [celebrate, setCelebrate] = useState(false);
   const set = <K extends keyof State>(k: K, v: State[K]) => setS((p) => ({ ...p, [k]: v }));
   const ids = { amount: useId(), network: useId(), impact: useId(), chain: useId(), side: useId(), cls: useId() };
   const resultsRef = useRef<HTMLElement>(null);
@@ -159,7 +161,15 @@ export function FeeCalculator() {
           </Field>
         </div>
 
-        <Switch checked={s.referral} onChange={(v) => set('referral', v)} label={t.common.referral} hint={t.common.referralHint} />
+        <Switch
+          checked={s.referral}
+          onChange={(v) => {
+            set('referral', v);
+            setCelebrate(v);
+          }}
+          label={t.common.referral}
+          hint={t.common.referralHint}
+        />
       </section>
 
       <aside ref={resultsRef} className="card self-start p-4 sm:p-6 lg:sticky lg:top-20" aria-label={t.fee.results}>
@@ -215,7 +225,12 @@ export function FeeCalculator() {
                 strong
               />
               {s.referral && result.savedByReferral > 0 && (
-                <Row label={t.fee.saved} value={usd(result.savedByReferral)} tone="pos" />
+                <Row
+                  label={t.fee.saved}
+                  value={usd(result.savedByReferral)}
+                  tone="pos"
+                  className={celebrate ? 'flash-pos' : undefined}
+                />
               )}
             </dl>
             {!s.referral && (
@@ -244,7 +259,7 @@ export function FeeCalculator() {
             <button
               type="button"
               onClick={() => setView((v) => (v === 'chart' ? 'table' : 'chart'))}
-              className="inline-flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border border-line px-3 text-xs font-medium text-ink-2 hover:border-line-strong hover:text-ink"
+              className="press inline-flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border border-line px-3 text-xs font-medium text-ink-2 hover:border-line-strong hover:text-ink"
             >
               {view === 'chart' ? <Table2 aria-hidden className="size-3.5" /> : <BarChart3 aria-hidden className="size-3.5" />}
               {view === 'chart' ? t.chart.showTable : t.chart.showChart}
@@ -264,13 +279,16 @@ export function FeeCalculator() {
               order={amountValid ? amount : 0}
             />
           ) : (
-            <BandTable
-              chain={s.chain}
-              tokenClass={s.tokenClass}
-              referral={s.referral}
-              activeIndex={result?.quote.bandIndex}
-              caption={t.chart.title}
-            />
+            // the chart draws itself in; the table, only ever opened by a tap, settles in
+            <div className="enter">
+              <BandTable
+                chain={s.chain}
+                tokenClass={s.tokenClass}
+                referral={s.referral}
+                activeIndex={result?.quote.bandIndex}
+                caption={t.chart.title}
+              />
+            </div>
           )}
         </div>
       </section>

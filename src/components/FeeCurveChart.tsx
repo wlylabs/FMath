@@ -46,16 +46,24 @@ function tickDigits(y: number): number {
 export function FeeCurveChart(props: Props) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(640);
+  // marker and curve only glide once the real width is known, or every load slides from the 640px guess
+  const [ready, setReady] = useState(false);
   const [hoverX, setHoverX] = useState<number | null>(null);
 
   useEffect(() => {
     const el = wrapRef.current;
     if (!el) return;
+    let frame = 0;
     const ro = new ResizeObserver(([entry]) => {
       if (entry) setWidth(Math.max(280, Math.round(entry.contentRect.width)));
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => setReady(true));
     });
     ro.observe(el);
-    return () => ro.disconnect();
+    return () => {
+      ro.disconnect();
+      cancelAnimationFrame(frame);
+    };
   }, []);
 
   const clipId = useId();
@@ -114,7 +122,7 @@ export function FeeCurveChart(props: Props) {
     : null;
 
   return (
-    <div ref={wrapRef} className="relative w-full min-w-0 select-none">
+    <div ref={wrapRef} data-no-swipe data-ready={ready || undefined} className="relative w-full min-w-0 select-none">
       <svg
         width={width}
         height={HEIGHT}
@@ -141,9 +149,21 @@ export function FeeCurveChart(props: Props) {
             {x < 1000 ? '$' + x.toLocaleString('en-US') : compactUsd(x)}
           </text>
         ))}
+        {/* every curve has the same number of points, so a change of chain or
+            referral morphs the line (CSS d) instead of swapping it */}
         <g clipPath={`url(#${clipId})`}>
-          <path d={area} fill="var(--chart)" opacity={0.1} />
-          <path d={path} fill="none" stroke="var(--chart)" strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
+          <path d={area} style={{ d: `path("${area}")` }} className="chart-area" fill="var(--chart)" opacity={0.1} />
+          <path
+            d={path}
+            style={{ d: `path("${path}")` }}
+            pathLength={1}
+            className="chart-line"
+            fill="none"
+            stroke="var(--chart)"
+            strokeWidth={2}
+            strokeLinejoin="round"
+            strokeLinecap="round"
+          />
         </g>
         {hover && (
           <line
@@ -156,11 +176,10 @@ export function FeeCurveChart(props: Props) {
           />
         )}
         {showOrder && (
-          <g>
-            <circle cx={sx(order)} cy={sy(rateAt(order))} r={6} fill="var(--chart)" stroke="var(--surface)" strokeWidth={2} />
+          <g className="chart-marker" style={{ transform: `translate(${sx(order).toFixed(2)}px, ${sy(rateAt(order)).toFixed(2)}px)` }}>
+            <circle r={6} fill="var(--chart)" stroke="var(--surface)" strokeWidth={2} />
             <text
-              x={sx(order)}
-              y={sy(rateAt(order)) - 12}
+              y={-12}
               textAnchor={sx(order) > width - 80 ? 'end' : sx(order) < PAD.left + 40 ? 'start' : 'middle'}
               className="fill-ink text-[11px] font-medium"
               stroke="var(--surface)"

@@ -4,6 +4,7 @@ import { FeeCalculator } from '../../components/calculators/FeeCalculator';
 import { t } from '../../lib/copy';
 import { ROUTES } from '../../lib/routes';
 import { BASE_OPEN_GRAPH } from '../../lib/site';
+import { PageTransition } from '../../components/PageTransition';
 
 export const metadata: Metadata = {
   title: t.calc.pages.fee.title,
@@ -14,8 +15,10 @@ export const metadata: Metadata = {
 
 export default function FeePage() {
   return (
-    <CalculatorPage active="fee">
-      <FeeCalculator />
-    </CalculatorPage>
+    <PageTransition>
+      <CalculatorPage active="fee">
+        <FeeCalculator />
+      </CalculatorPage>
+    </PageTransition>
   );
 }

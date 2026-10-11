@@ -75,7 +75,7 @@ export function CreatorCard() {
       </div>
       <CreatorLink
         aria-label={t.creator.followLabel(CREATOR.handle)}
-        className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-ink px-4 text-sm font-semibold text-bg transition-opacity hover:opacity-90"
+        className="press inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-ink px-4 text-sm font-semibold text-bg hover:opacity-90"
       >
         <XIcon className="size-4" />
         {t.creator.follow}

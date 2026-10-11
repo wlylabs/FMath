@@ -3,12 +3,12 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { ChevronDown, RefreshCw } from 'lucide-react';
 import { fetchPerpMarkets, type PerpMarket } from '../../api/hyperliquid';
-import { PERPS_FEES, perpTrade, venueFeeRate, type OrderKind, type PerpSide, type PerpVenue } from '../../lib/perps';
+import { marginForRisk, PERPS_FEES, perpTrade, stopLoss, venueFeeRate, type OrderKind, type PerpSide, type PerpVenue } from '../../lib/perps';
 import { num, parseAmount, pct, price, time, usd } from '../../lib/format';
 import { t } from '../../lib/copy';
 import { ROUTES } from '../../lib/routes';
 import { usePersistentState } from '../../hooks/usePersistentState';
-import { CardTitle, Field, Headline, LiveBadge, Notice, NumberInput, QuickPicks, Row, Segmented, Switch } from '../ui';
+import { CardTitle, Field, Headline, LiveBadge, Notice, NumberInput, QuickPicks, Row, Segmented, SwapValue, Switch } from '../ui';
 import { cx } from '../../lib/cx';
 import { MobileSummary } from '../MobileSummary';
 import { ShareButton } from '../ShareButton';
@@ -29,6 +29,8 @@ interface State {
   growth: boolean;
   funding: string;
   hold: string;
+  stop: string;
+  risk: string;
 }
 
 const INITIAL: State = {
@@ -44,6 +46,8 @@ const INITIAL: State = {
   growth: true,
   funding: '',
   hold: '24',
+  stop: '',
+  risk: '',
 };
 
 function fromUrl(params: URLSearchParams): Partial<State> {
@@ -58,6 +62,8 @@ function fromUrl(params: URLSearchParams): Partial<State> {
 
 const MARGIN_PICKS = ['25', '50', '100', '250', '500', '1000'];
 const MOVES = [-0.1, -0.05, -0.01, 0.01, 0.05, 0.1, 0.25];
+/** Stop distances from entry, always against the position. */
+const STOP_MOVES = [0.01, 0.02, 0.05, 0.1, 0.2];
 
 /** Last result per venue; a venue with no entry yet is loading. */
 /** State after choosing a market: live mark as entry, live funding, leverage within its cap. */
@@ -68,6 +74,7 @@ function withMarket(p: State, m: PerpMarket): State {
     leverage: Math.min(p.leverage, m.maxLeverage),
     entry: toInput(m.markPx),
     exit: '',
+    stop: '',
     funding: toInput(m.fundingHourly * 100),
     growth: m.growthMode ?? p.growth,
   };
@@ -95,6 +102,8 @@ export function PerpsCalculator() {
     exit: useId(),
     funding: useId(),
     hold: useId(),
+    stop: useId(),
+    risk: useId(),
     venue: useId(),
     side: useId(),
     kind: useId(),
@@ -170,6 +179,18 @@ export function PerpsCalculator() {
         }
       : null;
   const result = input ? perpTrade(input) : null;
+  const stopRaw = s.stop ? parseAmount(s.stop) : NaN;
+  const stopValid = Number.isFinite(stopRaw) && stopRaw > 0;
+  const risk = s.risk ? parseAmount(s.risk) : NaN;
+  const riskValid = Number.isFinite(risk) && risk > 0;
+  // stops fill as market orders: builder fee plus the venue's taker rate, whatever the entry order was
+  const stopFeeRate = builderRate + venueFeeRate(s.venue, 'taker', s.growth);
+  const stop = input && stopValid ? stopLoss(input, stopRaw, stopFeeRate) : null;
+  const stopWrongSide = entryValid && stopValid && (s.side === 'long' ? stopRaw >= entry : stopRaw <= entry);
+  const sized = input && stopValid && riskValid ? marginForRisk(input, stopRaw, stopFeeRate, risk) : null;
+  // a stop the liquidation reaches first cannot cap the loss, so it cannot size the margin either
+  const sizedBeyondLiq = input && sized !== null ? !!stopLoss({ ...input, margin: sized }, stopRaw, stopFeeRate)?.beyondLiquidation : false;
+  const riskMargin = sizedBeyondLiq ? null : sized;
   const withReferral = input && !s.referral ? perpTrade({ ...input, builderRate: PERPS_FEES.builderReferral }) : null;
   const tone = result ? (result.netPnl >= 0 ? 'pos' : 'neg') : undefined;
   const levFill = maxLev > 1 ? ((leverage - 1) / (maxLev - 1)) * 100 : 100;
@@ -187,7 +208,7 @@ export function PerpsCalculator() {
               { value: 'xyz', label: 'trade.xyz', sub: t.perps.xyzHint },
             ]}
             value={s.venue}
-            onChange={(v) => setS((p) => (p.venue === v ? p : { ...p, venue: v, entry: '', exit: '', funding: '' }))}
+            onChange={(v) => setS((p) => (p.venue === v ? p : { ...p, venue: v, entry: '', exit: '', stop: '', funding: '' }))}
           />
         </Field>
 
@@ -246,7 +267,10 @@ export function PerpsCalculator() {
             <dl className="mt-2.5 grid grid-cols-3 gap-2 rounded-xl bg-surface-2 px-3.5 py-2.5">
               <div>
                 <dt className="text-[11px] text-muted">{t.perps.mark}</dt>
-                <dd className="num text-sm text-ink">{price(market.markPx)}</dd>
+                {/* settles in when the 20s refresh or a market change moves it, so "live" is visible */}
+                <dd className="num text-sm text-ink">
+                  <SwapValue value={price(market.markPx)} />
+                </dd>
               </div>
               <div>
                 <dt className="text-[11px] text-muted">{t.profit.change24h}</dt>
@@ -261,7 +285,9 @@ export function PerpsCalculator() {
               </div>
               <div>
                 <dt className="text-[11px] text-muted">{t.perps.fundingLive}</dt>
-                <dd className="num text-sm text-ink">{pct(market.fundingHourly, { digits: 4, signed: true })}</dd>
+                <dd className="num text-sm text-ink">
+                  <SwapValue value={pct(market.fundingHourly, { digits: 4, signed: true })} />
+                </dd>
               </div>
             </dl>
           )}
@@ -386,6 +412,71 @@ export function PerpsCalculator() {
           </Field>
         </div>
 
+        <div className="grid gap-6 sm:grid-cols-2">
+          <Field
+            label={t.perps.stop}
+            htmlFor={ids.stop}
+            optional
+            hint={stopWrongSide ? (s.side === 'long' ? t.perps.stopSideLong : t.perps.stopSideShort) : undefined}
+          >
+            <NumberInput
+              id={ids.stop}
+              value={s.stop}
+              onChange={(v) => set('stop', v)}
+              prefix="$"
+              placeholder={entryValid ? toInput(entry * (s.side === 'long' ? 0.95 : 1.05)) : '0'}
+              invalid={(s.stop !== '' && !stopValid) || stopWrongSide}
+            />
+            {entryValid && (
+              <QuickPicks
+                label={t.perps.stopHint}
+                values={STOP_MOVES.map((d) => ({
+                  value: toInput(entry * (s.side === 'long' ? 1 - d : 1 + d)),
+                  label: pct(s.side === 'long' ? -d : d, { digits: 0, signed: true }),
+                }))}
+                current={s.stop}
+                onPick={(v) => set('stop', v)}
+              />
+            )}
+          </Field>
+          <Field
+            label={t.perps.risk}
+            htmlFor={ids.risk}
+            optional
+            hint={
+              !riskValid
+                ? t.perps.riskHint
+                : sizedBeyondLiq
+                  ? t.perps.riskBeyondLiq
+                  : riskMargin !== null
+                    ? t.perps.riskMargin(usd(riskMargin), usd(riskMargin * leverage))
+                    : t.perps.riskNeedStop
+            }
+            aside={
+              riskMargin !== null ? (
+                <button
+                  type="button"
+                  onClick={() => set('margin', String(Number(riskMargin.toFixed(2))))}
+                  aria-label={t.perps.useMarginLabel(usd(riskMargin))}
+                  className="text-xs font-medium text-accent-strong hover:underline"
+                >
+                  {t.perps.useMargin} {usd(riskMargin)}
+                </button>
+              ) : null
+            }
+          >
+            <NumberInput
+              id={ids.risk}
+              value={s.risk}
+              onChange={(v) => set('risk', v)}
+              prefix="$"
+              suffix="USDC"
+              placeholder="20"
+              invalid={s.risk !== '' && !riskValid}
+            />
+          </Field>
+        </div>
+
         <details className="group rounded-xl border border-line">
           <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-3.5 text-sm font-medium text-ink [&::-webkit-details-marker]:hidden">
             <span>
@@ -394,7 +485,7 @@ export function PerpsCalculator() {
                 {s.funding || '0'}%/h · {s.hold || '0'}h
               </span>
             </span>
-            <ChevronDown aria-hidden className="size-4 shrink-0 text-muted transition-transform group-open:rotate-180" />
+            <ChevronDown aria-hidden className="size-4 shrink-0 text-muted transition-transform duration-[var(--dur-base)] ease-[var(--ease-standard)] group-open:rotate-180" />
           </summary>
         <div className="grid gap-6 border-t border-line p-3.5 sm:grid-cols-2">
           <Field label={t.perps.funding} htmlFor={ids.funding} hint={t.perps.fundingHint}>
@@ -465,6 +556,8 @@ export function PerpsCalculator() {
                   growth: s.venue === 'xyz' ? s.growth : null,
                   funding: s.funding,
                   hold: s.hold,
+                  stop: s.stop,
+                  risk: s.risk,
                 })
               }
             />
@@ -498,6 +591,24 @@ export function PerpsCalculator() {
                 tone={result.liquidation === null ? 'muted' : 'neg'}
               />
               <Row label={t.perps.breakEven} value={price(result.breakEven)} />
+              {stop && (
+                <>
+                  <Row
+                    label={t.perps.lossAtStop}
+                    value={stop.beyondLiquidation ? t.perps.liquidatedFirst : usd(-stop.loss, { signed: true })}
+                    sub={stop.beyondLiquidation ? undefined : t.perps.lossAtStopSub(pct(stop.lossOfMargin), pct(stop.distance))}
+                    strong
+                    tone="neg"
+                  />
+                  {!stop.beyondLiquidation && (
+                    <Row
+                      label={t.perps.riskReward}
+                      value={stop.rewardRisk !== null ? t.perps.riskRewardValue(num(stop.rewardRisk)) : t.perps.riskRewardNone}
+                      tone={stop.rewardRisk === null ? 'muted' : undefined}
+                    />
+                  )}
+                </>
+              )}
               <Row
                 label={t.perps.notional}
                 value={usd(result.notional)}
@@ -528,6 +639,10 @@ export function PerpsCalculator() {
               {result.tierMaxLeverage !== null && leverage > result.tierMaxLeverage && (
                 <Notice tone="warn">{t.perps.tierWarn(result.tierMaxLeverage)}</Notice>
               )}
+              {stop?.beyondLiquidation && result.liquidation !== null && (
+                <Notice tone="warn">{t.perps.stopBeyondLiq(price(result.liquidation))}</Notice>
+              )}
+              {stop && <Notice>{t.perps.stopNote}</Notice>}
               <Notice>
                 {t.perps.estimate} {t.perps.usNote}
               </Notice>

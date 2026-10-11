@@ -53,31 +53,35 @@ export function roundTrip(input: RoundTripInput): RoundTripResult {
   };
 }
 
-function legsAt(input: RoundTripInput, buyUsd: number, multiple: number) {
-  const chain = getChain(input.chain);
-  const network = chain.gasCovered ? 0 : Math.max(0, input.networkFeeUsd);
+function networkFee(input: RoundTripInput): number {
+  return getChain(input.chain).gasCovered ? 0 : Math.max(0, input.networkFeeUsd);
+}
+
+/** The buy: its costs and the market value of the tokens it gets. */
+export function buyLeg(input: RoundTripInput) {
+  const buyUsd = Math.max(0, input.buyUsd);
   const buyFee = buyUsd > 0 ? fomoFee(buyUsd, input.chain, input.tokenClass, input.referral).fee : 0;
-  const buyNetworkFee = buyUsd > 0 ? network : 0;
+  const buyNetworkFee = buyUsd > 0 ? networkFee(input) : 0;
   const afterCosts = Math.max(0, buyUsd - buyFee - buyNetworkFee);
   const buyImpactCost = afterCosts * clamp(input.buyImpact, 0, 1);
-  const positionAtEntry = afterCosts - buyImpactCost;
-  const positionAtExit = positionAtEntry * multiple;
-  const sellImpactCost = positionAtExit * clamp(input.sellImpact, 0, 1);
-  const sellOrder = positionAtExit - sellImpactCost;
+  return { buyFee, buyNetworkFee, buyImpactCost, positionAtEntry: afterCosts - buyImpactCost };
+}
+
+/** Selling tokens with a market value of `value`: price impact, then the fomo fee and network fee on the order. */
+export function sellLeg(input: RoundTripInput, value: number) {
+  const marketValue = Math.max(0, value);
+  const sellImpactCost = marketValue * clamp(input.sellImpact, 0, 1);
+  const sellOrder = marketValue - sellImpactCost;
   const sellFee = sellOrder > 0 ? fomoFee(sellOrder, input.chain, input.tokenClass, input.referral).fee : 0;
-  const sellNetworkFee = sellOrder > 0 ? network : 0;
-  const proceeds = Math.max(0, sellOrder - sellFee - sellNetworkFee);
-  return {
-    buyFee,
-    buyNetworkFee,
-    buyImpactCost,
-    positionAtEntry,
-    positionAtExit,
-    sellImpactCost,
-    sellFee,
-    sellNetworkFee,
-    proceeds,
-  };
+  const sellNetworkFee = sellOrder > 0 ? networkFee(input) : 0;
+  return { sellImpactCost, sellOrder, sellFee, sellNetworkFee, proceeds: Math.max(0, sellOrder - sellFee - sellNetworkFee) };
+}
+
+function legsAt(input: RoundTripInput, buyUsd: number, multiple: number) {
+  const buy = buyLeg({ ...input, buyUsd });
+  const positionAtExit = buy.positionAtEntry * multiple;
+  const { sellImpactCost, sellFee, sellNetworkFee, proceeds } = sellLeg(input, positionAtExit);
+  return { ...buy, positionAtExit, sellImpactCost, sellFee, sellNetworkFee, proceeds };
 }
 
 /**
