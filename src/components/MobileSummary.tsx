@@ -4,6 +4,7 @@ import { useEffect, useState, type ReactNode, type RefObject } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { t } from '../lib/copy';
 import { cx } from '../lib/cx';
+import { prefersReducedMotion, SwapValue } from './ui';
 
 /**
  * Bottom bar on small screens that keeps the headline result in view while
@@ -26,7 +27,8 @@ export function MobileSummary(props: {
     let resultsVisible = true;
     let resultsBelow = false;
     let containerVisible = false;
-    const io = new IntersectionObserver((entries) => {
+    const io = new IntersectionObserver(
+      (entries) => {
       for (const e of entries) {
         if (e.target === results) {
           resultsVisible = e.isIntersecting;
@@ -35,8 +37,11 @@ export function MobileSummary(props: {
           containerVisible = e.isIntersecting;
         }
       }
-      setShow(containerVisible && !resultsVisible && resultsBelow);
-    });
+        setShow(containerVisible && !resultsVisible && resultsBelow);
+      },
+      // the bottom tab bar covers the last 64px; results under it are not in view yet
+      { rootMargin: '0px 0px -80px 0px' },
+    );
     io.observe(results);
     io.observe(container);
     return () => io.disconnect();
@@ -44,17 +49,22 @@ export function MobileSummary(props: {
 
   return (
     <div
+      data-mobile-summary
       inert={!show}
       aria-hidden={!show}
       className={cx(
-        'fixed inset-x-0 bottom-0 z-30 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] transition-transform duration-200 lg:hidden',
-        show ? 'translate-y-0' : 'translate-y-[calc(100%+1rem)]',
+        // sits just above the bottom nav, which is also hidden from lg up; rises
+        // in with the drawer curve, drops away faster than it came
+        'fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-30 px-3 pb-2 transition-transform lg:hidden',
+        show
+          ? 'translate-y-0 duration-[var(--dur-slow)] ease-[var(--ease-drawer)]'
+          : 'pointer-events-none translate-y-[calc(100%+6rem)] duration-200 ease-[var(--ease-exit)]',
       )}
     >
       <button
         type="button"
-        onClick={() => props.resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-        className="flex w-full items-center justify-between gap-3 rounded-2xl border border-line bg-surface/95 px-4 py-3 text-left shadow-xl backdrop-blur"
+        onClick={() => props.resultsRef.current?.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'start' })}
+        className="press-soft flex w-full items-center justify-between gap-3 rounded-2xl border border-line bg-surface px-4 py-3 text-left shadow-xl"
       >
         <span className="min-w-0 flex-1">
           <span className="block truncate text-[11px] text-muted">{props.label}</span>
@@ -66,7 +76,7 @@ export function MobileSummary(props: {
                   props.tone === 'pos' ? 'text-pos' : props.tone === 'neg' ? 'text-neg' : 'text-ink',
                 )}
               >
-                {props.value}
+                {typeof props.value === 'string' ? <SwapValue value={props.value} /> : props.value}
               </span>
               {props.detail && <span className="num truncate text-xs text-ink-2">{props.detail}</span>}
             </span>

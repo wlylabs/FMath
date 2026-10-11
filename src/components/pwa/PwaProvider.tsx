@@ -171,7 +171,7 @@ export function PwaProvider({ children }: { children: ReactNode }) {
       <dialog
         ref={iosDialog}
         aria-labelledby="ios-install-title"
-        className="m-auto w-[calc(100%-2rem)] max-w-sm rounded-2xl border border-line bg-surface p-0 text-ink shadow-2xl backdrop:bg-black/60"
+        className="sheet m-auto w-[calc(100%-2rem)] max-w-sm rounded-2xl border border-line bg-surface p-0 text-ink shadow-2xl max-sm:mb-[calc(0.75rem+env(safe-area-inset-bottom))]"
         onClick={(e) => {
           if (e.target === e.currentTarget) e.currentTarget.close();
         }}
@@ -185,7 +185,7 @@ export function PwaProvider({ children }: { children: ReactNode }) {
               type="button"
               onClick={() => iosDialog.current?.close()}
               aria-label={t.pwa.close}
-              className="-mr-1 -mt-1 inline-flex size-8 items-center justify-center rounded-lg text-muted hover:text-ink"
+              className="press -mr-1 -mt-1 inline-flex size-8 items-center justify-center rounded-lg text-muted hover:text-ink"
             >
               <X aria-hidden className="size-4" />
             </button>
@@ -214,7 +214,7 @@ export function InstallButton({ variant = 'icon' }: { variant?: 'icon' | 'text' 
   if (!canInstall) return null;
   if (variant === 'text') {
     return (
-      <button type="button" onClick={install} className="inline-flex items-center gap-1.5 text-left text-ink-2 hover:text-ink">
+      <button type="button" onClick={install} className="press inline-flex items-center gap-1.5 text-left text-ink-2 hover:text-ink">
         <Download aria-hidden className="size-3.5" />
         {t.footer.install}
       </button>
@@ -226,7 +226,8 @@ export function InstallButton({ variant = 'icon' }: { variant?: 'icon' | 'text' 
       onClick={install}
       aria-label={t.header.install}
       title={t.header.install}
-      className="inline-flex size-9 items-center justify-center rounded-lg border border-line text-ink-2 transition-colors hover:border-line-strong hover:text-ink"
+      // appears after hydration (the browser offers install late), so it fades in instead of popping
+      className="press pop-in inline-flex size-9 items-center justify-center rounded-lg border border-line text-ink-2 hover:border-line-strong hover:text-ink"
     >
       <Download aria-hidden className="size-4" />
     </button>

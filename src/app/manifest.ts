@@ -1,6 +1,7 @@
 import type { MetadataRoute } from 'next';
 import { SITE_DESCRIPTION, SITE_NAME, SITE_TITLE } from '../lib/site';
 import { BRAND } from '../lib/brand';
+import { ROUTES } from '../lib/routes';
 
 export const dynamic = 'force-static';
 
@@ -29,10 +30,10 @@ export default function manifest(): MetadataRoute.Manifest {
       { src: '/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
     ],
     shortcuts: [
-      { name: 'Trade fee', short_name: 'Fee', description: 'fomo fee for one order', url: '/?tab=fee#calculator', icons: ICON },
-      { name: 'Profit & target', short_name: 'Profit', description: 'Net profit and break-even', url: '/?tab=profit#calculator', icons: ICON },
-      { name: 'Perps', short_name: 'Perps', description: 'Fees, funding and liquidation', url: '/?tab=perps#calculator', icons: ICON },
-      { name: 'Get 10% off fomo fees', short_name: '10% off', url: '/#referral', icons: ICON },
+      { name: 'Trade fee', short_name: 'Fee', description: 'fomo fee for one order', url: ROUTES.fee, icons: ICON },
+      { name: 'Profit & target', short_name: 'Profit', description: 'Net profit and break-even', url: ROUTES.profit, icons: ICON },
+      { name: 'Perps', short_name: 'Perps', description: 'Fees, funding and liquidation', url: ROUTES.perps, icons: ICON },
+      { name: 'Get 10% off fomo fees', short_name: '10% off', url: ROUTES.referral, icons: ICON },
     ],
     screenshots: [
       {

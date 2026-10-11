@@ -60,6 +60,28 @@
   color-scheme: dark;
 }
 
+/*
+ * Motion. Easing and duration follow Material Design 3 motion tokens
+ * (emphasized decelerate for things arriving, emphasized accelerate for
+ * things leaving, standard for things moving) and Vaul's drawer curve for
+ * anything that follows a finger. Only transform and opacity animate.
+ */
+:root {
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-enter: cubic-bezier(0.05, 0.7, 0.1, 1);
+  --ease-exit: cubic-bezier(0.3, 0, 0.8, 0.15);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --dur-press: 100ms;
+  --dur-fast: 150ms;
+  --dur-base: 250ms;
+  --dur-slow: 400ms;
+  /* page transitions: short enough that a second tab tap is not lost to the overlay */
+  --dur-page: 340ms;
+  --dur-out: 120ms;
+  --dur-in: 200ms;
+  interpolate-size: allow-keywords;
+}
+
 @theme inline {
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, 'SFMono-Regular', Menlo, monospace;
@@ -91,6 +113,15 @@
     scroll-behavior: smooth;
     -webkit-text-size-adjust: 100%;
     scroll-padding-top: 4.5rem;
+  }
+  /* keyboard focus and anchors stop above the bottom tab bar, and above the result bar while it shows */
+  @media (width < 64rem) {
+    html {
+      scroll-padding-bottom: calc(4.5rem + env(safe-area-inset-bottom));
+    }
+    html:has([data-mobile-summary][aria-hidden='false']) {
+      scroll-padding-bottom: calc(9.5rem + env(safe-area-inset-bottom));
+    }
   }
   body {
     background: var(--bg);
@@ -124,6 +155,7 @@
     *::before,
     *::after {
       animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
     }
   }
@@ -183,21 +215,6 @@
   }
 }
 
-@keyframes toast-in {
-  from {
-    opacity: 0;
-    transform: translateY(-6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.toast-in {
-  animation: toast-in 160ms ease-out;
-}
-
 /* torn bottom edge of the hero fee receipt */
 .receipt {
   box-shadow: 0 1px 0 var(--line), 0 30px 60px -40px rgb(23 19 28 / 0.55);
@@ -206,4 +223,378 @@
   background:
     linear-gradient(135deg, var(--surface) 50%, transparent 50%) 0 0 / 14px 12px repeat-x,
     linear-gradient(225deg, var(--surface) 50%, transparent 50%) 0 0 / 14px 12px repeat-x;
+}
+
+/* ---------- tap feedback ---------- */
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+.press {
+  transition:
+    transform var(--dur-fast) var(--ease-standard),
+    background-color var(--dur-fast) var(--ease-standard),
+    border-color var(--dur-fast) var(--ease-standard),
+    color var(--dur-fast) var(--ease-standard),
+    opacity var(--dur-fast) var(--ease-standard);
+}
+.press:active:not(:disabled) {
+  transform: scale(0.97);
+  transition-duration: var(--dur-press);
+}
+/* everything else that is tappable dims under the finger, in place of the grey tap highlight */
+:where(a[href], button, summary, [role='option']):where(:not(.press, .press-soft, :disabled)):active {
+  opacity: 0.7;
+}
+/* large surfaces (cards) give less, or they read as wobbling */
+.press-soft {
+  transition:
+    transform var(--dur-fast) var(--ease-standard),
+    border-color var(--dur-fast) var(--ease-standard);
+}
+.press-soft:active {
+  transform: scale(0.985);
+  transition-duration: var(--dur-press);
+}
+/* the slider thumb swells under the finger */
+.range::-webkit-slider-thumb {
+  transition: transform var(--dur-fast) var(--ease-standard);
+}
+.range:active::-webkit-slider-thumb {
+  transform: scale(1.15);
+}
+.range::-moz-range-thumb {
+  transition: transform var(--dur-fast) var(--ease-standard);
+}
+.range:active::-moz-range-thumb {
+  transform: scale(1.15);
+}
+
+/* ---------- page transitions (React <ViewTransition>, see PageTransition.tsx) ---------- */
+::view-transition {
+  pointer-events: none;
+}
+/* the page itself slides; the rest of the frame swaps without a crossfade */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+}
+/* header, bottom nav and the calculator switcher stay put so the eye has an anchor */
+::view-transition-group(site-header),
+::view-transition-group(bottom-nav),
+::view-transition-group(calc-switcher) {
+  animation: none;
+  z-index: 100;
+}
+::view-transition-old(site-header),
+::view-transition-old(bottom-nav),
+::view-transition-old(calc-switcher) {
+  display: none;
+}
+::view-transition-new(site-header),
+::view-transition-new(bottom-nav),
+::view-transition-new(calc-switcher) {
+  animation: none;
+}
+/* active-tab pills glide to their new spot */
+::view-transition-group(tab-indicator),
+::view-transition-group(header-indicator),
+::view-transition-group(calc-indicator) {
+  animation-duration: var(--dur-page);
+  animation-timing-function: var(--ease-drawer);
+  z-index: 101;
+}
+/* tab labels ride above the gliding pill, as they do in the page, and cross-fade their colour */
+.vt-tab-label {
+  view-transition-class: tab-label;
+}
+::view-transition-group(.tab-label) {
+  animation-duration: var(--dur-page);
+  z-index: 102;
+}
+/* the footer fades with the page instead of jumping ahead of it to the new page's end */
+::view-transition-group(site-footer) {
+  animation: none;
+}
+::view-transition-old(site-footer) {
+  animation: var(--dur-out) var(--ease-exit) both fade-out;
+}
+::view-transition-new(site-footer) {
+  animation: var(--dur-in) var(--ease-enter) var(--dur-out) both fade-in;
+}
+/* shared axis (Material): the old page leaves the way the finger or the tab order points,
+   the new one follows from the other side; fades overlap only after the old one is mostly gone */
+::view-transition-old(.nav-forward),
+::view-transition-old(.nav-back) {
+  animation:
+    var(--dur-out) var(--ease-exit) both fade-out,
+    var(--dur-page) var(--ease-standard) both slide-out;
+}
+::view-transition-new(.nav-forward),
+::view-transition-new(.nav-back) {
+  animation:
+    var(--dur-in) var(--ease-enter) var(--dur-out) both fade-in,
+    var(--dur-page) var(--ease-standard) both slide-in;
+}
+::view-transition-old(.nav-forward),
+::view-transition-new(.nav-back) {
+  --slide: -48px;
+}
+::view-transition-new(.nav-forward),
+::view-transition-old(.nav-back) {
+  --slide: 48px;
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes slide-in {
+  from {
+    translate: var(--slide) 0;
+  }
+}
+@keyframes slide-out {
+  to {
+    translate: var(--slide) 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* keep a short crossfade so the change still registers, drop all movement */
+  ::view-transition-old(.nav-forward),
+  ::view-transition-old(.nav-back),
+  ::view-transition-old(site-footer) {
+    animation: 120ms linear both fade-out;
+  }
+  ::view-transition-new(.nav-forward),
+  ::view-transition-new(.nav-back),
+  ::view-transition-new(site-footer) {
+    animation: 120ms linear both fade-in;
+  }
+  ::view-transition-group(*) {
+    animation-duration: 0s !important;
+  }
+  .press:active:not(:disabled),
+  .press-soft:active,
+  .range:active::-webkit-slider-thumb,
+  .range:active::-moz-range-thumb {
+    transform: none;
+  }
+}
+
+/* ---------- toasts: drop in, leave upward; swipe handled in Toaster.tsx ---------- */
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    translate: 0 -8px;
+    scale: 0.98;
+  }
+}
+.toast {
+  animation: toast-in var(--dur-base) var(--ease-enter);
+  transition:
+    opacity 200ms var(--ease-exit),
+    translate 200ms var(--ease-exit),
+    scale 200ms var(--ease-exit);
+}
+.toast[data-leaving] {
+  opacity: 0;
+  translate: 0 -8px;
+  scale: 0.98;
+}
+
+/* ---------- content a tap brought in: settles in place ---------- */
+@keyframes enter {
+  from {
+    opacity: 0;
+    translate: 0 4px;
+  }
+}
+.enter {
+  animation: enter 220ms var(--ease-enter);
+}
+/* the referral saving lights up when the switch turns it on, then fades to the card */
+@keyframes flash-pos {
+  from {
+    background-color: var(--pos-wash);
+    box-shadow: 0 0 0 0.5rem var(--pos-wash);
+  }
+}
+.flash-pos {
+  border-radius: 0.25rem;
+  animation: flash-pos 900ms var(--ease-standard);
+}
+
+/* ---------- popovers and icon swaps ---------- */
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    translate: 0 -4px;
+    scale: 0.98;
+  }
+}
+.pop-in {
+  transform-origin: top center;
+  animation: pop-in var(--dur-fast) var(--ease-enter);
+}
+@keyframes icon-in {
+  from {
+    opacity: 0;
+    scale: 0.5;
+  }
+}
+.icon-in {
+  animation: icon-in var(--dur-base) var(--ease-enter);
+}
+
+/* ---------- disclosure: <details> opens to its height (interpolate-size), fades in ---------- */
+details::details-content {
+  block-size: 0;
+  overflow-y: clip;
+  opacity: 0;
+  transition:
+    block-size var(--dur-base) var(--ease-standard),
+    opacity var(--dur-base) var(--ease-standard),
+    content-visibility var(--dur-base) allow-discrete;
+}
+details[open]::details-content {
+  block-size: auto;
+  opacity: 1;
+}
+
+/* ---------- dialog: a sheet that rises from the bottom on phones, settles in the middle elsewhere ---------- */
+dialog.sheet {
+  --sheet-from: 16px;
+  opacity: 0;
+  translate: 0 var(--sheet-from);
+  transition:
+    opacity var(--dur-fast) var(--ease-exit),
+    translate var(--dur-fast) var(--ease-exit),
+    overlay var(--dur-fast) allow-discrete,
+    display var(--dur-fast) allow-discrete;
+}
+dialog.sheet[open] {
+  opacity: 1;
+  translate: 0 0;
+  transition-duration: var(--dur-slow);
+  transition-timing-function: var(--ease-drawer);
+}
+@starting-style {
+  dialog.sheet[open] {
+    opacity: 0;
+    translate: 0 var(--sheet-from);
+  }
+}
+@media (max-width: 639px) {
+  dialog.sheet {
+    --sheet-from: calc(100% + 2rem);
+  }
+}
+dialog.sheet::backdrop {
+  background-color: rgb(0 0 0 / 0);
+  transition:
+    background-color var(--dur-fast) var(--ease-exit),
+    overlay var(--dur-fast) allow-discrete,
+    display var(--dur-fast) allow-discrete;
+}
+dialog.sheet[open]::backdrop {
+  background-color: rgb(0 0 0 / 0.6);
+  transition-duration: var(--dur-base);
+}
+@starting-style {
+  dialog.sheet[open]::backdrop {
+    background-color: rgb(0 0 0 / 0);
+  }
+}
+
+/* ---------- fee curve: draws left to right on arrival, morphs between schedules ---------- */
+@keyframes draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+}
+.chart-line {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+  animation: draw 700ms var(--ease-standard) both;
+}
+.chart-area {
+  animation: fade-in 500ms var(--ease-standard) 250ms both;
+}
+/* CSS d interpolation is Chromium and Firefox; Safari swaps the curve instantly */
+[data-ready] .chart-line,
+[data-ready] .chart-area {
+  transition: d var(--dur-slow) var(--ease-standard);
+}
+[data-ready] .chart-marker {
+  transition: transform var(--dur-base) var(--ease-drawer);
+}
+
+/* ---------- first load only: the landing rises in, in reading order ---------- */
+@keyframes rise {
+  from {
+    opacity: 0;
+    translate: 0 12px;
+  }
+}
+html:not([data-nav]) .rise {
+  animation: rise 500ms var(--ease-enter) both;
+  animation-delay: calc(var(--i, 0) * 60ms);
+}
+
+/* the base layer's reduced-motion rule reaches elements, ::before and ::after only */
+@media (prefers-reduced-motion: reduce) {
+  details::details-content,
+  dialog.sheet::backdrop {
+    transition: none;
+  }
+}
+
+/* ---------- theme switch: the new palette spreads out from the toggle (useTheme.ts) ---------- */
+/* one snapshot of the whole page, so the fixed bars and pills change with everything else */
+html.theme-switch *,
+html.theme-switch *::before,
+html.theme-switch *::after {
+  view-transition-name: none !important;
+  transition: none !important;
+}
+html.theme-switch::view-transition-old(root) {
+  animation: none;
+}
+html.theme-switch::view-transition-new(root) {
+  animation: theme-reveal 560ms var(--ease-standard);
+}
+@keyframes theme-reveal {
+  from {
+    clip-path: circle(0 at var(--reveal-x) var(--reveal-y));
+  }
+  to {
+    clip-path: circle(var(--reveal-r) at var(--reveal-x) var(--reveal-y));
+  }
+}
+html.theme-switch .theme-icon {
+  animation: theme-icon 400ms var(--ease-enter);
+}
+@keyframes theme-icon {
+  from {
+    opacity: 0;
+    rotate: -90deg;
+    scale: 0.6;
+  }
+}
+/* the hero receipt's bars fill in after the copy has landed */
+@keyframes grow-x {
+  from {
+    scale: 0 1;
+  }
+}
+html:not([data-nav]) .grow-x {
+  transform-origin: left;
+  animation: grow-x 700ms var(--ease-enter) both;
+  animation-delay: calc(var(--i, 0) * 80ms);
 }

@@ -10,7 +10,7 @@ import { num, parseAmount, usd } from '../lib/format';
 import { copyText } from '../lib/clipboard';
 import { toast } from '../lib/toast';
 import { usePersistentState } from '../hooks/usePersistentState';
-import { Field, NumberInput, QuickPicks, Segmented } from './ui';
+import { Field, NumberInput, QuickPicks, Segmented, SwapValue, useFlash } from './ui';
 import { CreatorAvatar, CreatorCard, CreatorLink } from './Creator';
 
 /** Every referral link goes through here so rel, target and URL stay consistent. */
@@ -30,14 +30,19 @@ export function ReferralLink(props: { className?: string; children: ReactNode; '
 
 export function CopyCodeButton({ className, tone = 'default' }: { className?: string; tone?: 'default' | 'coupon' }) {
   const coupon = tone === 'coupon';
+  const [copied, flash] = useFlash();
+  const iconClass = cx('size-4', coupon ? 'text-accent-ink/70' : 'text-muted group-hover:text-accent-strong');
   return (
     <button
       type="button"
       onClick={async () => {
-        if (await copyText(REFERRAL.code)) toast(t.referral.copied);
+        if (await copyText(REFERRAL.code)) {
+          toast(t.referral.copied);
+          flash();
+        }
       }}
       className={cx(
-        'group inline-flex h-12 items-center gap-2.5 rounded-xl border border-dashed border-line-strong bg-surface px-4 text-left transition-colors hover:border-accent-strong',
+        'press group inline-flex h-12 items-center gap-2.5 rounded-xl border border-dashed border-line-strong bg-surface px-4 text-left hover:border-accent-strong',
         className,
       )}
       aria-label={`${t.referral.copy}: ${REFERRAL.code}`}
@@ -46,7 +51,11 @@ export function CopyCodeButton({ className, tone = 'default' }: { className?: st
         <span className={cx('text-[11px]', coupon ? 'text-accent-ink/70' : 'text-muted')}>{t.referral.code}</span>
         <span className={cx('num text-sm font-semibold', coupon ? 'text-accent-ink' : 'text-ink')}>{REFERRAL.code}</span>
       </span>
-      <Copy aria-hidden className={cx('size-4', coupon ? 'text-accent-ink/70' : 'text-muted group-hover:text-accent-strong')} />
+      {copied ? (
+        <Check aria-hidden key="copied" className={cx(iconClass, 'icon-in', coupon ? 'text-accent-ink' : 'text-pos')} />
+      ) : (
+        <Copy aria-hidden key="copy" className={iconClass} />
+      )}
     </button>
   );
 }
@@ -113,7 +122,7 @@ function SavingsEstimator() {
 
   return (
     <div className="card p-5 sm:p-6">
-      <h3 className="text-base font-semibold text-ink">{t.referral.estimatorTitle}</h3>
+      <h2 className="text-base font-semibold text-ink">{t.referral.estimatorTitle}</h2>
       <p className="mt-1 text-xs text-muted">{t.referral.estimatorLead}</p>
 
       <div className="mt-5 space-y-5">
@@ -167,7 +176,7 @@ function SavingsEstimator() {
       <div className="mt-6 rounded-xl bg-surface-2 p-4">
         <p className="text-sm text-ink-2">{t.referral.savedYear}</p>
         <p className="mt-1 text-4xl font-semibold tracking-tight text-accent-strong" aria-live="polite">
-          {usd(keptMonth * 12)}
+          <SwapValue value={usd(keptMonth * 12)} />
         </p>
         <dl className="mt-3 space-y-1.5 text-sm">
           <div className="flex items-baseline justify-between gap-3">
@@ -186,7 +195,7 @@ function SavingsEstimator() {
         </dl>
       </div>
 
-      <ReferralLink className="mt-4 flex h-12 items-center justify-center gap-2 rounded-xl bg-accent text-sm font-semibold text-accent-ink transition-colors hover:bg-accent-hover">
+      <ReferralLink className="press mt-4 flex h-12 items-center justify-center gap-2 rounded-xl bg-accent text-sm font-semibold text-accent-ink hover:bg-accent-hover">
         {t.referral.cta}
         <ArrowUpRight aria-hidden className="size-4" />
       </ReferralLink>
@@ -200,7 +209,7 @@ function Coupon() {
     <div className="relative grid overflow-hidden rounded-3xl bg-accent text-accent-ink sm:grid-cols-[minmax(0,1fr)_13rem]">
       <div className="p-6 sm:p-8">
         <p className="flex items-center gap-2.5 text-sm">
-          <CreatorAvatar className="size-8 text-sm" />
+          <CreatorAvatar size={28} className="ring-2 ring-accent-ink/15" />
           <span className="text-accent-ink/75">
             {t.referral.from}{' '}
             <CreatorLink className="font-semibold text-accent-ink underline decoration-accent-ink/30 underline-offset-2 hover:decoration-accent-ink">
@@ -208,11 +217,11 @@ function Coupon() {
             </CreatorLink>
           </span>
         </p>
-        <h2 id="referral-title" className="mt-3 text-[1.75rem] font-semibold leading-[1.1] tracking-tight sm:text-4xl">
+        <h1 id="referral-title" className="mt-3 text-[1.75rem] font-semibold leading-[1.1] tracking-tight sm:text-4xl">
           {t.referral.headline}
-        </h2>
+        </h1>
         <p className="mt-3 max-w-md text-sm leading-relaxed text-accent-ink/80 sm:text-base">{t.referral.lead}</p>
-        <ReferralLink className="mt-6 inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-accent-ink px-6 text-sm font-semibold text-accent transition-opacity hover:opacity-90">
+        <ReferralLink className="press mt-6 inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-accent-ink px-6 text-sm font-semibold text-accent hover:opacity-90">
           {t.referral.cta}
           <ArrowUpRight aria-hidden className="size-4" />
         </ReferralLink>
@@ -233,8 +242,8 @@ function Coupon() {
 
 export function ReferralSection() {
   return (
-    <section id="referral" aria-labelledby="referral-title" className="border-b border-line">
-      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:items-start lg:gap-12 lg:py-20">
+    <section aria-labelledby="referral-title">
+      <div className="mx-auto grid max-w-6xl gap-10 px-4 pb-12 pt-8 sm:px-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:items-start lg:gap-12 lg:pb-16 lg:pt-12">
         <div>
           <Coupon />
 

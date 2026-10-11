@@ -1,13 +1,14 @@
 'use client';
 
 import { useEffect, useId, useRef, useState } from 'react';
-import { RefreshCw } from 'lucide-react';
+import { ChevronDown, RefreshCw } from 'lucide-react';
 import { fetchPerpMarkets, type PerpMarket } from '../../api/hyperliquid';
 import { PERPS_FEES, perpTrade, venueFeeRate, type OrderKind, type PerpSide, type PerpVenue } from '../../lib/perps';
 import { num, parseAmount, pct, price, time, usd } from '../../lib/format';
 import { t } from '../../lib/copy';
+import { ROUTES } from '../../lib/routes';
 import { usePersistentState } from '../../hooks/usePersistentState';
-import { CardTitle, Field, Headline, LiveBadge, Notice, NumberInput, QuickPicks, Row, Segmented, Switch } from '../ui';
+import { CardTitle, Field, Headline, LiveBadge, Notice, NumberInput, QuickPicks, Row, Segmented, SwapValue, Switch } from '../ui';
 import { cx } from '../../lib/cx';
 import { MobileSummary } from '../MobileSummary';
 import { ShareButton } from '../ShareButton';
@@ -82,7 +83,7 @@ function toInput(n: number): string {
 }
 
 export function PerpsCalculator() {
-  const [s, setS] = usePersistentState<State>('perps', INITIAL, { tab: 'perps', fromUrl });
+  const [s, setS] = usePersistentState<State>('perps', INITIAL, { page: ROUTES.perps, fromUrl });
   const set = <K extends keyof State>(k: K, v: State[K]) => setS((p) => ({ ...p, [k]: v }));
   const [loads, setLoads] = useState<Partial<Record<PerpVenue, Load>>>({});
   const [reloadKey, setReloadKey] = useState(0);
@@ -245,7 +246,10 @@ export function PerpsCalculator() {
             <dl className="mt-2.5 grid grid-cols-3 gap-2 rounded-xl bg-surface-2 px-3.5 py-2.5">
               <div>
                 <dt className="text-[11px] text-muted">{t.perps.mark}</dt>
-                <dd className="num text-sm text-ink">{price(market.markPx)}</dd>
+                {/* settles in when the 20s refresh or a market change moves it, so "live" is visible */}
+                <dd className="num text-sm text-ink">
+                  <SwapValue value={price(market.markPx)} />
+                </dd>
               </div>
               <div>
                 <dt className="text-[11px] text-muted">{t.profit.change24h}</dt>
@@ -260,7 +264,9 @@ export function PerpsCalculator() {
               </div>
               <div>
                 <dt className="text-[11px] text-muted">{t.perps.fundingLive}</dt>
-                <dd className="num text-sm text-ink">{pct(market.fundingHourly, { digits: 4, signed: true })}</dd>
+                <dd className="num text-sm text-ink">
+                  <SwapValue value={pct(market.fundingHourly, { digits: 4, signed: true })} />
+                </dd>
               </div>
             </dl>
           )}
@@ -385,7 +391,17 @@ export function PerpsCalculator() {
           </Field>
         </div>
 
-        <div className="grid gap-6 sm:grid-cols-2">
+        <details className="group rounded-xl border border-line">
+          <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-3.5 text-sm font-medium text-ink [&::-webkit-details-marker]:hidden">
+            <span>
+              {t.common.advanced}
+              <span className="num ml-2 font-normal text-muted">
+                {s.funding || '0'}%/h · {s.hold || '0'}h
+              </span>
+            </span>
+            <ChevronDown aria-hidden className="size-4 shrink-0 text-muted transition-transform duration-[var(--dur-base)] ease-[var(--ease-standard)] group-open:rotate-180" />
+          </summary>
+        <div className="grid gap-6 border-t border-line p-3.5 sm:grid-cols-2">
           <Field label={t.perps.funding} htmlFor={ids.funding} hint={t.perps.fundingHint}>
             <div
               className={cx(
@@ -416,6 +432,7 @@ export function PerpsCalculator() {
             />
           </Field>
         </div>
+        </details>
 
         <div className="grid gap-3">
           <Switch
@@ -440,7 +457,7 @@ export function PerpsCalculator() {
           aside={
             <ShareButton
               getUrl={() =>
-                buildShareUrl('perps', {
+                buildShareUrl(ROUTES.perps, {
                   venue: s.venue,
                   coin: s.coin[s.venue],
                   side: s.side,

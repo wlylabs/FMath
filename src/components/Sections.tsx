@@ -1,4 +1,5 @@
 import { ArrowUpRight, ChevronDown, ExternalLink } from 'lucide-react';
+import { ROUTES } from '../lib/routes';
 import { t } from '../lib/copy';
 import { LAST_CHECKED, SOURCES } from '../lib/sources';
 import { date } from '../lib/format';
@@ -8,18 +9,35 @@ import { CreatorAvatar, CreatorLink, XIcon } from './Creator';
 import { CREATOR } from '../lib/site';
 import { ReferralLink } from './Referral';
 import { InstallButton } from './pwa/PwaProvider';
+import { NavLink } from './NavLink';
 
 export function Methodology() {
   return (
-    <section id="methodology" className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:py-20" aria-labelledby="method-title">
-      <h2 id="method-title" className="text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
+    <section className="mx-auto max-w-6xl px-4 pb-12 pt-8 sm:px-6 lg:pb-16 lg:pt-12" aria-labelledby="method-title">
+      <h1 id="method-title" className="text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
         {t.method.title}
-      </h2>
+      </h1>
       <p className="mt-3 max-w-2xl text-sm leading-relaxed text-ink-2 sm:text-base">{t.method.lead}</p>
+      <nav aria-label={t.method.title} className="-mx-4 mt-5 flex gap-2 overflow-x-auto overscroll-x-contain px-4 [scrollbar-width:none] sm:mx-0 sm:px-0">
+        {[
+          { href: '#spot', label: t.method.spotTitle },
+          { href: '#formulas', label: t.method.formulasTitle },
+          { href: '#perps-fees', label: t.method.perpsTitle },
+          { href: '#sources', label: t.method.sourcesTitle },
+        ].map((l) => (
+          <a
+            key={l.href}
+            href={l.href}
+            className="press inline-flex h-9 shrink-0 items-center rounded-full border border-line bg-surface px-3.5 text-sm text-ink-2 hover:border-line-strong hover:text-ink"
+          >
+            {l.label}
+          </a>
+        ))}
+      </nav>
 
       <div className="mt-8 grid gap-4 lg:grid-cols-2">
-        <div className="card p-5 sm:p-6">
-          <h3 className="text-base font-semibold text-ink">{t.method.spotTitle}</h3>
+        <div id="spot" className="card p-5 sm:p-6">
+          <h2 className="text-base font-semibold text-ink">{t.method.spotTitle}</h2>
           <p className="mt-4 text-sm font-medium text-ink">{t.method.solanaTitle}</p>
           <div className="mt-2.5">
             <BandTable chain="solana" tokenClass="standard" referral={false} caption={t.method.solanaTitle} />
@@ -45,8 +63,8 @@ export function Methodology() {
         </div>
 
         <div className="grid gap-4">
-          <div className="card p-5 sm:p-6">
-            <h3 className="text-base font-semibold text-ink">{t.method.formulasTitle}</h3>
+          <div id="formulas" className="card p-5 sm:p-6">
+            <h2 className="text-base font-semibold text-ink">{t.method.formulasTitle}</h2>
             <dl className="mt-4 divide-y divide-line">
               {t.method.formulas.map((f) => (
                 <div key={f.name} className="py-3 first:pt-0 last:pb-0">
@@ -56,8 +74,8 @@ export function Methodology() {
               ))}
             </dl>
           </div>
-          <div className="card p-5 sm:p-6">
-            <h3 className="text-base font-semibold text-ink">{t.method.perpsTitle}</h3>
+          <div id="perps-fees" className="card p-5 sm:p-6">
+            <h2 className="text-base font-semibold text-ink">{t.method.perpsTitle}</h2>
             <p className="mt-2 text-sm leading-relaxed text-ink-2">{t.method.perpsBody}</p>
           </div>
         </div>
@@ -65,7 +83,7 @@ export function Methodology() {
 
       <div id="sources" className="mt-4 card p-5 sm:p-6">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h3 className="text-base font-semibold text-ink">{t.method.sourcesTitle}</h3>
+          <h2 className="text-base font-semibold text-ink">{t.method.sourcesTitle}</h2>
           <p className="text-xs text-muted">{t.method.checked(date(LAST_CHECKED))}</p>
         </div>
         <ul className="mt-4 grid gap-x-6 sm:grid-cols-2">
@@ -92,16 +110,16 @@ export function Methodology() {
 
 export function Faq() {
   return (
-    <section id="faq" className="mx-auto max-w-3xl px-4 pb-16 sm:px-6 lg:pb-24" aria-labelledby="faq-title">
-      <h2 id="faq-title" className="text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
+    <section className="mx-auto max-w-3xl px-4 pb-12 pt-8 sm:px-6 lg:pb-16 lg:pt-12" aria-labelledby="faq-title">
+      <h1 id="faq-title" className="text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
         {t.faq.title}
-      </h2>
+      </h1>
       <div className="mt-6 divide-y divide-line border-y border-line">
         {t.faq.items.map((item) => (
           <details key={item.q} className="group">
             <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 py-4 text-left text-base font-medium text-ink [&::-webkit-details-marker]:hidden">
               {item.q}
-              <ChevronDown aria-hidden className="size-4 shrink-0 text-muted transition-transform group-open:rotate-180" />
+              <ChevronDown aria-hidden className="size-4 shrink-0 text-muted transition-transform duration-[var(--dur-base)] ease-[var(--ease-standard)] group-open:rotate-180" />
             </summary>
             <p className="pb-5 pr-8 text-sm leading-relaxed text-ink-2">{item.a}</p>
           </details>
@@ -113,14 +131,19 @@ export function Faq() {
 
 export function Footer() {
   const links = [
-    { href: '#calculator', label: t.nav.calculator },
-    { href: '#referral', label: t.referral.eyebrow },
-    { href: '#methodology', label: t.nav.method },
-    { href: '#faq', label: t.nav.faq },
-    { href: '#sources', label: t.nav.sources },
+    { href: ROUTES.fee, label: t.calc.tabs.fee },
+    { href: ROUTES.profit, label: t.calc.tabs.profit },
+    { href: ROUTES.perps, label: t.calc.tabs.perps },
+    { href: ROUTES.referral, label: t.nav.referral },
+    { href: ROUTES.methodology, label: t.nav.method },
+    { href: ROUTES.faq, label: t.nav.faq },
+    { href: `${ROUTES.methodology}#sources`, label: t.nav.sources },
   ];
   return (
-    <footer className="border-t border-line pb-28 pt-10 lg:pb-10">
+    <footer
+      style={{ viewTransitionName: 'site-footer' }}
+      className="border-t border-line pb-[calc(5rem+env(safe-area-inset-bottom))] pt-10 lg:pb-10"
+    >
       <div className="mx-auto grid max-w-6xl gap-8 px-4 sm:px-6 md:grid-cols-[minmax(0,1fr)_auto] md:gap-16">
         <div>
           <div className="flex items-center gap-2.5">
@@ -131,7 +154,7 @@ export function Footer() {
             aria-label={t.creator.followLabel(CREATOR.handle)}
             className="group mt-4 inline-flex items-center gap-2.5 rounded-full border border-line py-1 pl-1 pr-3.5 text-sm transition-colors hover:border-line-strong"
           >
-            <CreatorAvatar className="size-7 text-xs" />
+            <CreatorAvatar size={28} />
             <span className="text-ink-2">
               {t.creator.label} <span className="font-semibold text-ink">{CREATOR.name}</span>
             </span>
@@ -143,15 +166,15 @@ export function Footer() {
             <p>{t.referral.disclosure}</p>
           </div>
         </div>
-        <nav aria-label="Footer" className="flex flex-col gap-2.5 text-sm">
+        <nav aria-label="Footer" className="grid grid-cols-2 gap-x-6 gap-y-2.5 text-sm md:flex md:flex-col">
           <ReferralLink className="inline-flex items-center gap-1.5 font-semibold text-accent-strong hover:underline">
             {t.footer.referral}
             <ArrowUpRight aria-hidden className="size-3.5" />
           </ReferralLink>
           {links.map((l) => (
-            <a key={l.href} href={l.href} className="text-ink-2 hover:text-ink">
+            <NavLink key={l.href} href={l.href} className="text-ink-2 hover:text-ink">
               {l.label}
-            </a>
+            </NavLink>
           ))}
           <InstallButton variant="text" />
         </nav>

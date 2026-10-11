@@ -7,6 +7,7 @@ import { roundTrip, type RoundTripInput } from '../../lib/roundtrip';
 import { compactUsd, multiple, num, parseAmount, pct, price, usd } from '../../lib/format';
 import { dexscreenerChainId, getToken, type TokenMarket } from '../../api/dexscreener';
 import { t } from '../../lib/copy';
+import { ROUTES } from '../../lib/routes';
 import { usePersistentState } from '../../hooks/usePersistentState';
 import { CardTitle, Field, Headline, Notice, NumberInput, Pills, QuickPicks, Row, Segmented, Switch } from '../ui';
 import { cx } from '../../lib/cx';
@@ -47,16 +48,16 @@ const INITIAL: State = {
   token: null,
 };
 
-function fromUrl(params: URLSearchParams): Partial<State> {
-  return {
-    ...primitivesFrom(INITIAL, params, {
-      chain: CHAINS.map((c) => c.id),
-      tokenClass: ['standard', 'major'],
-      targetBy: ['mcap', 'multiple'],
-    }),
-    // a shared link describes the whole calculation; its token (if any) loads separately
-    token: null,
-  };
+function fromUrl(params: URLSearchParams): Partial<State> | undefined {
+  const fields = primitivesFrom(INITIAL, params, {
+    chain: CHAINS.map((c) => c.id),
+    tokenClass: ['standard', 'major'],
+    targetBy: ['mcap', 'multiple'],
+  });
+  // only tracking params (?fbclid=, ?utm_*=): not a shared calculation, keep the saved token
+  if (Object.keys(fields).length === 0 && !params.has('token')) return undefined;
+  // a shared link describes the whole calculation; its token (if any) loads separately
+  return { ...fields, token: null };
 }
 
 const SCENARIOS = [0.5, 1, 2, 5, 10, 100];
@@ -69,7 +70,7 @@ function optionalPct(raw: string): { value: number; valid: boolean } {
 }
 
 export function ProfitCalculator() {
-  const [s, setS] = usePersistentState<State>('profit', INITIAL, { tab: 'profit', fromUrl });
+  const [s, setS] = usePersistentState<State>('profit', INITIAL, { page: ROUTES.profit, fromUrl });
   const set = <K extends keyof State>(k: K, v: State[K]) => setS((p) => ({ ...p, [k]: v }));
   const ids = {
     buy: useId(),
@@ -107,7 +108,7 @@ export function ProfitCalculator() {
 
   // A shared link can name a token as <dexscreener chain>:<address>; fetch it live.
   useEffect(() => {
-    const ref = takeUrlState('profit', 'profit-token')?.get('token');
+    const ref = takeUrlState(ROUTES.profit, 'profit-token')?.get('token');
     const [chainId, address] = ref?.split(':') ?? [];
     if (!chainId || !address) return;
     getToken(chainId, address)
@@ -290,7 +291,7 @@ export function ProfitCalculator() {
         <details className="group rounded-xl border border-line">
           <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-3.5 text-sm font-medium text-ink [&::-webkit-details-marker]:hidden">
             {t.common.advanced}
-            <ChevronDown aria-hidden className="size-4 text-muted transition-transform group-open:rotate-180" />
+            <ChevronDown aria-hidden className="size-4 text-muted transition-transform duration-[var(--dur-base)] ease-[var(--ease-standard)] group-open:rotate-180" />
           </summary>
           <div className="space-y-6 border-t border-line p-3.5">
             <Field label={t.common.tokenClass} labelId={ids.cls} hint={s.tokenClass === 'major' ? t.common.majorHint : undefined}>
@@ -351,7 +352,7 @@ export function ProfitCalculator() {
           aside={
             <ShareButton
               getUrl={() =>
-                buildShareUrl('profit', {
+                buildShareUrl(ROUTES.profit, {
                   chain: s.chain,
                   tokenClass: s.tokenClass,
                   referral: s.referral,
@@ -438,7 +439,7 @@ export function ProfitCalculator() {
             )}
 
             <div className="mt-5">
-              <h4 className="text-sm font-medium text-ink">{t.profit.scenarios}</h4>
+              <h3 className="text-sm font-medium text-ink">{t.profit.scenarios}</h3>
               <p className="mt-0.5 text-xs text-muted">{t.profit.scenariosHint}</p>
               <table className="mt-3 w-full text-sm">
                 <thead className="text-xs text-muted">

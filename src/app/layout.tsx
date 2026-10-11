@@ -2,15 +2,19 @@ import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
 import { GeistSans } from 'geist/font/sans';
 import { GeistMono } from 'geist/font/mono';
-import { CREATOR, SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, SITE_URL } from '../lib/site';
+import { BASE_OPEN_GRAPH, CREATOR, SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, SITE_URL } from '../lib/site';
 import { BRAND } from '../lib/brand';
 import { PwaProvider } from '../components/pwa/PwaProvider';
 import { Toaster } from '../components/Toaster';
+import { Header } from '../components/Header';
+import { Footer } from '../components/Sections';
+import { BottomNav } from '../components/BottomNav';
+import { NavMarker } from '../components/NavMarker';
 import './globals.css';
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: SITE_TITLE,
+  title: { default: SITE_TITLE, template: `%s · ${SITE_NAME}` },
   description: SITE_DESCRIPTION,
   applicationName: SITE_NAME,
   authors: [{ name: CREATOR.name, url: CREATOR.url }],
@@ -22,20 +26,12 @@ export const metadata: Metadata = {
   // long numbers are amounts, not phone numbers
   formatDetection: { telephone: false, email: false, address: false },
   alternates: { canonical: '/' },
-  openGraph: {
-    type: 'website',
-    siteName: SITE_NAME,
-    title: SITE_TITLE,
-    description: SITE_DESCRIPTION,
-    url: '/',
-    images: [{ url: '/og.png', width: 1200, height: 630, alt: SITE_TITLE }],
-  },
+  openGraph: { ...BASE_OPEN_GRAPH, title: SITE_TITLE, description: SITE_DESCRIPTION, url: '/' },
+  // no title or description here: Next fills them from each page's openGraph
   twitter: {
     card: 'summary_large_image',
     site: CREATOR.handle,
     creator: CREATOR.handle,
-    title: SITE_TITLE,
-    description: SITE_DESCRIPTION,
     images: ['/og.png'],
   },
 };
@@ -54,7 +50,8 @@ const themeScript = `(function(){window.addEventListener('beforeinstallprompt',f
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" data-theme="dark" suppressHydrationWarning className={`${GeistSans.variable} ${GeistMono.variable}`}>
+    // data-scroll-behavior lets Next turn smooth scrolling off for the scroll reset on route changes
+    <html lang="en" data-theme="dark" data-scroll-behavior="smooth" suppressHydrationWarning className={`${GeistSans.variable} ${GeistMono.variable}`}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <link rel="preconnect" href="https://api.dexscreener.com" crossOrigin="" />
@@ -62,8 +59,12 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       </head>
       <body>
         <PwaProvider>
-          {children}
+          <Header />
+          <main id="main">{children}</main>
+          <Footer />
+          <BottomNav />
           <Toaster />
+          <NavMarker />
         </PwaProvider>
       </body>
     </html>
