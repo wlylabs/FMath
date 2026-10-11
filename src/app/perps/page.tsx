@@ -4,6 +4,7 @@ import { PerpsCalculator } from '../../components/calculators/PerpsCalculator';
 import { t } from '../../lib/copy';
 import { ROUTES } from '../../lib/routes';
 import { BASE_OPEN_GRAPH } from '../../lib/site';
+import { PageTransition } from '../../components/PageTransition';
 
 export const metadata: Metadata = {
   title: t.calc.pages.perps.title,
@@ -14,8 +15,10 @@ export const metadata: Metadata = {
 
 export default function PerpsPage() {
   return (
-    <CalculatorPage active="perps">
-      <PerpsCalculator />
-    </CalculatorPage>
+    <PageTransition>
+      <CalculatorPage active="perps">
+        <PerpsCalculator />
+      </CalculatorPage>
+    </PageTransition>
   );
 }

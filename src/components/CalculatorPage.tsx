@@ -20,6 +20,7 @@ export function CalculatorPage({ active, children }: { active: CalculatorKey; ch
       {/* phones and tablets switch calculators from the bottom nav */}
       <nav
         aria-label={t.calc.tabsLabel}
+        style={{ viewTransitionName: 'calc-switcher' }}
         className="mb-6 hidden w-fit grid-cols-3 gap-1 rounded-xl border border-line bg-surface p-1 lg:grid"
       >
         {CALCULATOR_KEYS.map((key) => (
@@ -28,11 +29,16 @@ export function CalculatorPage({ active, children }: { active: CalculatorKey; ch
             href={ROUTES[key]}
             aria-current={key === active ? 'page' : undefined}
             className={cx(
-              'flex h-10 min-w-36 items-center justify-center rounded-lg px-4 text-sm font-semibold',
-              key === active ? 'bg-ink text-bg' : 'text-ink-2 hover:bg-surface-2 hover:text-ink',
+              'relative isolate flex h-10 min-w-36 items-center justify-center rounded-lg px-4 text-sm font-semibold',
+              key === active ? 'text-bg' : 'text-ink-2 hover:bg-surface-2 hover:text-ink',
             )}
           >
-            {t.calc.tabs[key]}
+            {key === active && (
+              <span aria-hidden className="absolute inset-0 -z-10 rounded-lg bg-ink" style={{ viewTransitionName: 'calc-indicator' }} />
+            )}
+            <span className="vt-tab-label relative" style={{ viewTransitionName: `calc-tab-${key}` }}>
+              {t.calc.tabs[key]}
+            </span>
           </NavLink>
         ))}
       </nav>

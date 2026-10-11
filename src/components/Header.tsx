@@ -24,6 +24,7 @@ export function Header() {
   ];
   return (
     <header
+      style={{ viewTransitionName: 'site-header' }}
       className="sticky top-0 z-40 border-b border-line bg-bg/85 pt-[env(safe-area-inset-top)] backdrop-blur-md"
     >
       <a
@@ -38,18 +39,25 @@ export function Header() {
           <span className="text-base font-semibold tracking-tight text-ink">FMath</span>
         </NavLink>
         <nav aria-label={t.nav.primary} className="hidden items-center gap-1 lg:flex">
-          {links.map((l) => (
+          {links.map((l, i) => (
             <NavLink
               key={l.href}
               href={l.href}
               // "Calculators" links to /fee/ but lights up on every calculator; only the page itself is "page"
               aria-current={samePage(pathname, l.href) ? 'page' : l.active ? 'true' : undefined}
               className={cx(
-                'rounded-lg px-3 py-2 text-sm',
-                l.active ? 'bg-surface-2 font-medium text-ink' : 'text-ink-2 hover:bg-surface-2 hover:text-ink',
+                'relative rounded-lg px-3 py-2 text-sm',
+                l.active ? 'font-medium text-ink' : 'text-ink-2 hover:bg-surface-2 hover:text-ink',
               )}
             >
-              {l.label}
+              {/* one pill that glides to the active link between pages */}
+              {l.active && (
+                <span aria-hidden className="absolute inset-0 -z-10 rounded-lg bg-surface-2" style={{ viewTransitionName: 'header-indicator' }} />
+              )}
+              {/* named so the text stays above the pill while it glides past (vt-tab-label in globals.css) */}
+              <span className="vt-tab-label relative" style={{ viewTransitionName: `header-tab-${i}` }}>
+                {l.label}
+              </span>
             </NavLink>
           ))}
         </nav>

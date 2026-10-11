@@ -1,7 +1,16 @@
-import Link from 'next/link';
-import type { ComponentProps } from 'react';
+'use client';
 
-/** next/link for in-app pages. Navigation swaps pages instantly, without a transition. */
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import type { ComponentProps } from 'react';
+import { navDirection } from '../lib/routes';
+
+/**
+ * next/link that tells the page transition which way to slide: further along
+ * the app slides left, back towards Home slides right.
+ */
 export function NavLink(props: ComponentProps<typeof Link> & { href: string }) {
-  return <Link {...props} />;
+  const pathname = usePathname();
+  const direction = navDirection(pathname, props.href);
+  return <Link {...props} transitionTypes={direction ? [direction] : undefined} />;
 }

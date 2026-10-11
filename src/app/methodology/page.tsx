@@ -3,6 +3,7 @@ import { Methodology } from '../../components/Sections';
 import { t } from '../../lib/copy';
 import { ROUTES } from '../../lib/routes';
 import { BASE_OPEN_GRAPH } from '../../lib/site';
+import { PageTransition } from '../../components/PageTransition';
 
 export const metadata: Metadata = {
   title: t.method.title,
@@ -13,6 +14,8 @@ export const metadata: Metadata = {
 
 export default function MethodologyPage() {
   return (
-    <Methodology />
+    <PageTransition>
+      <Methodology />
+    </PageTransition>
   );
 }

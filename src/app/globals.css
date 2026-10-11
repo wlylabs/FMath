@@ -76,6 +76,7 @@
   --dur-base: 250ms;
   --dur-slow: 400ms;
   /* page transitions: short enough that a second tab tap is not lost to the overlay */
+  --dur-page: 340ms;
   --dur-out: 120ms;
   --dur-in: 200ms;
   interpolate-size: allow-keywords;
@@ -273,13 +274,116 @@ html {
   transform: scale(1.15);
 }
 
+/* ---------- page transitions (React <ViewTransition>, see PageTransition.tsx) ---------- */
+::view-transition {
+  pointer-events: none;
+}
+/* the page itself slides; the rest of the frame swaps without a crossfade */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+}
+/* header, bottom nav and the calculator switcher stay put so the eye has an anchor */
+::view-transition-group(site-header),
+::view-transition-group(bottom-nav),
+::view-transition-group(calc-switcher) {
+  animation: none;
+  z-index: 100;
+}
+::view-transition-old(site-header),
+::view-transition-old(bottom-nav),
+::view-transition-old(calc-switcher) {
+  display: none;
+}
+::view-transition-new(site-header),
+::view-transition-new(bottom-nav),
+::view-transition-new(calc-switcher) {
+  animation: none;
+}
+/* active-tab pills glide to their new spot */
+::view-transition-group(tab-indicator),
+::view-transition-group(header-indicator),
+::view-transition-group(calc-indicator) {
+  animation-duration: var(--dur-page);
+  animation-timing-function: var(--ease-drawer);
+  z-index: 101;
+}
+/* tab labels ride above the gliding pill, as they do in the page, and cross-fade their colour */
+.vt-tab-label {
+  view-transition-class: tab-label;
+}
+::view-transition-group(.tab-label) {
+  animation-duration: var(--dur-page);
+  z-index: 102;
+}
+/* the footer fades with the page instead of jumping ahead of it to the new page's end */
+::view-transition-group(site-footer) {
+  animation: none;
+}
+::view-transition-old(site-footer) {
+  animation: var(--dur-out) var(--ease-exit) both fade-out;
+}
+::view-transition-new(site-footer) {
+  animation: var(--dur-in) var(--ease-enter) var(--dur-out) both fade-in;
+}
+/* shared axis (Material): the old page leaves the way the finger or the tab order points,
+   the new one follows from the other side; fades overlap only after the old one is mostly gone */
+::view-transition-old(.nav-forward),
+::view-transition-old(.nav-back) {
+  animation:
+    var(--dur-out) var(--ease-exit) both fade-out,
+    var(--dur-page) var(--ease-standard) both slide-out;
+}
+::view-transition-new(.nav-forward),
+::view-transition-new(.nav-back) {
+  animation:
+    var(--dur-in) var(--ease-enter) var(--dur-out) both fade-in,
+    var(--dur-page) var(--ease-standard) both slide-in;
+}
+::view-transition-old(.nav-forward),
+::view-transition-new(.nav-back) {
+  --slide: -48px;
+}
+::view-transition-new(.nav-forward),
+::view-transition-old(.nav-back) {
+  --slide: 48px;
+}
 @keyframes fade-in {
   from {
     opacity: 0;
   }
 }
+@keyframes fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes slide-in {
+  from {
+    translate: var(--slide) 0;
+  }
+}
+@keyframes slide-out {
+  to {
+    translate: var(--slide) 0;
+  }
+}
 
 @media (prefers-reduced-motion: reduce) {
+  /* keep a short crossfade so the change still registers, drop all movement */
+  ::view-transition-old(.nav-forward),
+  ::view-transition-old(.nav-back),
+  ::view-transition-old(site-footer) {
+    animation: 120ms linear both fade-out;
+  }
+  ::view-transition-new(.nav-forward),
+  ::view-transition-new(.nav-back),
+  ::view-transition-new(site-footer) {
+    animation: 120ms linear both fade-in;
+  }
+  ::view-transition-group(*) {
+    animation-duration: 0s !important;
+  }
   .press:active:not(:disabled),
   .press-soft:active,
   .range:active::-webkit-slider-thumb,

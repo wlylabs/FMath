@@ -4,6 +4,7 @@ import { ProfitCalculator } from '../../components/calculators/ProfitCalculator'
 import { t } from '../../lib/copy';
 import { ROUTES } from '../../lib/routes';
 import { BASE_OPEN_GRAPH } from '../../lib/site';
+import { PageTransition } from '../../components/PageTransition';
 
 export const metadata: Metadata = {
   title: t.calc.pages.profit.title,
@@ -14,8 +15,10 @@ export const metadata: Metadata = {
 
 export default function ProfitPage() {
   return (
-    <CalculatorPage active="profit">
-      <ProfitCalculator />
-    </CalculatorPage>
+    <PageTransition>
+      <CalculatorPage active="profit">
+        <ProfitCalculator />
+      </CalculatorPage>
+    </PageTransition>
   );
 }
