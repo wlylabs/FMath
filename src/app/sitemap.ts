@@ -6,7 +6,8 @@ import { ROUTES } from '../lib/routes';
 export const dynamic = 'force-static';
 
 const PRIORITY: Record<keyof typeof ROUTES, number> = {
-  home: 1,
+  landing: 1,
+  home: 0.9,
   fee: 0.9,
   profit: 0.9,
   perps: 0.9,

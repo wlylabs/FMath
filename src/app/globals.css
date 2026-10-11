@@ -430,18 +430,6 @@ dialog.sheet[open]::backdrop {
   transition: transform var(--dur-base) var(--ease-drawer);
 }
 
-/* ---------- first load only: the landing rises in, in reading order ---------- */
-@keyframes rise {
-  from {
-    opacity: 0;
-    translate: 0 12px;
-  }
-}
-html:not([data-nav]) .rise {
-  animation: rise 360ms var(--ease-enter) both;
-  animation-delay: calc(var(--i, 0) * 40ms);
-}
-
 /* the base layer's reduced-motion rule reaches elements, ::before and ::after only */
 @media (prefers-reduced-motion: reduce) {
   dialog.sheet::backdrop {
@@ -455,7 +443,7 @@ html.theme-switch *::before,
 html.theme-switch *::after {
   transition: none !important;
 }
-/* the hero receipt's bars fill in after the copy has landed */
+/* the hero receipt's bars fill in on first load; the copy itself paints at once */
 @keyframes grow-x {
   from {
     scale: 0 1;

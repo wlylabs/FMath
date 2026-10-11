@@ -105,7 +105,8 @@ export function TokenLookup(props: { token: TokenMarket | null; onChange: (t: To
     [token, onChange],
   );
 
-  // Pull fresh numbers when a saved token is restored, then every 60s while the tab is visible.
+  // Pull fresh numbers when a saved token is restored, then every 60s while the tab is visible,
+  // and straight away when the tab comes back with numbers older than 15s.
   const refreshFromEffect = useEffectEvent((signal: AbortSignal, onlyIfStale: boolean) => {
     if (onlyIfStale && Date.now() - (token?.fetchedAt ?? 0) <= 15_000) return;
     void refresh(signal);
@@ -118,10 +119,15 @@ export function TokenLookup(props: { token: TokenMarket | null; onChange: (t: To
     const id = setInterval(() => {
       if (document.visibilityState === 'visible') refreshFromEffect(ctrl.signal, false);
     }, 60_000);
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') refreshFromEffect(ctrl.signal, true);
+    };
+    document.addEventListener('visibilitychange', onVisible);
     return () => {
       ctrl.abort();
       clearTimeout(first);
       clearInterval(id);
+      document.removeEventListener('visibilitychange', onVisible);
     };
   }, [tokenKey]);
 

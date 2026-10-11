@@ -1,6 +1,8 @@
 /** Every page, with the trailing slash the static export serves it under. */
 export const ROUTES = {
-  home: '/',
+  /** Static landing page, served without the app shell (src/app/route.ts). */
+  landing: '/',
+  home: '/home/',
   fee: '/fee/',
   profit: '/profit/',
   perps: '/perps/',
@@ -27,3 +29,15 @@ export function adjacentCalculator(path: string, step: 1 | -1): string | null {
   const next = CALCULATOR_KEYS[i + step];
   return next ? ROUTES[next] : null;
 }
+
+/**
+ * Sections of the old single page, which installed shortcuts and shared links
+ * still point at as /#referral. The landing page redirects them.
+ */
+export const LEGACY_HASHES: Record<string, string> = {
+  '#calculator': ROUTES.fee,
+  '#referral': ROUTES.referral,
+  '#methodology': ROUTES.methodology,
+  '#sources': `${ROUTES.methodology}#sources`,
+  '#faq': ROUTES.faq,
+};
