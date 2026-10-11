@@ -61,11 +61,11 @@ export function Header() {
             </NavLink>
           ))}
         </nav>
-        <div className="flex items-center gap-1.5 sm:gap-2">
-          <ReferralLink className="press inline-flex h-9 items-center gap-1 whitespace-nowrap rounded-lg bg-accent px-2.5 text-sm font-semibold text-accent-ink hover:bg-accent-hover sm:px-3">
+        <div className="flex items-center gap-2">
+          {/* phones reach the referral from the bottom nav; the header keeps its room for the toggles */}
+          <ReferralLink className="press hidden h-9 items-center gap-1 whitespace-nowrap rounded-lg bg-accent px-3 text-sm font-semibold text-accent-ink hover:bg-accent-hover sm:inline-flex">
             {t.header.referralCta}
-            {/* the arrow goes first on small phones, so the language and theme toggles keep their room */}
-            <ArrowUpRight aria-hidden className="hidden size-4 min-[400px]:block" />
+            <ArrowUpRight aria-hidden className="size-4" />
           </ReferralLink>
           <InstallButton />
           <LangToggle />

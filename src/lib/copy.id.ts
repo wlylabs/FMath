@@ -29,7 +29,7 @@ export const id: Copy = {
   header: {
     toggleTheme: 'Ganti mode terang atau gelap',
     install: 'Pasang aplikasi',
-    referralCta: '−10% fee',
+    referralCta: 'Diskon 10%',
   },
   hero: {
     eyebrow: 'Kalkulator independen untuk trader fomo',
