@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, Fragment, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
-import { LANG_LABELS, LANGS, setLang, type Lang } from '../lib/copy';
+import { LANG_LABELS, LANGS, loadLang, setLang, type Lang } from '../lib/copy';
 import { cx } from '../lib/cx';
 
 const KEY = 'fmath:lang';
@@ -30,8 +30,17 @@ export function LangProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // the saved choice can only be read after hydration, which renders the exported English first
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (stored() !== 'en') setLangState(stored());
+    const saved = stored();
+    if (saved === 'en') return;
+    let live = true;
+    loadLang(saved).then(
+      () => live && setLangState(saved),
+      // could not fetch the copy: show the page in English rather than keep it hidden
+      () => document.documentElement.classList.remove('lang-pending'),
+    );
+    return () => {
+      live = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -40,12 +49,19 @@ export function LangProvider({ children }: { children: ReactNode }) {
   }, [lang]);
 
   const change = useCallback((next: Lang) => {
-    try {
-      localStorage.setItem(KEY, next);
-    } catch {
-      /* ignore */
-    }
-    setLangState(next);
+    loadLang(next).then(
+      () => {
+        try {
+          localStorage.setItem(KEY, next);
+        } catch {
+          /* ignore */
+        }
+        setLangState(next);
+      },
+      () => {
+        /* offline before the copy was cached: stay in the current language */
+      },
+    );
   }, []);
 
   return (
@@ -68,6 +84,9 @@ export function LangToggle() {
           aria-checked={lang === l}
           lang={l}
           onClick={() => change(l)}
+          // start fetching the other language as soon as a tap or click looks likely
+          onPointerEnter={() => void loadLang(l).catch(() => {})}
+          onFocus={() => void loadLang(l).catch(() => {})}
           className={cx(
             'h-full rounded-md px-2 text-xs font-semibold',
             lang === l ? 'bg-surface-2 text-ink' : 'text-muted hover:text-ink',

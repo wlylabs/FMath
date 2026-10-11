@@ -20,7 +20,6 @@ export function CalculatorPage({ active, children }: { active: CalculatorKey; ch
       {/* phones and tablets switch calculators from the bottom nav */}
       <nav
         aria-label={t.calc.tabsLabel}
-        style={{ viewTransitionName: 'calc-switcher' }}
         className="mb-6 hidden w-fit grid-cols-3 gap-1 rounded-xl border border-line bg-surface p-1 lg:grid"
       >
         {CALCULATOR_KEYS.map((key) => (
@@ -34,9 +33,9 @@ export function CalculatorPage({ active, children }: { active: CalculatorKey; ch
             )}
           >
             {key === active && (
-              <span aria-hidden className="absolute inset-0 -z-10 rounded-lg bg-ink" style={{ viewTransitionName: 'calc-indicator' }} />
+              <span aria-hidden className="absolute inset-0 -z-10 rounded-lg bg-ink" />
             )}
-            <span className="vt-tab-label relative" style={{ viewTransitionName: `calc-tab-${key}` }}>
+            <span className="relative">
               {t.calc.tabs[key]}
             </span>
           </NavLink>

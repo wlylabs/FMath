@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
-import { GeistSans } from 'geist/font/sans';
-import { GeistMono } from 'geist/font/mono';
+import { GeistMono, GeistSans } from './fonts';
 import { BASE_OPEN_GRAPH, CREATOR, SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, SITE_URL } from '../lib/site';
 import { BRAND } from '../lib/brand';
 import { PwaProvider } from '../components/pwa/PwaProvider';
@@ -52,8 +51,7 @@ const themeScript = `(function(){window.addEventListener('beforeinstallprompt',f
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    // data-scroll-behavior lets Next turn smooth scrolling off for the scroll reset on route changes
-    <html lang="en" data-theme="dark" data-scroll-behavior="smooth" suppressHydrationWarning className={`${GeistSans.variable} ${GeistMono.variable}`}>
+    <html lang="en" data-theme="dark" suppressHydrationWarning className={`${GeistSans.variable} ${GeistMono.variable}`}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <link rel="preconnect" href="https://api.dexscreener.com" crossOrigin="" />

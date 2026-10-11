@@ -47,9 +47,15 @@ export function MobileSummary(props: {
     return () => io.disconnect();
   }, [props.resultsRef, props.containerRef]);
 
+  // keyboard focus and anchors stop above the bar while it shows (scroll-padding in globals.css);
+  // a class instead of html:has(), which the browser would re-check on every DOM change
+  useEffect(() => {
+    document.documentElement.classList.toggle('summary-shown', show);
+    return () => document.documentElement.classList.remove('summary-shown');
+  }, [show]);
+
   return (
     <div
-      data-mobile-summary
       inert={!show}
       aria-hidden={!show}
       className={cx(
